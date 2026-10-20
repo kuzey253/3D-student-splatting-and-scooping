@@ -1,0 +1,30 @@
+{
+ "scene": "garden",
+ "dry": false,
+ "iterations": 40000,
+ "config": {
+  "resolution": 4,
+  "cap_max": 3000000,
+  "nu_degree": 100,
+  "C_burnin": 500000.0,
+  "C": 120.0,
+  "burnin_iterations": 7000,
+  "iterations": 40000
+ },
+ "components": 3000000,
+ "psnr": 28.066429138183594,
+ "ssim": 0.8827893137931824,
+ "lpips": 0.0911460742354393,
+ "fps": 48.82198170637248,
+ "render_size": [
+  1297,
+  840
+ ],
+ "test_views": 24,
+ "peak_gpu_mem_mib": 10954,
+ "train_s": 3727.1,
+ "render_s": 99.9,
+ "metrics_s": 37.9,
+ "fps_s": 84.1,
+ "stats_s": 8.7
+}
