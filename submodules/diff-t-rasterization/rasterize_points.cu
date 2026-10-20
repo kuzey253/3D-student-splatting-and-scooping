@@ -95,27 +95,27 @@ RasterizeTCUDA(
 		binningFunc,
 		imgFunc,
 	    P, degree, M,
-		background.contiguous().data<float>(),
+		background.contiguous().data_ptr<float>(),
 		W, H,
-		means3D.contiguous().data<float>(),
+		means3D.contiguous().data_ptr<float>(),
 		sh.contiguous().data_ptr<float>(),
-		colors.contiguous().data<float>(), 
-		opacity.contiguous().data<float>(), 
+		colors.contiguous().data_ptr<float>(), 
+		opacity.contiguous().data_ptr<float>(), 
 		scales.contiguous().data_ptr<float>(),
 		scale_modifier,
 		rotations.contiguous().data_ptr<float>(),
-		cov3D_precomp.contiguous().data<float>(), 
-		viewmatrix.contiguous().data<float>(), 
-		projmatrix.contiguous().data<float>(),
-		campos.contiguous().data<float>(),
+		cov3D_precomp.contiguous().data_ptr<float>(), 
+		viewmatrix.contiguous().data_ptr<float>(), 
+		projmatrix.contiguous().data_ptr<float>(),
+		campos.contiguous().data_ptr<float>(),
 		tan_fovx,
 		tan_fovy,
 		prefiltered,
-		out_color.contiguous().data<float>(),
-		nu_degree.contiguous().data<float>(),
-		cover.contiguous().data<float>(),
-		negative_value.contiguous().data<float>(),
-		radii.contiguous().data<int>(),
+		out_color.contiguous().data_ptr<float>(),
+		nu_degree.contiguous().data_ptr<float>(),
+		cover.contiguous().data_ptr<float>(),
+		negative_value.contiguous().data_ptr<float>(),
+		radii.contiguous().data_ptr<int>(),
 		debug);
   }
   return std::make_tuple(rendered, out_color, radii, geomBuffer, binningBuffer, imgBuffer);
@@ -173,38 +173,38 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
   if(P != 0)
   {  
 	  CudaRasterizer::Rasterizer::backward(P, degree, M, R,
-	  background.contiguous().data<float>(),
+	  background.contiguous().data_ptr<float>(),
 	  W, H, 
-	  means3D.contiguous().data<float>(),
-	  sh.contiguous().data<float>(),
-	  colors.contiguous().data<float>(),
+	  means3D.contiguous().data_ptr<float>(),
+	  sh.contiguous().data_ptr<float>(),
+	  colors.contiguous().data_ptr<float>(),
 	  scales.data_ptr<float>(),
 	  scale_modifier,
 	  rotations.data_ptr<float>(),
-	  cov3D_precomp.contiguous().data<float>(),
-	  viewmatrix.contiguous().data<float>(),
-	  projmatrix.contiguous().data<float>(),
-	  campos.contiguous().data<float>(),
+	  cov3D_precomp.contiguous().data_ptr<float>(),
+	  viewmatrix.contiguous().data_ptr<float>(),
+	  projmatrix.contiguous().data_ptr<float>(),
+	  campos.contiguous().data_ptr<float>(),
 	  tan_fovx,
 	  tan_fovy,
-	  radii.contiguous().data<int>(),
+	  radii.contiguous().data_ptr<int>(),
 	  reinterpret_cast<char*>(geomBuffer.contiguous().data_ptr()),
 	  reinterpret_cast<char*>(binningBuffer.contiguous().data_ptr()),
 	  reinterpret_cast<char*>(imageBuffer.contiguous().data_ptr()),
-	  dL_dout_color.contiguous().data<float>(),
-	  dL_dmeans2D.contiguous().data<float>(),
-	  dL_dconic.contiguous().data<float>(),  
-	  dL_dopacity.contiguous().data<float>(),
-	  dL_dcolors.contiguous().data<float>(),
-	  dL_dmeans3D.contiguous().data<float>(),
-	  dL_dcov3D.contiguous().data<float>(),
-	  dL_dsh.contiguous().data<float>(),
-	  dL_dscales.contiguous().data<float>(),
-	  dL_drotations.contiguous().data<float>(),
+	  dL_dout_color.contiguous().data_ptr<float>(),
+	  dL_dmeans2D.contiguous().data_ptr<float>(),
+	  dL_dconic.contiguous().data_ptr<float>(),  
+	  dL_dopacity.contiguous().data_ptr<float>(),
+	  dL_dcolors.contiguous().data_ptr<float>(),
+	  dL_dmeans3D.contiguous().data_ptr<float>(),
+	  dL_dcov3D.contiguous().data_ptr<float>(),
+	  dL_dsh.contiguous().data_ptr<float>(),
+	  dL_dscales.contiguous().data_ptr<float>(),
+	  dL_drotations.contiguous().data_ptr<float>(),
 	  debug,
-	  nu_degree.contiguous().data<float>(),
-	  dL_dnudegree.contiguous().data<float>(),
-	  negative_value.contiguous().data<float>());
+	  nu_degree.contiguous().data_ptr<float>(),
+	  dL_dnudegree.contiguous().data_ptr<float>(),
+	  negative_value.contiguous().data_ptr<float>());
   }
 
   return std::make_tuple(dL_dmeans2D, dL_dcolors, dL_dopacity, dL_dmeans3D, dL_dcov3D, dL_dsh, dL_dscales, dL_drotations, dL_dnudegree);
@@ -222,10 +222,10 @@ torch::Tensor markVisible(
   if(P != 0)
   {
 	CudaRasterizer::Rasterizer::markVisible(P,
-		means3D.contiguous().data<float>(),
-		viewmatrix.contiguous().data<float>(),
-		projmatrix.contiguous().data<float>(),
-		present.contiguous().data<bool>());
+		means3D.contiguous().data_ptr<float>(),
+		viewmatrix.contiguous().data_ptr<float>(),
+		projmatrix.contiguous().data_ptr<float>(),
+		present.contiguous().data_ptr<bool>());
   }
   
   return present;
@@ -246,13 +246,13 @@ std::tuple<torch::Tensor, torch::Tensor> ComputeRelocationCUDA(
 	if(P != 0)
 	{
 		UTILS::ComputeRelocation(P,
-			opacity_old.contiguous().data<float>(),
-			scale_old.contiguous().data<float>(),
-			N.contiguous().data<int>(),
-			binoms.contiguous().data<float>(),
+			opacity_old.contiguous().data_ptr<float>(),
+			scale_old.contiguous().data_ptr<float>(),
+			N.contiguous().data_ptr<int>(),
+			binoms.contiguous().data_ptr<float>(),
 			n_max,
-			final_opacity.contiguous().data<float>(),
-			final_scale.contiguous().data<float>());
+			final_opacity.contiguous().data_ptr<float>(),
+			final_scale.contiguous().data_ptr<float>());
 	}
 
 	return std::make_tuple(final_opacity, final_scale);
@@ -276,14 +276,14 @@ std::tuple<torch::Tensor, torch::Tensor> ComputeRelocationStudentTCUDA(
 	if(P != 0)
 	{
 		UTILS::ComputeRelocationStudentT(P,
-			opacity_old.contiguous().data<float>(),
-			scale_old.contiguous().data<float>(),
-			nu_degree.contiguous().data<float>(),
-			N.contiguous().data<int>(),
-			binoms.contiguous().data<float>(),
+			opacity_old.contiguous().data_ptr<float>(),
+			scale_old.contiguous().data_ptr<float>(),
+			nu_degree.contiguous().data_ptr<float>(),
+			N.contiguous().data_ptr<int>(),
+			binoms.contiguous().data_ptr<float>(),
 			n_max,
-			final_opacity.contiguous().data<float>(),
-			final_scale.contiguous().data<float>());
+			final_opacity.contiguous().data_ptr<float>(),
+			final_scale.contiguous().data_ptr<float>());
 	}
 
 	return std::make_tuple(final_opacity, final_scale);

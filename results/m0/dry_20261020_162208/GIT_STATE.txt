@@ -1,0 +1,11 @@
+head dde8491ef6295d758f254aefe9e5a6c6302ec188
+status:
+ M NOTES.md
+ M submodules/diff-t-rasterization/cuda_rasterizer/rasterizer.h
+ M submodules/diff-t-rasterization/cuda_rasterizer/rasterizer_impl.h
+ M submodules/diff-t-rasterization/rasterize_points.cu
+ M submodules/simple-knn/simple_knn.cu
+ M submodules/simple-knn/spatial.cu
+?? COLAB_GPU_RUNBOOK.md
+?? scripts/colab/
+?? tests/test_colab_runner.py

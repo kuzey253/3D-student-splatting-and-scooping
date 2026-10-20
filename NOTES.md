@@ -51,3 +51,15 @@ Every departure from the handoff README (`../ReadMe.md`), with the reason. Newes
     - Mass: the 3D filter does not preserve projected 2D mass, in Mip-Splatting either, so "exact mass" applies to the 2D filter only.
 20. **The fast-path table has a 10% safety margin.** Entries require error ≤ 0.9e-3 on the derivation grid, to cover shapes and sizes between grid points. As a result, Option A is accepted at every size from ν = 400, not ν = 300 as recommended at the gate. At ν = 300 its worst error on the grid is 9.8e-4, only 2% under the limit. Between 300 and 400 it is used for components with λ_min/s ≥ 5.6.
 21. **M0 analysis tooling** (`mip_sss/analysis.py`, `scripts/m0_component_stats.py`) reads a trained model's PLY and `cameras.json` on CPU and reproduces SSS's activations, EWA projection and tile rectangles. Its cost figure is an estimate: transcendentals × tiles × 256, ignoring sorting, memory traffic and early termination.
+22. **Build-only edits to SSS's CUDA sources, for the G4 image (torch 2.11, CUDA 13).** All are mechanical and leave the compiled arithmetic unchanged:
+    - `Tensor::data<T>()` → `data_ptr<T>()`, 53 calls in `rasterize_points.cu` and `spatial.cu`. The two accessors are identical; `data_ptr` also exists in SSS's original torch 1.13.
+    - `#include <cstdint>` in `rasterizer.h` and `rasterizer_impl.h`, for `uint32_t`.
+    - `#include <cfloat>` in `simple_knn.cu`, for `FLT_MAX`.
+
+    These were applied before the first build to avoid failed builds on a billing VM. The dry run confirms whether they suffice.
+23. **M0 Colab runner** (`scripts/colab/`), following the user's Colab GPU runbook:
+    - The runner packages the working tree and records its git state on the VM.
+    - Training runs as a detached process. Status is checked with separate short `colab exec` calls, so nothing is sent into a streaming job.
+    - Every remote step answers with `M0_<STEP>=OK|FAIL`, and every phase checks its output files, because `metrics.py` swallows its own errors.
+    - Only small results are brought back.
+    - The runner never starts or stops the VM.
