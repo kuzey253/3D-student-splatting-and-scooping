@@ -11,6 +11,7 @@
 
 from typing import NamedTuple
 import torch.nn as nn
+import os
 import torch
 from . import _C
 
@@ -113,6 +114,8 @@ class _RasterizeT(torch.autograd.Function):
         ctx.raster_settings = raster_settings
         ctx.num_rendered = num_rendered
         ctx.save_for_backward(colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer, nu_degree, negative_value, opacities, filter_3d, optbBuffer)
+        if os.environ.get("MIP_NAN_CAPTURE"):
+            ctx.color_finite = bool(torch.isfinite(color).all())
         return color, radii
 
     @staticmethod
@@ -157,13 +160,13 @@ class _RasterizeT(torch.autograd.Function):
         if raster_settings.debug:
             cpu_args = cpu_deep_copy_tuple(args) # Copy them before they can be corrupted
             try:
-                grad_means2D, grad_colors_precomp, grad_opacities, grad_means3D, grad_cov3Ds_precomp, grad_sh, grad_scales, grad_rotations, grad_nu_degree = _C.rasterize_t_backward(*args)
+                grad_means2D, grad_colors_precomp, grad_opacities, grad_means3D, grad_cov3Ds_precomp, grad_sh, grad_scales, grad_rotations, grad_nu_degree, dL_dconic, dL_dB = _C.rasterize_t_backward(*args)
             except Exception as ex:
                 torch.save(cpu_args, "snapshot_bw.dump")
                 print("\nAn error occured in backward. Writing snapshot_bw.dump for debugging.\n")
                 raise ex
         else:
-             grad_means2D, grad_colors_precomp, grad_opacities, grad_means3D, grad_cov3Ds_precomp, grad_sh, grad_scales, grad_rotations, grad_nu_degree = _C.rasterize_t_backward(*args)
+             grad_means2D, grad_colors_precomp, grad_opacities, grad_means3D, grad_cov3Ds_precomp, grad_sh, grad_scales, grad_rotations, grad_nu_degree, dL_dconic, dL_dB = _C.rasterize_t_backward(*args)
 
         grads = (
             grad_means3D,
@@ -180,6 +183,18 @@ class _RasterizeT(torch.autograd.Function):
             None,
             None
         )
+
+        if os.environ.get("MIP_NAN_CAPTURE") and any(
+                torch.isnan(g).any() for g in grads if torch.is_tensor(g) and g.numel() > 0):
+            _nan_capture(ctx, raster_settings, grad_out_color,
+                         dict(means3D=means3D, scales=scales, rotations=rotations, cov3Ds_precomp=cov3Ds_precomp,
+                              radii=radii, sh=sh, nu_degree=nu_degree, negative_value=negative_value,
+                              opacities=opacities, colors_precomp=colors_precomp, filter_3d=filter_3d),
+                         dict(grad_means3D=grad_means3D, grad_means2D=grad_means2D, grad_sh=grad_sh,
+                              grad_colors_precomp=grad_colors_precomp, grad_opacities=grad_opacities,
+                              grad_scales=grad_scales, grad_rotations=grad_rotations,
+                              grad_cov3Ds_precomp=grad_cov3Ds_precomp, grad_nu_degree=grad_nu_degree,
+                              dL_dconic=dL_dconic, dL_dB=dL_dB))
 
         if torch.isnan(grad_means3D).any():
             print('grad_means3D')
@@ -210,6 +225,40 @@ class _RasterizeT(torch.autograd.Function):
             assert 1==0
 
         return grads
+
+def _nan_capture(ctx, settings, grad_out, inputs, grads, max_rows=4096):
+    """Mip-SSS M4 diagnostic (MIP_NAN_CAPTURE=<dir>): at the first NaN gradient, save which
+    components and which backward stages are non-finite, their inputs and gradients, the camera,
+    and a compact copy of the scene for replay (nan_capture.pt, nan_capture_scene.pt)."""
+    out_dir = os.environ["MIP_NAN_CAPTURE"]
+    path = os.path.join(out_dir, "nan_capture.pt")
+    if os.path.exists(path):
+        return
+    P = inputs["means3D"].shape[0]
+    rowwise = lambda t: torch.is_tensor(t) and t.dim() > 0 and t.numel() > 0 and t.shape[0] == P
+    masks = {k: ~torch.isfinite(g.reshape(P, -1)).all(1) for k, g in grads.items() if rowwise(g)}
+    bad = torch.zeros(P, dtype=torch.bool, device=inputs["means3D"].device)
+    for m in masks.values():
+        bad |= m
+    idx = bad.nonzero()[:, 0]
+    keep = idx[:max_rows]
+    rows = {k: t[keep].detach().cpu() for k, t in {**inputs, **grads}.items() if rowwise(t)}
+    rows["nonfinite"] = {k: m[keep].cpu() for k, m in masks.items()}
+    camera = {k: (v.detach().cpu() if torch.is_tensor(v) else v) for k, v in settings._asdict().items()}
+    torch.save({"P": P, "n_bad": int(idx.numel()), "idx": keep.cpu(),
+                "counts": {k: int(m.sum()) for k, m in masks.items()},
+                "nan_counts": {k: int(torch.isnan(g.reshape(P, -1)).any(1).sum()) for k, g in grads.items() if rowwise(g)},
+                "color_finite": getattr(ctx, "color_finite", None),
+                "grad_out_finite": bool(torch.isfinite(grad_out).all()),
+                "camera": camera, "rows": rows}, path)
+    scene = {k: inputs[k].detach().cpu() for k in ("means3D", "scales", "rotations", "opacities", "nu_degree",
+                                                   "negative_value", "radii") if rowwise(inputs[k])}
+    if rowwise(inputs["sh"]):
+        scene["sh_dc"] = inputs["sh"][:, 0].detach().cpu()
+    scene["grad_out"] = grad_out.detach().cpu()
+    torch.save(scene, os.path.join(out_dir, "nan_capture_scene.pt"))
+    print(f"NaN capture: {idx.numel()} components with non-finite gradients, saved to {path}", flush=True)
+
 
 class TRasterizationSettings(NamedTuple):
     image_height: int

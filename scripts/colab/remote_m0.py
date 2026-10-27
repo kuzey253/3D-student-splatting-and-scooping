@@ -244,7 +244,8 @@ def step_status():
 def step_collect():
     out = ROOT / "m0_results.tar.gz"
     keep = ("summary.json", "config.json", "results.json", "per_view.json", "fps.json", "cfg_args",
-            "cameras.json", "mem.csv", ".log", ".md", "stats.json", "m2_checks.json", "m3_checks.json", "m4_checks.json")
+            "cameras.json", "mem.csv", ".log", ".md", "stats.json", "m2_checks.json", "m3_checks.json", "m4_checks.json",
+            "nan_capture.pt", "nan_capture_scene.pt")
     with tarfile.open(out, "w:gz") as t:
         for p in sorted(M0.rglob("*")):
             if p.is_file() and (p.name.endswith(keep) or p.parent.name == "stats"):

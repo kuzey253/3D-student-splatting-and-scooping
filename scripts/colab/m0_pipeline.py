@@ -10,6 +10,7 @@ relocations at iteration 600), to check the whole chain cheaply.
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -89,6 +90,11 @@ def run_scene(scene, dry, status, name=None, overrides=None):
     if cfg.get("mip_filter_3d"):
         pipe_flags += ["--mip_filter_3d", "--mip_filter_3d_variance",
                        str(cfg.get("mip_filter_3d_variance", 0.2))]
+    # M4 diagnostic: the rasterizer saves the state at the first NaN gradient into the run directory
+    if cfg.pop("nan_capture", False):
+        os.environ["MIP_NAN_CAPTURE"] = str(d)
+    else:
+        os.environ.pop("MIP_NAN_CAPTURE", None)
     (d / "config.json").write_text(json.dumps(cfg, indent=1))
     iters = cfg["iterations"]
     times = {}

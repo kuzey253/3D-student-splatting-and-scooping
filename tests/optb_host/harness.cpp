@@ -80,3 +80,28 @@ extern "C" int run_full(const float* mean, const float* cov6, float sigma, float
     *dL_dop = op;
     return 1;
 }
+
+// Replay of one captured component's per-component backward (scripts/m4_nan_replay.py): camera-space
+// mean and covariance, the camera's intrinsics, and the incoming gradients as the GPU had them.
+extern "C" int run_cov_backward(const float* mean_cam, const float* cov6_cam, float sigma, float nu, float s,
+                                float opacity, float fx, float fy, float tanx, float tany,
+                                const float* dL_dconic4, float dL_dop_in, const float* accB,
+                                float* dcov6, float* dL_dt, float* dL_dop, int* fast, float* loghp)
+{
+    const float view[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+    float Tm[6], xmul, ymul;
+    float3 t;
+    optb_projection({ mean_cam[0], mean_cam[1], mean_cam[2] }, fx, fy, tanx, tany, view, Tm, t, xmul, ymul);
+    const OptbComp c = optb_component(Tm, cov6_cam, sigma, nu, s);
+    *fast = c.fast;
+    *loghp = c.loghp;
+    if ((sigma > 0.f && !(c.D > 0.f)) || !std::isfinite(c.loghp))
+        return 0;
+    float op = dL_dop_in;
+    float3 dt;
+    optb_cov_backward(c, cov6_cam, sigma, Tm, t, xmul, ymul, fx, fy, view, dL_dconic4, !c.fast, accB, opacity, op,
+                      dcov6, dt);
+    dL_dt[0] = dt.x; dL_dt[1] = dt.y; dL_dt[2] = dt.z;
+    *dL_dop = op;
+    return 1;
+}

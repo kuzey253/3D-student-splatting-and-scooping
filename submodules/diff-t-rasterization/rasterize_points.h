@@ -43,7 +43,7 @@ RasterizeTCUDA(
 	const torch::Tensor& filter3d,
 	const bool option_b);
 
-std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
  RasterizeTBackwardCUDA(
  	const torch::Tensor& background,
 	const torch::Tensor& means3D,
