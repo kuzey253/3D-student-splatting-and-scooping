@@ -11,6 +11,7 @@
 
 #include "backward.h"
 #include "auxiliary.h"
+#include "mip_optionb.h"
 #include <cooperative_groups.h>
 #include <cooperative_groups/reduce.h>
 namespace cg = cooperative_groups;
@@ -448,7 +449,10 @@ renderCUDA(
 	float* __restrict__ dL_dcolors,
 	const float* __restrict__ nu_degree,
 	float* __restrict__ dL_dnudegree,
-	const float* __restrict__ negative_value)
+	const float* __restrict__ negative_value,
+	const int* __restrict__ b_slot,
+	const float* __restrict__ optb,
+	float* __restrict__ dL_dB)
 {
 	// We rasterize again. Compute necessary block info.
 	auto block = cg::this_thread_block();
@@ -473,6 +477,7 @@ renderCUDA(
 	__shared__ float collected_colors[C * BLOCK_SIZE];
 	__shared__ float collected_nu_degree[BLOCK_SIZE];
 	__shared__ float collected_negative_value[BLOCK_SIZE];
+	__shared__ int collected_slot[BLOCK_SIZE];
 
 	// In the forward, we stored the final value for T, the
 	// product of all (1 - alpha) factors. 
@@ -515,6 +520,7 @@ renderCUDA(
 				collected_colors[i * BLOCK_SIZE + block.thread_rank()] = colors[coll_id * C + i];
 			collected_nu_degree[block.thread_rank()] = nu_degree[coll_id];
 			collected_negative_value[block.thread_rank()] = negative_value[coll_id];
+			collected_slot[block.thread_rank()] = b_slot != nullptr ? b_slot[coll_id] : -1;
 		}
 		block.sync();
 
@@ -543,7 +549,10 @@ renderCUDA(
 			float power = -(nu_degree_j + 2.0f) / 2.0f;
 
 			/* This is the probability density of Student T multiply with opacity */
-			float G = pow(1.0f + (1.0f / nu_degree_j) * base, power);
+			const int slot_j = collected_slot[j];
+			float G = slot_j >= 0  // Mip-SSS Option B component
+				? optb_value(optb + (size_t)slot_j * OPTB_STRIDE, con_o, nu_degree_j, d)
+				: pow(1.0f + (1.0f / nu_degree_j) * base, power);
 
 			float power2 = -(nu_degree_j + 4.0f) / 2.0f;
 			float dG = power * (1.0f / nu_degree_j) * pow(1.0f + (1.0f / nu_degree_j) * base, power2);
@@ -593,6 +602,22 @@ renderCUDA(
 				bg_dot_dpixel += bg_color[k] * dL_dpixel[k];
 			dL_dalpha += (-T_final / (1.f - alpha)) * bg_dot_dpixel;
 
+			if (slot_j >= 0)
+			{
+				// Mip-SSS Option B component: accumulators for computeCovOptionB (optb_pixel_backward)
+				const float dL_dT = con_o.w * dL_dalpha * negative_value_j;
+				float acc[OPTB_ACC], dnu;
+				float2 dd;
+				optb_pixel_backward(optb + (size_t)slot_j * OPTB_STRIDE, con_o, nu_degree_j, d, dL_dT, acc, dnu, dd);
+				for (int a = 0; a < OPTB_ACC; a++)
+					atomicAdd(&dL_dB[OPTB_ACC * global_id + a], acc[a]);
+				atomicAdd(&dL_dmean2D[global_id].x, dd.x * ddelx_dx);
+				atomicAdd(&dL_dmean2D[global_id].y, dd.y * ddely_dy);
+				atomicAdd(&(dL_dopacity[global_id]), G * dL_dalpha * negative_value_j);
+				atomicAdd(&(dL_dnudegree[global_id]), dnu);
+				continue;
+			}
+
 			// Helpful reusable temporary variables
 			const float dL_dG = con_o.w * dL_dalpha * negative_value_j;
 
@@ -622,6 +647,93 @@ renderCUDA(
 	}
 }
 
+// Mip-SSS Option B mode (M4): replaces computeCov2DCUDA. Fast-path components chain the conic and
+// effective-opacity (o·hp) gradients through covp; Option B components bring their render-pass
+// accumulators. Both then go through optb_chain to dL/dcov3D and dL/dmean3D.
+__global__ void computeCovOptionB(int P,
+	const float3* means,
+	const int* radii,
+	const float* cov3Ds,
+	const float h_x, float h_y,
+	const float tan_fovx, float tan_fovy,
+	const float* view_matrix,
+	const float* dL_dconics,
+	float3* dL_dmeans,
+	float* dL_dcov,
+	const float* opacities,
+	float* dL_dopacity,
+	const float kernel_size,
+	const float* filter3d,
+	const float* nu_degree,
+	const int* b_slot,
+	const float* dL_dB)
+{
+	auto idx = cg::this_grid().thread_rank();
+	if (idx >= P || !(radii[idx] > 0))
+		return;
+	const float* cov3D = cov3Ds + 6 * idx;
+	float Tm[6], xmul, ymul;
+	float3 t;
+	optb_projection(means[idx], h_x, h_y, tan_fovx, tan_fovy, view_matrix, Tm, t, xmul, ymul);
+	const float sigma = filter3d != nullptr ? filter3d[idx] : 0.0f;
+	const OptbComp oc = optb_component(Tm, cov3D, sigma, nu_degree[idx], kernel_size);
+	float acc[OPTB_ACC];
+	if (b_slot[idx] < 0)
+	{
+		// conic gradient w.r.t. covp, with SSS's formula (including its 1e-7 damping)
+		const float a = oc.covp[0], b = oc.covp[1], c = oc.covp[2];
+		const float3 dL_dconic = { dL_dconics[4 * idx], dL_dconics[4 * idx + 1], dL_dconics[4 * idx + 3] };
+		const float denom = a * c - b * b;
+		const float denom2inv = 1.0f / ((denom * denom) + 0.0000001f);
+		const float dL_da = denom2inv * (-c * c * dL_dconic.x + 2 * b * c * dL_dconic.y + (denom - a * c) * dL_dconic.z);
+		const float dL_dc = denom2inv * (-a * a * dL_dconic.z + 2 * a * b * dL_dconic.y + (denom - a * c) * dL_dconic.x);
+		const float dL_db = denom2inv * 2 * (b * c * dL_dconic.x - (denom + 2 * b * b) * dL_dconic.y + a * b * dL_dconic.z);
+		// effective opacity o·hp
+		const float hp = expf(oc.loghp);
+		const float dL_dopeff = dL_dopacity[idx];
+		const float dlh = dL_dopeff * opacities[idx] * hp;
+		dL_dopacity[idx] = dL_dopeff * hp;
+		float iS2f[3], icovp[3];
+		optb_inv2(oc.S2f, iS2f);
+		optb_inv2(oc.covp, icovp);
+		const float s2 = sigma * sigma;
+		const float G[3] = { dL_da + dlh * 0.5f * (iS2f[0] - icovp[0]),
+			0.5f * dL_db + dlh * 0.5f * (iS2f[1] - icovp[1]),
+			dL_dc + dlh * 0.5f * (iS2f[2] - icovp[2]) };
+		for (int i = 0; i < 3; i++)
+		{
+			acc[i] = G[i];
+			acc[3 + i] = G[i];
+		}
+		acc[6] = dlh * 0.5f * (1.f / oc.D - 1.f / oc.det3f);
+		acc[7] = dlh * -0.5f * s2 / oc.det3f;
+		acc[8] = dlh * -0.5f * s2 * s2 / oc.det3f;
+	}
+	else
+	{
+		for (int i = 0; i < OPTB_ACC; i++)
+			acc[i] = dL_dB[OPTB_ACC * idx + i];
+	}
+	float dcov6[6], dT[6];
+	optb_chain(cov3D, sigma, Tm, acc, dcov6, dT);
+	for (int i = 0; i < 6; i++)
+		dL_dcov[6 * idx + i] = dcov6[i];
+	// T = J W (W[i][j] = view[4j + i]): gradients for J's non-zero entries, then t, as computeCov2DCUDA
+	float dJ00 = 0.f, dJ02 = 0.f, dJ11 = 0.f, dJ12 = 0.f;
+	for (int j = 0; j < 3; j++)
+	{
+		dJ00 += dT[j] * view_matrix[4 * j + 0];
+		dJ02 += dT[j] * view_matrix[4 * j + 2];
+		dJ11 += dT[3 + j] * view_matrix[4 * j + 1];
+		dJ12 += dT[3 + j] * view_matrix[4 * j + 2];
+	}
+	const float tz = 1.f / t.z, tz2 = tz * tz, tz3 = tz2 * tz;
+	const float dL_dtx = xmul * -h_x * tz2 * dJ02;
+	const float dL_dty = ymul * -h_y * tz2 * dJ12;
+	const float dL_dtz = -h_x * tz2 * dJ00 - h_y * tz2 * dJ11 + (2 * h_x * t.x) * tz3 * dJ02 + (2 * h_y * t.y) * tz3 * dJ12;
+	dL_dmeans[idx] = transformVec4x3Transpose({ dL_dtx, dL_dty, dL_dtz }, view_matrix);
+}
+
 void BACKWARD::preprocess(
 	int P, int D, int M,
 	const float3* means3D,
@@ -647,12 +759,22 @@ void BACKWARD::preprocess(
 	glm::vec4* dL_drot,
 	const float* opacities,
 	float* dL_dopacity,
-	const float kernel_size)
+	const float kernel_size,
+	const bool option_b,
+	const float* filter3d,
+	const float* nu_degree,
+	const int* b_slot,
+	const float* dL_dB)
 {
 	// Propagate gradients for the path of 2D conic matrix computation. 
 	// Somewhat long, thus it is its own kernel rather than being part of 
 	// "preprocess". When done, loss gradient w.r.t. 3D means has been
 	// modified and gradient w.r.t. 3D covariance matrix has been computed.	
+	if (option_b)
+		computeCovOptionB << <(P + 255) / 256, 256 >> > (P, means3D, radii, cov3Ds, focal_x,
+			focal_y, tan_fovx, tan_fovy, viewmatrix, dL_dconic, (float3*)dL_dmean3D, dL_dcov3D, opacities,
+			dL_dopacity, kernel_size, filter3d, nu_degree, b_slot, dL_dB);
+	else
 	computeCov2DCUDA << <(P + 255) / 256, 256 >> > (
 		P,
 		means3D,
@@ -711,7 +833,10 @@ void BACKWARD::render(
 	float* dL_dcolors,
 	const float* nu_degree,
 	float* dL_dnudegree,
-	const float* negative_value)
+	const float* negative_value,
+	const int* b_slot,
+	const float* optb,
+	float* dL_dB)
 {
 	renderCUDA<NUM_CHANNELS> << <grid, block >> >(
 		ranges,
@@ -730,6 +855,9 @@ void BACKWARD::render(
 		dL_dcolors,
 		nu_degree,
 		dL_dnudegree,
-		negative_value
+		negative_value,
+		b_slot,
+		optb,
+		dL_dB
 		);
 }

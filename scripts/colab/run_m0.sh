@@ -10,7 +10,8 @@
 # Env: SESSION (required), DRY (0/1), SCENES (default "train garden"), RUNS (named runs with config
 # overrides, "name:scene:key=value,..." space-separated; replaces SCENES for training), PARITY=1
 # (M2 checks: also build the rasterizer at OLD_REF, default 19b1b53, and compare), M3CHECKS=1 (M3
-# checks, after the data step; stops before training if they fail), POLL (seconds
+# checks, after the data step; stops before training if they fail), M4CHECKS=1 (M4 Option B checks,
+# likewise), POLL (seconds
 # between status checks; default 30 dry, 300 real). Remote steps answer with M0_<STEP>=OK|FAIL
 # lines, which this script checks; `colab exec` itself exits 0 even when the remote code fails.
 set -euo pipefail
@@ -21,6 +22,7 @@ SCENES=${SCENES:-train garden}
 RUNS=${RUNS:-}
 PARITY=${PARITY:-0}
 M3CHECKS=${M3CHECKS:-0}
+M4CHECKS=${M4CHECKS:-0}
 OLD_REF=${OLD_REF:-19b1b53}
 POLL=${POLL:-$([ "$DRY" = 1 ] && echo 30 || echo 300)}
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -94,6 +96,15 @@ if [ "$M3CHECKS" = 1 ]; then
     exit 1
   fi
   grep -E "^M3_" "$OUT/m3.log" || true
+fi
+if [ "$M4CHECKS" = 1 ]; then
+  log "m4: Option B in CUDA vs float64 reference, render() wiring"
+  if ! try_step m4 1800; then
+    log "M4 checks did not pass; stopping before training:"
+    grep -E "^M0_M4=|^M4_" "$OUT/m4.log" || tail -20 "$OUT/m4.log"
+    exit 1
+  fi
+  grep -E "^M4_" "$OUT/m4.log" || true
 fi
 log "launch"
 step launch 120

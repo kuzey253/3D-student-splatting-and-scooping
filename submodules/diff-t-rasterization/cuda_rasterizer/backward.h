@@ -38,7 +38,10 @@ namespace BACKWARD
 		float* dL_dcolors,
 		const float* nu_degree,
 		float* dL_dnudegree,
-		const float* negative_value);
+		const float* negative_value,
+		const int* b_slot,
+		const float* optb,
+		float* dL_dB);
 
 	void preprocess(
 		int P, int D, int M,
@@ -65,7 +68,12 @@ namespace BACKWARD
 		glm::vec4* dL_drot,
 		const float* opacities,
 		float* dL_dopacity,
-		const float kernel_size);
+		const float kernel_size,
+		const bool option_b,
+		const float* filter3d,
+		const float* nu_degree,
+		const int* b_slot,
+		const float* dL_dB);
 }
 
 #endif

@@ -11,6 +11,7 @@
 
 #include "forward.h"
 #include "auxiliary.h"
+#include "mip_optionb.h"
 #include <cooperative_groups.h>
 #include <cooperative_groups/reduce.h>
 namespace cg = cooperative_groups;
@@ -184,7 +185,10 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	bool prefiltered,
 	const float* nu_degree,
 	const float* cover,
-	const float kernel_size)
+	const float kernel_size,
+	const float* filter3d,
+	const bool option_b,
+	int* b_flag)
 {
 	auto idx = cg::this_grid().thread_rank();
 	if (idx >= P)
@@ -194,6 +198,8 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	// this Gaussian will not be processed further.
 	radii[idx] = 0;
 	tiles_touched[idx] = 0;
+	if (option_b)
+		b_flag[idx] = 0;
 
 	// Perform near culling, quit if outside.
 	float3 p_view;
@@ -232,6 +238,25 @@ __global__ void preprocessCUDA(int P, int D, int M,
 		cov.z += kernel_size;
 		const float det_1 = cov.x * cov.z - cov.y * cov.y;
 		opacity_coef = det_0 > 0.0f ? sqrtf(det_0 / det_1) : 0.0f;
+	}
+
+	// Mip-SSS Option B mode (M4): every component gets the 3D + 2D Option A term, a t kernel on
+	// covp = Σ2 + P + sI with peak hp (mip_optionb.h). Fast-path components stop there; the others
+	// are flagged and get their quadrature nodes in preprocessOptionBCUDA.
+	float opacity_eff = kernel_size > 0.0f ? opacities[idx] * opacity_coef : opacities[idx];
+	bool optb_flag = false;
+	if (option_b)
+	{
+		float Tm[6], xmul, ymul;
+		float3 tcam;
+		optb_projection(p_orig, focal_x, focal_y, tan_fovx, tan_fovy, viewmatrix, Tm, tcam, xmul, ymul);
+		const float sigma = filter3d != nullptr ? filter3d[idx] : 0.0f;
+		const OptbComp oc = optb_component(Tm, cov3D, sigma, nu_degree[idx], kernel_size);
+		if (!(oc.D > 0.0f) || !isfinite(oc.loghp))
+			return;
+		cov = { oc.covp[0], oc.covp[1], oc.covp[2] };
+		optb_flag = !oc.fast;
+		opacity_eff = oc.fast ? opacities[idx] * expf(oc.loghp) : opacities[idx];
 	}
 
 	// Invert covariance (EWA algorithm)
@@ -320,8 +345,9 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	radii[idx] = my_radius;
 	points_xy_image[idx] = point_image;
 	// Inverse 2D covariance and opacity neatly pack into one float4
-	conic_opacity[idx] = { conic.x, conic.y, conic.z,
-		kernel_size > 0.0f ? opacities[idx] * opacity_coef : opacities[idx] };
+	conic_opacity[idx] = { conic.x, conic.y, conic.z, opacity_eff };
+	if (option_b)
+		b_flag[idx] = optb_flag ? 1 : 0;
 	tiles_touched[idx] = (rect_max.y - rect_min.y) * (rect_max.x - rect_min.x);
 }
 
@@ -342,7 +368,9 @@ renderCUDA(
 	const float* __restrict__ bg_color,
 	float* __restrict__ out_color,
 	const float* __restrict__ nu_degree,
-	const float* __restrict__ negative_value)
+	const float* __restrict__ negative_value,
+	const int* __restrict__ b_slot,
+	const float* __restrict__ optb)
 {
 	// Identify current tile and associated min/max pixel range.
 	auto block = cg::this_thread_block();
@@ -369,6 +397,7 @@ renderCUDA(
 	__shared__ float4 collected_conic_opacity[BLOCK_SIZE];
 	__shared__ float collected_nu_degree[BLOCK_SIZE];
 	__shared__ float collected_negative_value[BLOCK_SIZE];
+	__shared__ int collected_slot[BLOCK_SIZE];
 
 	// Initialize helper variables
 	float T = 1.0f;
@@ -394,6 +423,7 @@ renderCUDA(
 			collected_conic_opacity[block.thread_rank()] = conic_opacity[coll_id];
 			collected_nu_degree[block.thread_rank()] = nu_degree[coll_id];
 			collected_negative_value[block.thread_rank()] = negative_value[coll_id];
+			collected_slot[block.thread_rank()] = b_slot != nullptr ? b_slot[coll_id] : -1;
 		}
 		block.sync();
 
@@ -425,7 +455,12 @@ renderCUDA(
 			// Avoid numerical instabilities (see paper appendix). 
 
 			/* This is the probability density of Student T multiply with opacity */
-			float probability_density = pow(1.0f + (1.0f / nu_degree_j) * base, power);
+			float probability_density;
+			const int slot_j = collected_slot[j];
+			if (slot_j >= 0)  // Mip-SSS Option B component
+				probability_density = optb_value(optb + (size_t)slot_j * OPTB_STRIDE, con_o, nu_degree_j, d);
+			else
+				probability_density = pow(1.0f + (1.0f / nu_degree_j) * base, power);
 
 			float alpha = con_o.w * probability_density * negative_value_j;
 			if (alpha >= 0)
@@ -480,7 +515,9 @@ void FORWARD::render(
 	const float* bg_color,
 	float* out_color,
 	const float* nu_degree,
-	const float* negative_value)
+	const float* negative_value,
+	const int* b_slot,
+	const float* optb)
 {
 	renderCUDA<NUM_CHANNELS> << <grid, block >> > (
 		ranges,
@@ -494,7 +531,9 @@ void FORWARD::render(
 		bg_color,
 		out_color,
 		nu_degree,
-		negative_value);
+		negative_value,
+		b_slot,
+		optb);
 }
 
 void FORWARD::preprocess(int P, int D, int M,
@@ -524,7 +563,10 @@ void FORWARD::preprocess(int P, int D, int M,
 	bool prefiltered,
 	const float* nu_degree,
 	const float* cover,
-	const float kernel_size)
+	const float kernel_size,
+	const float* filter3d,
+	const bool option_b,
+	int* b_flag)
 {
 	preprocessCUDA<NUM_CHANNELS> << <(P + 255) / 256, 256 >> > (
 		P, D, M,
@@ -554,6 +596,78 @@ void FORWARD::preprocess(int P, int D, int M,
 		prefiltered,
 		nu_degree,
 		cover,
-		kernel_size
+		kernel_size,
+		filter3d,
+		option_b,
+		b_flag
 		);
+}
+
+// Mip-SSS Option B (M4): for components preprocessCUDA flagged, fill their slot of the node buffer
+// (b_slot holds the exclusive scan of b_flag) and widen the radius to the alpha-safe bound.
+__global__ void preprocessOptionBCUDA(int P,
+	const float* orig_points,
+	const float* cov3D_precomp,
+	const float* cov3Ds,
+	const float* opacities,
+	const float* nu_degree,
+	const float* filter3d,
+	const float* viewmatrix,
+	const float focal_x, float focal_y,
+	const float tan_fovx, float tan_fovy,
+	const float kernel_size,
+	const int* b_flag,
+	int* b_slot,
+	float* optb,
+	int* radii,
+	const float2* points_xy_image,
+	uint32_t* tiles_touched,
+	const dim3 grid)
+{
+	auto idx = cg::this_grid().thread_rank();
+	if (idx >= P)
+		return;
+	if (b_flag[idx] == 0)
+	{
+		b_slot[idx] = -1;
+		return;
+	}
+	const float3 p = { orig_points[3 * idx], orig_points[3 * idx + 1], orig_points[3 * idx + 2] };
+	const float* cov3D = cov3D_precomp != nullptr ? cov3D_precomp + 6 * idx : cov3Ds + 6 * idx;
+	float Tm[6], xmul, ymul;
+	float3 tcam;
+	optb_projection(p, focal_x, focal_y, tan_fovx, tan_fovy, viewmatrix, Tm, tcam, xmul, ymul);
+	const float sigma = filter3d != nullptr ? filter3d[idx] : 0.0f;
+	const float nu = nu_degree[idx];
+	const OptbComp oc = optb_component(Tm, cov3D, sigma, nu, kernel_size);
+	const float bound = optb_fill(oc, sigma, nu, kernel_size, opacities[idx], optb + (size_t)b_slot[idx] * OPTB_STRIDE);
+	const int r = max(radii[idx], (int)ceilf(bound));
+	uint2 rect_min, rect_max;
+	getRect(points_xy_image[idx], r, rect_min, rect_max, grid);
+	radii[idx] = r;
+	tiles_touched[idx] = (rect_max.y - rect_min.y) * (rect_max.x - rect_min.x);
+}
+
+void FORWARD::preprocessOptionB(int P,
+	const float* means3D,
+	const float* cov3D_precomp,
+	const float* cov3Ds,
+	const float* opacities,
+	const float* nu_degree,
+	const float* filter3d,
+	const float* viewmatrix,
+	const float focal_x, float focal_y,
+	const float tan_fovx, float tan_fovy,
+	const float kernel_size,
+	const int* b_flag,
+	int* b_slot,
+	float* optb,
+	int* radii,
+	const float2* means2D,
+	uint32_t* tiles_touched,
+	const dim3 grid)
+{
+	preprocessOptionBCUDA << <(P + 255) / 256, 256 >> > (P, means3D, cov3D_precomp, cov3Ds, opacities,
+		nu_degree, filter3d, viewmatrix, focal_x, focal_y, tan_fovx, tan_fovy, kernel_size, b_flag,
+		b_slot, optb, radii, means2D, tiles_touched, grid);
 }

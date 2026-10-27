@@ -55,7 +55,10 @@ namespace CudaRasterizer
 			const float* negative_value,
 			int* radii = nullptr,
 			bool debug = false,
-			const float kernel_size = 0.0f);
+			const float kernel_size = 0.0f,
+			const float* filter3d = nullptr,
+			const bool option_b = false,
+			std::function<char* (size_t)> optbBuffer = nullptr);
 
 		static void backward(
 			const int P, int D, int M, int R,
@@ -91,7 +94,11 @@ namespace CudaRasterizer
 			float* dL_dnudegree,
 			const float* negative_value,
 			const float* opacities = nullptr,
-			const float kernel_size = 0.0f);
+			const float kernel_size = 0.0f,
+			const float* filter3d = nullptr,
+			const bool option_b = false,
+			const char* optb_buffer = nullptr,
+			float* dL_dB = nullptr);
 	};
 };
 

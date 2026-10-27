@@ -96,3 +96,50 @@ def test_pipeline_run_specs():
     assert mod.parse_run("garden") == ("garden", "garden", {})
     assert mod.parse_run("g2:garden") == ("g2", "garden", {})
     assert math.isclose(mod.parse_run("a:b:x=1e-3")[2]["x"], 1e-3)
+
+
+# ---- Option B mode (M4) ----
+from mip_sss import design  # noqa: E402
+from mip_sss.raster_ref import rasterize_option_b  # noqa: E402
+
+
+def test_option_b_mode_all_fast_equals_m2_reference():
+    """With σ3 = 0 and only fast-path components, Option B mode is Option A: the M2 image."""
+    cam = cam64()
+    sc = {k: v.double() for k, v in scene(1, device="cpu").items()}
+    nu = torch.full_like(sc["nu"], 2000.0)  # every component takes the fast path
+    a = rasterize(sc["means"], sc["cov3"], sc["colors"], sc["opacity"], nu, cam["world_view"],
+                  cam["full_proj"], cam["tanfovx"], cam["tanfovy"], H, W, BG.double(), kernel_size=0.1)
+    b, fast = rasterize_option_b(sc["means"], sc["cov3"], sc["colors"], sc["opacity"], nu,
+                                 torch.zeros_like(nu), cam["world_view"], cam["full_proj"],
+                                 cam["tanfovx"], cam["tanfovy"], H, W, BG.double(), 0.1)
+    assert bool(fast.all())
+    assert torch.allclose(a, b, atol=1e-12)
+
+
+@pytest.mark.parametrize("sigma3", [0.0, 0.01])
+@pytest.mark.parametrize("nu", [1.0, 3.0, 1000.0])
+def test_option_b_single_component_matches_design(sigma3, nu):
+    cam = cam64()
+    z = 4.0
+    means = torch.tensor([[0.13, -0.07, z]], dtype=torch.float64)
+    cov3 = torch.diag(torch.tensor([0.12, 0.3, 0.2], dtype=torch.float64) ** 2)[None]
+    color = torch.tensor([[0.9, 0.5, 0.1]], dtype=torch.float64)
+    o = torch.tensor([0.7], dtype=torch.float64)
+    nut = torch.tensor([nu], dtype=torch.float64)
+    img, fast = rasterize_option_b(means, cov3, color, o, nut, torch.tensor([sigma3]), cam["world_view"],
+                                   cam["full_proj"], cam["tanfovx"], cam["tanfovy"], H, W, BG.double(), 0.1)
+    assert bool(fast[0]) == (nu >= 400)
+    fx, fy = W / (2 * cam["tanfovx"]), H / (2 * cam["tanfovy"])
+    x, y = means[0, 0], means[0, 1]
+    M = torch.tensor([[fx / z, 0, -fx * x / z ** 2], [0, fy / z, -fy * y / z ** 2]], dtype=torch.float64)
+    mu = torch.stack([fx * x / z + W / 2 - 0.5, fy * y / z + H / 2 - 0.5])[None]
+    py, px = torch.meshgrid(torch.arange(H, dtype=torch.float64), torch.arange(W, dtype=torch.float64), indexing="ij")
+    u = torch.stack([px.reshape(-1), py.reshape(-1)], 1)
+    k = design.kernel_3d(u, mu, cov3, M[None], nut, torch.tensor([sigma3 ** 2]), 0.1)[0]
+    alpha = o * k
+    alpha = torch.where(alpha.abs() < 1 / 255, torch.zeros_like(alpha), alpha.clamp(max=0.99))
+    expect = (alpha[:, None] * color + (1 - alpha)[:, None] * BG.double()).T.reshape(3, H, W)
+    inside = (img - BG.double()[:, None, None]).abs().sum(0) > 0
+    assert inside.sum() > 10
+    assert torch.allclose(img[:, inside], expect[:, inside], atol=1e-9)

@@ -80,6 +80,7 @@ class PipelineParams(ParamGroup):
         self.mip_kernel_size = 0.0  # Mip-SSS 2D filter variance in px²; 0 = off (Mip-Splatting: 0.1)
         self.mip_filter_3d = False  # Mip-SSS 3D smoothing filter (Option A); off by default
         self.mip_filter_3d_variance = 0.2  # Mip-Splatting's 3D filter scale: σ3 = sqrt(this) / f̂
+        self.mip_option_b = False  # Mip-SSS Option B (M4): quadrature + fast path in CUDA; off by default
         super().__init__(parser, "Pipeline Parameters")
 
 class OptimizationParams(ParamGroup):

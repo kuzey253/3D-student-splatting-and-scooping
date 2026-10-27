@@ -48,7 +48,30 @@ namespace FORWARD
 		bool prefiltered,
 		const float* nu_degree,
 		const float* cover,
-		const float kernel_size);
+		const float kernel_size,
+		const float* filter3d,
+		const bool option_b,
+		int* b_flag);
+
+	// Mip-SSS Option B: quadrature nodes and radius for flagged components (M4)
+	void preprocessOptionB(int P,
+		const float* means3D,
+		const float* cov3D_precomp,
+		const float* cov3Ds,
+		const float* opacities,
+		const float* nu_degree,
+		const float* filter3d,
+		const float* viewmatrix,
+		const float focal_x, float focal_y,
+		const float tan_fovx, float tan_fovy,
+		const float kernel_size,
+		const int* b_flag,
+		int* b_slot,
+		float* optb,
+		int* radii,
+		const float2* means2D,
+		uint32_t* tiles_touched,
+		const dim3 grid);
 
 	// Main rasterization method.
 	void render(
@@ -64,7 +87,9 @@ namespace FORWARD
 		const float* bg_color,
 		float* out_color,
 		const float* nu_degree,
-		const float* negative_value);
+		const float* negative_value,
+		const int* b_slot,
+		const float* optb);
 }
 
 

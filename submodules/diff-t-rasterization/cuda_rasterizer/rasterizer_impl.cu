@@ -29,6 +29,7 @@ namespace cg = cooperative_groups;
 #include "auxiliary.h"
 #include "forward.h"
 #include "backward.h"
+#include "mip_optionb.h"
 
 // Helper function to find the next-highest bit of the MSB
 // on the CPU.
@@ -166,6 +167,10 @@ CudaRasterizer::GeometryState CudaRasterizer::GeometryState::fromChunk(char*& ch
 	cub::DeviceScan::InclusiveSum(nullptr, geom.scan_size, geom.tiles_touched, geom.tiles_touched, P);
 	obtain(chunk, geom.scanning_space, geom.scan_size, 128);
 	obtain(chunk, geom.point_offsets, P, 128);
+	obtain(chunk, geom.b_flag, P, 128);
+	obtain(chunk, geom.b_slot, P, 128);
+	cub::DeviceScan::ExclusiveSum(nullptr, geom.b_scan_size, geom.b_flag, geom.b_slot, P);
+	obtain(chunk, geom.b_scan_space, geom.b_scan_size, 128);
 	return geom;
 }
 
@@ -221,7 +226,10 @@ int CudaRasterizer::Rasterizer::forward(
 	const float* negative_value,
 	int* radii,
 	bool debug,
-	const float kernel_size)
+	const float kernel_size,
+	const float* filter3d,
+	const bool option_b,
+	std::function<char* (size_t)> optbBuffer)
 {
 	const float focal_y = height / (2.0f * tan_fovy);
 	const float focal_x = width / (2.0f * tan_fovx);
@@ -276,8 +284,26 @@ int CudaRasterizer::Rasterizer::forward(
 		prefiltered,
 		nu_degree,
 		cover,
-		kernel_size
+		kernel_size,
+		filter3d,
+		option_b,
+		geomState.b_flag
 	), debug)
+
+	// Mip-SSS Option B: slots for flagged components, then their nodes and widened radii
+	float* optb_ptr = nullptr;
+	if (option_b)
+	{
+		CHECK_CUDA(cub::DeviceScan::ExclusiveSum(geomState.b_scan_space, geomState.b_scan_size, geomState.b_flag, geomState.b_slot, P), debug)
+		int last_flag = 0, last_slot = 0;
+		CHECK_CUDA(cudaMemcpy(&last_flag, geomState.b_flag + P - 1, sizeof(int), cudaMemcpyDeviceToHost), debug);
+		CHECK_CUDA(cudaMemcpy(&last_slot, geomState.b_slot + P - 1, sizeof(int), cudaMemcpyDeviceToHost), debug);
+		const int num_optb = last_slot + last_flag;
+		optb_ptr = reinterpret_cast<float*>(optbBuffer((size_t)(num_optb > 0 ? num_optb : 1) * OPTB_STRIDE * sizeof(float)));
+		CHECK_CUDA(FORWARD::preprocessOptionB(P, means3D, cov3D_precomp, geomState.cov3D, opacities, nu_degree,
+			filter3d, viewmatrix, focal_x, focal_y, tan_fovx, tan_fovy, kernel_size, geomState.b_flag,
+			geomState.b_slot, optb_ptr, radii, geomState.means2D, geomState.tiles_touched, tile_grid), debug)
+	}
 
 	// Compute prefix sum over full list of touched tile counts by Gaussians
 	// E.g., [2, 3, 0, 2, 1] -> [2, 5, 5, 7, 8]
@@ -339,7 +365,9 @@ int CudaRasterizer::Rasterizer::forward(
 		background,
 		out_color,
 		nu_degree,
-		negative_value), debug)
+		negative_value,
+		option_b ? geomState.b_slot : nullptr,
+		optb_ptr), debug)
 
 	return num_rendered;
 }
@@ -380,7 +408,11 @@ void CudaRasterizer::Rasterizer::backward(
 	float* dL_dnudegree,
 	const float* negative_value,
 	const float* opacities,
-	const float kernel_size)
+	const float kernel_size,
+	const float* filter3d,
+	const bool option_b,
+	const char* optb_buffer,
+	float* dL_dB)
 {
 	GeometryState geomState = GeometryState::fromChunk(geom_buffer, P);
 	BinningState binningState = BinningState::fromChunk(binning_buffer, R);
@@ -420,7 +452,10 @@ void CudaRasterizer::Rasterizer::backward(
 		dL_dcolor,
 		nu_degree,
 		dL_dnudegree,
-		negative_value), debug)
+		negative_value,
+		option_b ? geomState.b_slot : nullptr,
+		reinterpret_cast<const float*>(optb_buffer),
+		dL_dB), debug)
 
 	// Take care of the rest of preprocessing. Was the precomputed covariance
 	// given to us or a scales/rot pair? If precomputed, pass that. If not,
@@ -450,5 +485,10 @@ void CudaRasterizer::Rasterizer::backward(
 		(glm::vec4*)dL_drot,
 		opacities,
 		dL_dopacity,
-		kernel_size), debug)
+		kernel_size,
+		option_b,
+		filter3d,
+		nu_degree,
+		geomState.b_slot,
+		dL_dB), debug)
 }

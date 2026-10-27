@@ -30,7 +30,8 @@ def rasterize_t(
     raster_settings,
     nu_degree,
     cover,
-    negative_value
+    negative_value,
+    filter_3d
 ):
     return _RasterizeT.apply(
         means3D,
@@ -44,7 +45,8 @@ def rasterize_t(
         raster_settings,
         nu_degree,
         cover,
-        negative_value
+        negative_value,
+        filter_3d
     )
 
 class _RasterizeT(torch.autograd.Function):
@@ -62,7 +64,8 @@ class _RasterizeT(torch.autograd.Function):
         raster_settings,
         nu_degree,
         cover,
-        negative_value
+        negative_value,
+        filter_3d
     ):
 
         # Restructure arguments the way that the C++ lib expects them
@@ -89,25 +92,27 @@ class _RasterizeT(torch.autograd.Function):
             nu_degree,
             cover,
             negative_value,
-            raster_settings.kernel_size
+            raster_settings.kernel_size,
+            filter_3d,
+            raster_settings.option_b
         )
 
         # Invoke C++/CUDA rasterizer
         if raster_settings.debug:
             cpu_args = cpu_deep_copy_tuple(args) # Copy them before they can be corrupted
             try:
-                num_rendered, color, radii, geomBuffer, binningBuffer, imgBuffer = _C.rasterize_t(*args)
+                num_rendered, color, radii, geomBuffer, binningBuffer, imgBuffer, optbBuffer = _C.rasterize_t(*args)
             except Exception as ex:
                 torch.save(cpu_args, "snapshot_fw.dump")
                 print("\nAn error occured in forward. Please forward snapshot_fw.dump for debugging.")
                 raise ex
         else:
-            num_rendered, color, radii, geomBuffer, binningBuffer, imgBuffer = _C.rasterize_t(*args)
+            num_rendered, color, radii, geomBuffer, binningBuffer, imgBuffer, optbBuffer = _C.rasterize_t(*args)
 
         # Keep relevant tensors for backward
         ctx.raster_settings = raster_settings
         ctx.num_rendered = num_rendered
-        ctx.save_for_backward(colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer, nu_degree, negative_value, opacities)
+        ctx.save_for_backward(colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer, nu_degree, negative_value, opacities, filter_3d, optbBuffer)
         return color, radii
 
     @staticmethod
@@ -116,7 +121,7 @@ class _RasterizeT(torch.autograd.Function):
         # Restore necessary values from context
         num_rendered = ctx.num_rendered
         raster_settings = ctx.raster_settings
-        colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer, nu_degree, negative_value, opacities = ctx.saved_tensors
+        colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer, nu_degree, negative_value, opacities, filter_3d, optbBuffer = ctx.saved_tensors
 
         # Restructure args as C++ method expects them
         args = (raster_settings.bg,
@@ -143,7 +148,10 @@ class _RasterizeT(torch.autograd.Function):
                 nu_degree,
                 negative_value,
                 opacities,
-                raster_settings.kernel_size)
+                raster_settings.kernel_size,
+                filter_3d,
+                raster_settings.option_b,
+                optbBuffer)
 
         # Compute gradients for relevant tensors by invoking backward method
         if raster_settings.debug:
@@ -168,6 +176,7 @@ class _RasterizeT(torch.autograd.Function):
             grad_cov3Ds_precomp,
             None,
             grad_nu_degree,
+            None,
             None,
             None
         )
@@ -216,6 +225,7 @@ class TRasterizationSettings(NamedTuple):
     prefiltered : bool
     debug : bool
     kernel_size : float = 0.0  # Mip-SSS 2D filter variance s in px²; 0 = off (plain SSS)
+    option_b : bool = False  # Mip-SSS Option B mode (M4); filter_3d is then σ3 per component
 
 class TRasterizer(nn.Module):
     def __init__(self, raster_settings):
@@ -233,7 +243,7 @@ class TRasterizer(nn.Module):
             
         return visible
 
-    def forward(self, means3D, means2D, opacities, nu_degree, cover, negative_value, shs = None, colors_precomp = None, scales = None, rotations = None, cov3D_precomp = None):
+    def forward(self, means3D, means2D, opacities, nu_degree, cover, negative_value, shs = None, colors_precomp = None, scales = None, rotations = None, cov3D_precomp = None, filter_3d = None):
         
         raster_settings = self.raster_settings
 
@@ -254,6 +264,8 @@ class TRasterizer(nn.Module):
             rotations = torch.Tensor([])
         if cov3D_precomp is None:
             cov3D_precomp = torch.Tensor([])
+        if filter_3d is None:
+            filter_3d = torch.Tensor([])
 
         # Invoke C++/CUDA rasterization routine
         return rasterize_t(
@@ -268,7 +280,8 @@ class TRasterizer(nn.Module):
             raster_settings,
             nu_degree,
             cover,
-            negative_value
+            negative_value,
+            filter_3d
         )
 
 def compute_relocation(opacity_old, scale_old, N, binoms, n_max):

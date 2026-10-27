@@ -15,7 +15,7 @@
 #include <tuple>
 #include <string>
 	
-std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 RasterizeTCUDA(
 	const torch::Tensor& background,
 	const torch::Tensor& means3D,
@@ -39,7 +39,9 @@ RasterizeTCUDA(
 	const torch::Tensor& nu_degree,
 	const torch::Tensor& cover,
 	const torch::Tensor& negative_value,
-	const float kernel_size);
+	const float kernel_size,
+	const torch::Tensor& filter3d,
+	const bool option_b);
 
 std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
  RasterizeTBackwardCUDA(
@@ -67,7 +69,10 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
 	const torch::Tensor& nu_degree,
 	const torch::Tensor& negative_value,
 	const torch::Tensor& opacities,
-	const float kernel_size);
+	const float kernel_size,
+	const torch::Tensor& filter3d,
+	const bool option_b,
+	const torch::Tensor& optbBuffer);
 		
 torch::Tensor markVisible(
 		torch::Tensor& means3D,

@@ -46,14 +46,18 @@ def render(viewpoint_camera, pc : NTModel, pipe, bg_color : torch.Tensor, scalin
         campos=viewpoint_camera.camera_center,
         prefiltered=False,
         debug=pipe.debug,
-        kernel_size=pipe.mip_kernel_size
+        kernel_size=pipe.mip_kernel_size,
+        option_b=pipe.mip_option_b
     )
 
     rasterizer = TRasterizer(raster_settings=raster_settings)
 
     means3D = pc.get_xyz
     means2D = screenspace_points
-    opacity = pc.get_opacity_with_3D_filter if pipe.mip_filter_3d else pc.get_opacity
+    # In Option B mode (M4) the rasterizer applies the 3D filter itself, per quadrature node
+    filter_3d_python = pipe.mip_filter_3d and not pipe.mip_option_b
+    filter_3d = pc.filter_3D[:, 0].contiguous() if (pipe.mip_option_b and pipe.mip_filter_3d) else None
+    opacity = pc.get_opacity_with_3D_filter if filter_3d_python else pc.get_opacity
 
     nu_degree = pc.get_nu_degree
 
@@ -68,9 +72,9 @@ def render(viewpoint_camera, pc : NTModel, pipe, bg_color : torch.Tensor, scalin
     rotations = None
     cov3D_precomp = None
     if pipe.compute_cov3D_python:
-        cov3D_precomp = pc.get_covariance(scaling_modifier, filter_3D=pipe.mip_filter_3d)
+        cov3D_precomp = pc.get_covariance(scaling_modifier, filter_3D=filter_3d_python)
     else:
-        scales = pc.get_scaling_with_3D_filter if pipe.mip_filter_3d else pc.get_scaling
+        scales = pc.get_scaling_with_3D_filter if filter_3d_python else pc.get_scaling
         rotations = pc.get_rotation
 
     # If precomputed colors are provided, use them. Otherwise, if it is desired to precompute colors
@@ -101,7 +105,8 @@ def render(viewpoint_camera, pc : NTModel, pipe, bg_color : torch.Tensor, scalin
         cov3D_precomp = cov3D_precomp,
         nu_degree = nu_degree,
         cover = covers,
-        negative_value = negative_value)
+        negative_value = negative_value,
+        filter_3d = filter_3d)
 
     # Those Gaussians that were frustum culled or had a radius of 0 were not visible.
     # They will be excluded from value updates used in the splitting criteria.

@@ -33,7 +33,7 @@ std::function<char*(size_t N)> resizeFunctional(torch::Tensor& t) {
     return lambda;
 }
 
-std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
+std::tuple<int, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
 RasterizeTCUDA(
 	const torch::Tensor& background,
 	const torch::Tensor& means3D,
@@ -57,7 +57,9 @@ RasterizeTCUDA(
 	const torch::Tensor& nu_degree,
 	const torch::Tensor& cover,
 	const torch::Tensor& negative_value,
-	const float kernel_size)
+	const float kernel_size,
+	const torch::Tensor& filter3d,
+	const bool option_b)
 {
   if (means3D.ndimension() != 2 || means3D.size(1) != 3) {
     AT_ERROR("means3D must have dimensions (num_points, 3)");
@@ -81,6 +83,10 @@ RasterizeTCUDA(
   std::function<char*(size_t)> geomFunc = resizeFunctional(geomBuffer);
   std::function<char*(size_t)> binningFunc = resizeFunctional(binningBuffer);
   std::function<char*(size_t)> imgFunc = resizeFunctional(imgBuffer);
+  // Mip-SSS Option B node buffer (sized by the forward pass)
+  torch::Tensor optbBuffer = torch::empty({0}, options.device(device));
+  std::function<char*(size_t)> optbFunc = resizeFunctional(optbBuffer);
+  const float* filter3d_ptr = filter3d.numel() > 0 ? filter3d.contiguous().data_ptr<float>() : nullptr;
   
   int rendered = 0;
   if(P != 0)
@@ -118,9 +124,12 @@ RasterizeTCUDA(
 		negative_value.contiguous().data_ptr<float>(),
 		radii.contiguous().data_ptr<int>(),
 		debug,
-		kernel_size);
+		kernel_size,
+		filter3d_ptr,
+		option_b,
+		optbFunc);
   }
-  return std::make_tuple(rendered, out_color, radii, geomBuffer, binningBuffer, imgBuffer);
+  return std::make_tuple(rendered, out_color, radii, geomBuffer, binningBuffer, imgBuffer, optbBuffer);
 }
 
 std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
@@ -149,7 +158,10 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
 	const torch::Tensor& nu_degree,
 	const torch::Tensor& negative_value,
 	const torch::Tensor& opacities,
-	const float kernel_size) 
+	const float kernel_size,
+	const torch::Tensor& filter3d,
+	const bool option_b,
+	const torch::Tensor& optbBuffer) 
 {
   const int P = means3D.size(0);
   const int H = dL_dout_color.size(1);
@@ -173,6 +185,9 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
 
   // gradient for nu_degree
   torch::Tensor dL_dnudegree = torch::zeros({P, 1}, means3D.options());
+  // Mip-SSS Option B: per-component accumulators G_S, G_P, g_inv (mip_optionb.h)
+  torch::Tensor dL_dB = torch::zeros({option_b ? P : 0, 9}, means3D.options());
+  const float* filter3d_ptr = filter3d.numel() > 0 ? filter3d.contiguous().data_ptr<float>() : nullptr;
   
   if(P != 0)
   {  
@@ -210,7 +225,11 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
 	  dL_dnudegree.contiguous().data_ptr<float>(),
 	  negative_value.contiguous().data_ptr<float>(),
 	  opacities.contiguous().data_ptr<float>(),
-	  kernel_size);
+	  kernel_size,
+	  filter3d_ptr,
+	  option_b,
+	  option_b ? reinterpret_cast<const char*>(optbBuffer.contiguous().data_ptr()) : nullptr,
+	  option_b ? dL_dB.data_ptr<float>() : nullptr);
   }
 
   return std::make_tuple(dL_dmeans2D, dL_dcolors, dL_dopacity, dL_dmeans3D, dL_dcov3D, dL_dsh, dL_dscales, dL_drotations, dL_dnudegree);

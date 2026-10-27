@@ -84,6 +84,8 @@ def run_scene(scene, dry, status, name=None, overrides=None):
         cfg["cap_max"] = min(cfg["cap_max"], DRY_CAP)
     # render.py and the FPS script would otherwise take the filter from their own default (0)
     pipe_flags = ["--mip_kernel_size", str(cfg["mip_kernel_size"])] if "mip_kernel_size" in cfg else []
+    if cfg.get("mip_option_b"):
+        pipe_flags += ["--mip_option_b"]
     if cfg.get("mip_filter_3d"):
         pipe_flags += ["--mip_filter_3d", "--mip_filter_3d_variance",
                        str(cfg.get("mip_filter_3d_variance", 0.2))]

@@ -40,6 +40,10 @@ namespace CudaRasterizer
 		float* rgb;
 		uint32_t* point_offsets;
 		uint32_t* tiles_touched;
+		int* b_flag;  // Mip-SSS Option B: 1 if the component takes the quadrature
+		int* b_slot;  // its slot in the node buffer, or -1
+		size_t b_scan_size;
+		char* b_scan_space;
 
 		static GeometryState fromChunk(char*& chunk, size_t P);
 	};
