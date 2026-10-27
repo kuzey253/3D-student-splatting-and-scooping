@@ -30,12 +30,32 @@ def _ewa_cov2d(t, cov3, R, fx, fy, tan_fovx, tan_fovy):
     return T @ cov3 @ T.transpose(1, 2)
 
 
+class _ConicGradDamping(torch.autograd.Function):
+    """Identity in the forward pass; scales the incoming gradient by D²/(D² + 1e-7).
+
+    backward.cu turns conic gradients into 2D-covariance gradients with denom2inv =
+    1/(D² + 1e-7) instead of 1/D² (D = det Σ'). Harmless with 3DGS's 0.3 px² dilation, but SSS
+    removed it, so the gradients of sub-pixel components (D² ≲ 1e-7) are damped.
+    """
+
+    @staticmethod
+    def forward(ctx, cov, scale):
+        ctx.save_for_backward(scale)
+        return cov.clone()
+
+    @staticmethod
+    def backward(ctx, grad):
+        (scale,) = ctx.saved_tensors
+        return grad * scale[:, None, None], None
+
+
 def rasterize(means3D, cov3D, colors, opacity, nu, world_view, full_proj, tan_fovx, tan_fovy,
-              H, W, bg, kernel_size=0.0, sss_nu_grad=True):
+              H, W, bg, kernel_size=0.0, sss_nu_grad=True, sss_conic_grad=True):
     """Image (3, H, W) as SSS's CUDA renders it.
 
     sss_nu_grad=True reproduces SSS's ν gradient as written in backward.cu (which omits the
-    −½·ln(1 + b/ν)·G term), so ν-gradient parity can be checked against the CUDA kernel.
+    −½·ln(1 + b/ν)·G term); sss_conic_grad=True reproduces its 1e-7 damping of conic gradients
+    (see _ConicGradDamping). Both make the gradients comparable with the CUDA kernel as written.
     """
     dt = means3D.dtype
     n = means3D.shape[0]
@@ -55,7 +75,11 @@ def rasterize(means3D, cov3D, colors, opacity, nu, world_view, full_proj, tan_fo
         cov = cov + kernel_size * torch.eye(2, dtype=dt, device=means3D.device)
         coef = torch.where(det0 > 0, torch.sqrt(det0.clamp(min=0) / det2(cov)), torch.zeros_like(det0))
     det = det2(cov)
-    conic = torch.stack([cov[:, 1, 1], -cov[:, 0, 1], cov[:, 0, 0]], 1) / det[:, None]
+    cov_c = cov
+    if sss_conic_grad:
+        d2 = det.detach() ** 2
+        cov_c = _ConicGradDamping.apply(cov, d2 / (d2 + 1e-7))
+    conic = torch.stack([cov_c[:, 1, 1], -cov_c[:, 0, 1], cov_c[:, 0, 0]], 1) / det2(cov_c)[:, None]
 
     radius = sss_radius(cov.detach(), nu.detach())
     xy = torch.stack([((p_proj[:, 0] + 1) * W - 1) * 0.5, ((p_proj[:, 1] + 1) * H - 1) * 0.5], 1)

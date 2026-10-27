@@ -114,9 +114,9 @@ def run_scene(scene, dry, status, name=None, overrides=None):
     if not results.exists():
         raise PhaseError(f"{scene}: metrics.py wrote no results.json (see metrics.log)")
     scores = json.loads(results.read_text())[f"ours_{iters}"]
-    for name in ("results.json", "per_view.json", "cfg_args", "cameras.json"):
-        if (model / name).exists():
-            (d / name).write_bytes((model / name).read_bytes())
+    for fname in ("results.json", "per_view.json", "cfg_args", "cameras.json"):
+        if (model / fname).exists():
+            (d / fname).write_bytes((model / fname).read_bytes())
 
     times["fps_s"] = run([sys.executable, "scripts/colab/m0_fps.py", "-m", str(model),
                           "--out", str(d / "fps.json"), *pipe_flags], d / "fps.log", status, "fps", name)

@@ -1,0 +1,30 @@
+{
+ "run": "cameras.json",
+ "scene": "train",
+ "dry": true,
+ "iterations": 1000,
+ "config": {
+  "cap_max": 100000,
+  "nu_degree": 100,
+  "C_burnin": 500000.0,
+  "C": 120.0,
+  "burnin_iterations": 7000,
+  "iterations": 1000
+ },
+ "components": 182686,
+ "psnr": 14.862196922302246,
+ "ssim": 0.5199716687202454,
+ "lpips": 0.5550289154052734,
+ "fps": 969.6152387094513,
+ "render_size": [
+  980,
+  545
+ ],
+ "test_views": 38,
+ "peak_gpu_mem_mib": 3285,
+ "train_s": 35.7,
+ "render_s": 13.8,
+ "metrics_s": 26.2,
+ "fps_s": 3.8,
+ "stats_s": 2.6
+}
