@@ -1,0 +1,1 @@
+Namespace(sh_degree=3, source_path='/content/data/train', model_path='/content/m0/train_3d/model', images='images', resolution=-1, white_background=False, data_device='cuda', eval=True, nu_degree=100, cap_max=1100000, init_type='sfm', C_burnin=500000.0, C=120.0, burnin_iterations=7000, opacity_threshold=0.005)
