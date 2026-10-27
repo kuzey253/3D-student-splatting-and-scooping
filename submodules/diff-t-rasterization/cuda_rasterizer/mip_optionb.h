@@ -133,12 +133,13 @@ __device__ __forceinline__ float optb_cross2(const float A[3], const float B[3])
 	return fmaxf(0.f, A[0] * B[2] + A[2] * B[0] - 2.f * A[1] * B[1]);  // tr(adj(A) B) >= 0 for PSD A, B
 }
 
+// Entry by entry, as M2's c_0/det_0: for a tiny component det is denormal and 1/det alone overflows
+// (then 0 * inf = NaN when no pixel touched it), while every m_ij/det stays finite (NOTES.md 45).
 __device__ __forceinline__ void optb_inv2d(const float m[3], float det, float out[3])
 {
-	const float id = 1.f / det;
-	out[0] = m[2] * id;
-	out[1] = -m[1] * id;
-	out[2] = m[0] * id;
+	out[0] = m[2] / det;
+	out[1] = -m[1] / det;
+	out[2] = m[0] / det;
 }
 
 __device__ __forceinline__ float optb_lmax2d(const float m[3], float det)
@@ -482,6 +483,22 @@ __device__ inline void optb_cov_backward(const OptbComp& oc, const float* cov3D,
 	const float3& t, float xmul, float ymul, float h_x, float h_y, const float* view, const float* dL_dconic4,
 	bool from_B, const float* accB, float opacity, float& dL_dopacity, float dcov6[6], float3& dL_dt)
 {
+	// A component no pixel used (alpha < 1/255 everywhere, e.g. a tiny one kept by SSS's >= 2 px
+	// radius rule) has zero gradients exactly. Return them without evaluating its constants: at
+	// sigma = 0 their determinants can underflow and 0 * inf would give NaN (NOTES.md 45).
+	bool used = false;
+	if (from_B)
+		for (int i = 0; i < OPTB_ACC; i++)
+			used |= accB[i] != 0.f;
+	else
+		used = dL_dconic4[0] != 0.f || dL_dconic4[1] != 0.f || dL_dconic4[3] != 0.f || dL_dopacity != 0.f;
+	if (!used)
+	{
+		for (int i = 0; i < 6; i++)
+			dcov6[i] = 0.f;
+		dL_dt = { 0.f, 0.f, 0.f };
+		return;
+	}
 	float acc[OPTB_ACC];
 	if (!from_B)
 	{

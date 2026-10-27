@@ -55,6 +55,10 @@ extern "C" int run_full(const float* mean, const float* cov6, float sigma, float
         {
             const float2 dp = { dfrac[2 * p] * *radius, dfrac[2 * p + 1] * *radius };
             outT[p] = optb_value(ob, con, nu, dp);
+            dd[2 * p] = dd[2 * p + 1] = 0.f;
+            // the render passes only pixels with |alpha| >= 1/255 to the backward
+            if (!(fabsf(con.w * outT[p]) >= 1.f / 255.f))
+                continue;
             float a[OPTB_ACC], dn;
             float2 ddp;
             optb_pixel_backward(ob, con, nu, dp, con.w * dLdT[p], a, dn, ddp);
@@ -65,10 +69,13 @@ extern "C" int run_full(const float* mean, const float* cov6, float sigma, float
             dd[2 * p + 1] = ddp.y;
         }
     }
-    float op = dL_dop_in;
+    // a fast-path component no pixel can use (|o hp| < 1/255 at its peak) receives no gradients
+    const bool seen = c.fast ? fabsf(con.w) >= 1.f / 255.f : true;
+    const float zero4[4] = { 0.f, 0.f, 0.f, 0.f };
+    float op = seen ? dL_dop_in : 0.f;
     float3 dt;
-    optb_cov_backward(c, cov6, sigma, Tm, t, xmul, ymul, focal, focal, view, dL_dconic4, !c.fast, acc, opacity,
-                      op, dcov6, dt);
+    optb_cov_backward(c, cov6, sigma, Tm, t, xmul, ymul, focal, focal, view, seen ? dL_dconic4 : zero4, !c.fast, acc,
+                      opacity, op, dcov6, dt);
     dL_dt[0] = dt.x; dL_dt[1] = dt.y; dL_dt[2] = dt.z;
     *dL_dop = op;
     return 1;

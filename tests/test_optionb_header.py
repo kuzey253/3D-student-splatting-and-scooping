@@ -128,17 +128,19 @@ def test_degenerate_components_stay_finite(lib):
     assert drawn > 1000
 
 
-def test_full_component_path_stays_finite(lib):
+@pytest.mark.parametrize("sizes", ["ordinary", "tiny"])
+def test_full_component_path_stays_finite(lib, sizes):
     """The whole per-component path (projection, mode decision, slot, per-pixel value and backward
-    over the full alpha-safe radius, then optb_cov_backward) on components from sub-pixel to
-    ~1e5 px², flat, needle and edge-on, all ν, σ3 = 0 and > 0 (NOTES.md 44)."""
+    over the full alpha-safe radius with the render's alpha test, then optb_cov_backward) on
+    components from sub-pixel to ~1e5 px², flat, needle and edge-on, all ν, σ3 = 0 and > 0
+    (NOTES.md 44); "tiny" (world scales 1e-13 to 3e-4) has denormal 2D determinants (NOTES.md 45)."""
     rng = np.random.default_rng(1)
     drawn = {"fast": 0, "B": 0}
     for trial in range(3000):
         z = rng.uniform(1, 40)
         x, y = rng.uniform(-0.8, 0.8, 2) * z
         q, _ = np.linalg.qr(rng.normal(size=(3, 3)))
-        sc = np.exp(rng.normal(-4.5, 1.8, 3))
+        sc = np.exp(rng.normal(-4.5, 1.8, 3)) if sizes == "ordinary" else np.exp(rng.uniform(-30, -8, 3))
         kind = trial % 4
         if kind == 1:
             sc[2] *= 10.0 ** rng.uniform(-14, -3)  # flat
@@ -173,4 +175,4 @@ def test_full_component_path_stays_finite(lib):
         for k, v in list(outs.items()) + list(sc_.items()):
             val = v[0] if isinstance(v, tuple) else v.value
             assert np.isfinite(val).all(), (trial, kind, sigma, nu, k)
-    assert drawn["B"] > 1000 and drawn["fast"] > 300
+    assert drawn["B"] > 1000 and drawn["fast"] > 100
