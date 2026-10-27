@@ -124,26 +124,33 @@ __device__ inline void optb_nodes(float nu, float* lam, float* logw, float* w, f
 		dlogw[k] = df[k] - mean_df;
 }
 
-__device__ __forceinline__ float optb_det2(const float m[3]) { return m[0] * m[2] - m[1] * m[1]; }
-
-__device__ __forceinline__ void optb_inv2(const float m[3], float out[3])
+// Cancellation-free 2x2 determinants (NOTES.md 44). a*c - b*b cancels catastrophically for the
+// nearly rank-1 footprints of needle and flat components (Sigma2/lam_k reaches ~1e7 px^2), so every
+// determinant is built from non-negative pieces: det(A + B) = det A + det B + tr(adj(A) B) and
+// det(A + sI) = det A + s tr A + s^2; inverses and eigenvalues then use the given determinant.
+__device__ __forceinline__ float optb_cross2(const float A[3], const float B[3])
 {
-	const float id = 1.f / optb_det2(m);
+	return fmaxf(0.f, A[0] * B[2] + A[2] * B[0] - 2.f * A[1] * B[1]);  // tr(adj(A) B) >= 0 for PSD A, B
+}
+
+__device__ __forceinline__ void optb_inv2d(const float m[3], float det, float out[3])
+{
+	const float id = 1.f / det;
 	out[0] = m[2] * id;
 	out[1] = -m[1] * id;
 	out[2] = m[0] * id;
 }
 
-__device__ __forceinline__ float optb_lmax2(const float m[3])
+__device__ __forceinline__ float optb_lmax2d(const float m[3], float det)
 {
 	const float mid = 0.5f * (m[0] + m[2]);
-	return mid + sqrtf(fmaxf(0.f, mid * mid - optb_det2(m)));
+	return mid + sqrtf(fmaxf(0.f, mid * mid - det));
 }
 
-__device__ __forceinline__ float optb_lmin2(const float m[3])
+__device__ __forceinline__ float optb_lmin2d(const float m[3], float det)
 {
 	const float mid = 0.5f * (m[0] + m[2]);
-	return mid - sqrtf(fmaxf(0.f, mid * mid - optb_det2(m)));
+	return det / (mid + sqrtf(fmaxf(0.f, mid * mid - det)));  // det / lmax: no cancellation
 }
 
 // smallest eigenvalue of a symmetric 3x3 (cov6: xx, xy, xz, yy, yz, zz), trigonometric method
@@ -212,7 +219,9 @@ __device__ inline void optb_project(const float Tm[6], const float* c, float S2[
 struct OptbComp
 {
 	float S2[3], P[3], S2f[3], covp[3];
-	float D, m, tr, e, det3f, detS2f, loghp;
+	float D, m, tr, e, det3f, loghp;
+	// det Sigma2 (clamped >= 0), tr(adj(Sigma2) P), det P, det Sigma2f, det covp
+	float detS2, crossP, detP, detS2f, detcovp;
 	bool fast;
 };
 
@@ -233,13 +242,20 @@ __device__ inline OptbComp optb_component(const float Tm[6], const float* cov6, 
 	optb_invariants(cov6, o.D, o.m, o.tr);
 	o.e = s2 * o.m + s4 * o.tr + s6;
 	o.det3f = o.D + o.e;
-	o.detS2f = optb_det2(o.S2f);
-	o.loghp = 0.5f * (logf(o.detS2f) - logf(optb_det2(o.covp)));
+	// det Sigma2 as a*c - b*b clamped at 0 (more accurate in float32 than Cauchy-Binet for ordinary
+	// footprints; a rounded 0 then skips the component at sigma = 0, as M2 does); det(T T^T) = |T_0 x T_1|^2
+	o.detS2 = fmaxf(0.f, o.S2[0] * o.S2[2] - o.S2[1] * o.S2[1]);
+	const float n0 = Tm[1] * Tm[5] - Tm[2] * Tm[4], n1 = Tm[2] * Tm[3] - Tm[0] * Tm[5], n2 = Tm[0] * Tm[4] - Tm[1] * Tm[3];
+	o.detP = s4 * (n0 * n0 + n1 * n1 + n2 * n2);
+	o.crossP = optb_cross2(o.S2, o.P);
+	o.detS2f = o.detS2 + o.crossP + o.detP;
+	o.detcovp = o.detS2f + s * (o.S2f[0] + o.S2f[2]) + s * s;
+	o.loghp = 0.5f * (logf(o.detS2f) - logf(o.detcovp));
 	if (sigma > 0.f)
 		o.loghp += 0.5f * (logf(o.D) - logf(o.det3f));
 	const float rho = optb_threshold(nu);
-	const bool ok3 = (sigma == 0.f) || optb_lmin3(cov6) >= rho * s2;
-	const bool ok2 = (s == 0.f) || optb_lmin2(o.S2f) >= rho * s;
+	const bool ok3 = (sigma == 0.f) || rho <= 0.f || optb_lmin3(cov6) >= rho * s2;
+	const bool ok2 = (s == 0.f) || rho <= 0.f || optb_lmin2d(o.S2f, o.detS2f) >= rho * s;
 	o.fast = ok3 && ok2;
 	return o;
 }
@@ -250,8 +266,8 @@ __device__ inline float optb_fill(const OptbComp& c, float sigma, float nu, floa
 	const float s2 = sigma * sigma, s4 = s2 * s2, s6 = s4 * s2;
 	const float hp = expf(c.loghp);
 	float iS2f[3], icovp[3];
-	optb_inv2(c.S2f, iS2f);
-	optb_inv2(c.covp, icovp);
+	optb_inv2d(c.S2f, c.detS2f, iS2f);
+	optb_inv2d(c.covp, c.detcovp, icovp);
 	ob[OB_LOGHP] = c.loghp;
 	ob[OB_HP] = hp;
 	for (int i = 0; i < 3; i++)
@@ -269,7 +285,7 @@ __device__ inline float optb_fill(const OptbComp& c, float sigma, float nu, floa
 	optb_nodes(nu, lam, logw, w, dlogw, dlam);
 	const float absop = fabsf(opacity);
 	const float nterms = 2.f * OPTB_K + 1.f;
-	const float lmax_covp = optb_lmax2(c.covp);
+	const float lmax_covp = optb_lmax2d(c.covp, c.detcovp);
 	// t-term radius (closed form), then each Gaussian term's
 	const float ratio_t = fmaxf(1.f, absop * hp * nterms / OPTB_ALPHA_MIN);
 	float r2 = nu * lmax_covp * (powf(ratio_t, 2.f / (nu + 2.f)) - 1.f);
@@ -283,8 +299,12 @@ __device__ inline float optb_fill(const OptbComp& c, float sigma, float nu, floa
 		filt2[0] = cov2[0] + s;
 		filt2[1] = cov2[1];
 		filt2[2] = cov2[2] + s;
-		optb_inv2(filt2, ifilt2);
-		float logc3 = 0.f, logdet_cov2, dlc3 = 0.f;
+		// det cov2 = det(Sigma2)/lam^2 + tr(adj(Sigma2) P)/lam + det P; det filt2 = det cov2 + s tr cov2 + s^2
+		const float detcov2 = c.detS2 / (l * l) + c.crossP / l + c.detP;
+		const float detfilt2 = detcov2 + s * (cov2[0] + cov2[2]) + s * s;
+		optb_inv2d(cov2, detcov2, icov2);
+		optb_inv2d(filt2, detfilt2, ifilt2);
+		float logc3 = 0.f, dlc3 = 0.f;
 		nd[ON_C3INV + 0] = nd[ON_C3INV + 1] = nd[ON_C3INV + 2] = 0.f;
 		if (on3)
 		{
@@ -296,18 +316,8 @@ __device__ inline float optb_fill(const OptbComp& c, float sigma, float nu, floa
 			nd[ON_C3INV + 1] = -0.5f * s2 * l / L3;
 			nd[ON_C3INV + 2] = -0.5f * s4 * l * l / L3;
 			dlc3 = -0.5f * (s2 * c.m + 2.f * l * s4 * c.tr + 3.f * l * l * s6) / L3;
-			optb_inv2(cov2, icov2);
-			logdet_cov2 = logf(optb_det2(cov2));
 		}
-		else
-		{
-			// cov2 = Sigma2/lam exactly: reuse det(Sigma2) (checked positive in preprocess)
-			optb_inv2(c.S2, icov2);
-			for (int i = 0; i < 3; i++)
-				icov2[i] *= l;
-			logdet_cov2 = logf(c.detS2f) - 2.f * logf(l);
-		}
-		const float logc2 = 0.5f * (logdet_cov2 - logf(optb_det2(filt2)));
+		const float logc2 = 0.5f * (logf(detcov2) - logf(detfilt2));
 		float L2[3];
 		for (int i = 0; i < 3; i++)
 		{
@@ -318,8 +328,10 @@ __device__ inline float optb_fill(const OptbComp& c, float sigma, float nu, floa
 		nd[ON_LOGG0] = logw[k] + logc3 + logc2;
 		nd[ON_LAM] = l;
 		nd[ON_W] = w[k];
-		// tr(L2 S2) with symmetric storage: off-diagonal counted twice
-		const float dlc2 = -(L2[0] * c.S2[0] + 2.f * L2[1] * c.S2[1] + L2[2] * c.S2[2]) / (l * l);
+		// d(log c2)/dlam from the determinants as computed (= -tr(L2 Sigma2)/lam^2 in exact arithmetic)
+		const float ddetcov2 = -2.f * c.detS2 / (l * l * l) - c.crossP / (l * l);
+		const float ddetfilt2 = ddetcov2 - s * (c.S2[0] + c.S2[2]) / (l * l);
+		const float dlc2 = 0.5f * (ddetcov2 / detcov2 - ddetfilt2 / detfilt2);
 		nd[ON_A] = dlogw[k] + (dlc3 + dlc2) * dlam[k];
 		nd[ON_B] = dlam[k] / (l * l);
 		nd[ON_DLOGW] = dlogw[k];
@@ -327,7 +339,7 @@ __device__ inline float optb_fill(const OptbComp& c, float sigma, float nu, floa
 		// radius terms: g_k with variance lmax(filt2_k), h_k with lmax(covp)/lam_k
 		const float rg = absop * expf(nd[ON_LOGG0]) * nterms / OPTB_ALPHA_MIN;
 		if (rg > 1.f)
-			r2 = fmaxf(r2, 2.f * optb_lmax2(filt2) * logf(rg));
+			r2 = fmaxf(r2, 2.f * optb_lmax2d(filt2, detfilt2) * logf(rg));
 		const float rh = absop * w[k] * hp * nterms / OPTB_ALPHA_MIN;
 		if (rh > 1.f)
 			r2 = fmaxf(r2, 2.f * lmax_covp / l * logf(rh));
@@ -461,4 +473,68 @@ __device__ inline void optb_chain(const float* c, float sigma, const float Tm[6]
 			}
 			dT[3 * a + j] = v;
 		}
+}
+
+// Per-component backward of Option B mode (computeCovOptionB): a fast-path component's conic and
+// effective-opacity (o·hp) gradients, or an Option B component's render-pass accumulators, chained
+// to dL/dcov6 (SSS convention) and dL/dt (camera-space mean, before the view rotation).
+__device__ inline void optb_cov_backward(const OptbComp& oc, const float* cov3D, float sigma, const float Tm[6],
+	const float3& t, float xmul, float ymul, float h_x, float h_y, const float* view, const float* dL_dconic4,
+	bool from_B, const float* accB, float opacity, float& dL_dopacity, float dcov6[6], float3& dL_dt)
+{
+	float acc[OPTB_ACC];
+	if (!from_B)
+	{
+		// conic gradient w.r.t. covp, with SSS's formula (including its 1e-7 damping)
+		const float a = oc.covp[0], b = oc.covp[1], c = oc.covp[2];
+		const float3 dL_dconic = { dL_dconic4[0], dL_dconic4[1], dL_dconic4[3] };
+		const float denom = oc.detcovp;  // the cancellation-free det of covp (SSS: a * c - b * b)
+		const float denom2inv = 1.0f / ((denom * denom) + 0.0000001f);
+		const float dL_da = denom2inv * (-c * c * dL_dconic.x + 2 * b * c * dL_dconic.y + (denom - a * c) * dL_dconic.z);
+		const float dL_dc = denom2inv * (-a * a * dL_dconic.z + 2 * a * b * dL_dconic.y + (denom - a * c) * dL_dconic.x);
+		const float dL_db = denom2inv * 2 * (b * c * dL_dconic.x - (denom + 2 * b * b) * dL_dconic.y + a * b * dL_dconic.z);
+		// effective opacity o·hp
+		const float hp = expf(oc.loghp);
+		const float dL_dopeff = dL_dopacity;
+		const float dlh = dL_dopeff * opacity * hp;
+		dL_dopacity = dL_dopeff * hp;
+		float iS2f[3], icovp[3];
+		optb_inv2d(oc.S2f, oc.detS2f, iS2f);
+		optb_inv2d(oc.covp, oc.detcovp, icovp);
+		const float s2 = sigma * sigma;
+		const float G[3] = { dL_da + dlh * 0.5f * (iS2f[0] - icovp[0]),
+			0.5f * dL_db + dlh * 0.5f * (iS2f[1] - icovp[1]),
+			dL_dc + dlh * 0.5f * (iS2f[2] - icovp[2]) };
+		for (int i = 0; i < 3; i++)
+		{
+			acc[i] = G[i];
+			acc[3 + i] = G[i];
+		}
+		// D·dL/dD, dL/dm, dL/dtr (mip_optionb.h); zero at sigma = 0, where D may be 0
+		const bool on3 = sigma > 0.f;
+		acc[6] = on3 ? dlh * 0.5f * oc.e / oc.det3f : 0.f;
+		acc[7] = on3 ? dlh * -0.5f * s2 / oc.det3f : 0.f;
+		acc[8] = on3 ? dlh * -0.5f * s2 * s2 / oc.det3f : 0.f;
+	}
+	else
+	{
+		for (int i = 0; i < OPTB_ACC; i++)
+			acc[i] = accB[i];
+	}
+	float dT[6];
+	optb_chain(cov3D, sigma, Tm, acc, dcov6, dT);
+	// T = J W (W[i][j] = view[4j + i]): gradients for J's non-zero entries, then t, as computeCov2DCUDA
+	float dJ00 = 0.f, dJ02 = 0.f, dJ11 = 0.f, dJ12 = 0.f;
+	for (int j = 0; j < 3; j++)
+	{
+		dJ00 += dT[j] * view[4 * j + 0];
+		dJ02 += dT[j] * view[4 * j + 2];
+		dJ11 += dT[3 + j] * view[4 * j + 1];
+		dJ12 += dT[3 + j] * view[4 * j + 2];
+	}
+	const float tz = 1.f / t.z, tz2 = tz * tz, tz3 = tz2 * tz;
+	const float dL_dtx = xmul * -h_x * tz2 * dJ02;
+	const float dL_dty = ymul * -h_y * tz2 * dJ12;
+	const float dL_dtz = -h_x * tz2 * dJ00 - h_y * tz2 * dJ11 + (2 * h_x * t.x) * tz3 * dJ02 + (2 * h_y * t.y) * tz3 * dJ12;
+	dL_dt = { dL_dtx, dL_dty, dL_dtz };
 }

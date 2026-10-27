@@ -245,6 +245,7 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	// are flagged and get their quadrature nodes in preprocessOptionBCUDA.
 	float opacity_eff = kernel_size > 0.0f ? opacities[idx] * opacity_coef : opacities[idx];
 	bool optb_flag = false;
+	float optb_detcovp = 0.0f;
 	if (option_b)
 	{
 		float Tm[6], xmul, ymul;
@@ -256,12 +257,15 @@ __global__ void preprocessCUDA(int P, int D, int M,
 		if ((sigma > 0.0f && !(oc.D > 0.0f)) || !isfinite(oc.loghp))
 			return;
 		cov = { oc.covp[0], oc.covp[1], oc.covp[2] };
+		optb_detcovp = oc.detcovp;
 		optb_flag = !oc.fast;
 		opacity_eff = oc.fast ? opacities[idx] * expf(oc.loghp) : opacities[idx];
 	}
 
 	// Invert covariance (EWA algorithm)
 	float det = (cov.x * cov.z - cov.y * cov.y);
+	if (option_b)
+		det = optb_detcovp;  // cancellation-free (mip_optionb.h, NOTES.md 44)
 	if (det == 0.0f)
 		return;
 	float det_inv = 1.f / det;

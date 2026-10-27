@@ -100,8 +100,8 @@ def preprocess(S3, sigma, T, nu, s):
     rho = fast_threshold(nu)
     lam3_min = torch.linalg.eigvalsh(S3)[0]
     lam2_min = torch.linalg.eigvalsh(S2f)[0]
-    ok3 = sigma == 0 or bool(lam3_min >= rho * sigma ** 2)
-    ok2 = s == 0 or bool(lam2_min >= rho * s)
+    ok3 = sigma == 0 or rho <= 0 or bool(lam3_min >= rho * sigma ** 2)
+    ok2 = s == 0 or rho <= 0 or bool(lam2_min >= rho * s)
     out = {"S2": S2, "P": P, "covp": covp, "Qp": sym_inv(covp), "loghp": loghp, "Lh": Lh,
            "hinv": hinv, "fast": ok3 and ok2, "D": D, "m": m, "tr": tr}
     if out["fast"]:
@@ -130,7 +130,13 @@ def preprocess(S3, sigma, T, nu, s):
             logdet_cov2 = logdet2(S2) - 2 * torch.log(lam)
         L2 = 0.5 * (icov2 - sym_inv(filt2))  # ∂log c2/∂cov2
         logc2 = 0.5 * (logdet_cov2 - logdet2(filt2))
-        dlc2 = -(L2 * S2).sum() / lam ** 2  # tr(L2 · ∂cov2/∂λ), ∂cov2/∂λ = −Σ2/λ²
+        # ∂log c2/∂λ through the determinants, as CUDA computes it (= −tr(L2 Σ2)/λ²):
+        # det cov2 = det Σ2/λ² + tr(adj(Σ2) P)/λ + det P, det filt2 = det cov2 + s tr cov2 + s²
+        detS2, detcov2, detfilt2 = torch.exp(logdet2(S2)), torch.exp(logdet2(cov2)), torch.exp(logdet2(filt2))
+        crossP = S2[0, 0] * P[1, 1] + S2[1, 1] * P[0, 0] - 2 * S2[0, 1] * P[0, 1]
+        ddetcov2 = -2 * detS2 / lam ** 3 - crossP / lam ** 2
+        ddetfilt2 = ddetcov2 - s * torch.trace(S2) / lam ** 2
+        dlc2 = 0.5 * (ddetcov2 / detcov2 - ddetfilt2 / detfilt2)
         nodes.append({
             "lam": lam, "w": nd["w"][k], "dlogw": nd["dlogw"][k], "dlam": nd["dlam"][k],
             "Q": sym_inv(filt2), "logg0": nd["logw"][k] + logc3 + logc2, "L2": L2,

@@ -126,3 +126,51 @@ def test_degenerate_components_stay_finite(lib):
         for k in ("T", "acc", "dd", "dcov6", "dT", "dnu", "radius"):
             assert np.isfinite(r[k]).all(), (trial, sigma, k)
     assert drawn > 1000
+
+
+def test_full_component_path_stays_finite(lib):
+    """The whole per-component path (projection, mode decision, slot, per-pixel value and backward
+    over the full alpha-safe radius, then optb_cov_backward) on components from sub-pixel to
+    ~1e5 px², flat, needle and edge-on, all ν, σ3 = 0 and > 0 (NOTES.md 44)."""
+    rng = np.random.default_rng(1)
+    drawn = {"fast": 0, "B": 0}
+    for trial in range(3000):
+        z = rng.uniform(1, 40)
+        x, y = rng.uniform(-0.8, 0.8, 2) * z
+        q, _ = np.linalg.qr(rng.normal(size=(3, 3)))
+        sc = np.exp(rng.normal(-4.5, 1.8, 3))
+        kind = trial % 4
+        if kind == 1:
+            sc[2] *= 10.0 ** rng.uniform(-14, -3)  # flat
+        if kind == 2:
+            sc[1:] *= 10.0 ** rng.uniform(-10, -2, 2)  # needle
+        S = q @ np.diag(sc ** 2) @ q.T
+        if kind == 3:  # flat, seen edge-on
+            ray = np.array([x, y, z]) / np.linalg.norm([x, y, z])
+            B, _ = np.linalg.qr(np.stack([np.cross(ray, rng.normal(size=3)), ray, rng.normal(size=3)], 1))
+            S = B @ np.diag([sc[0] ** 2, (sc[1] * 1e-9) ** 2, sc[2] ** 2]) @ B.T
+        cov6 = S[[0, 0, 0, 1, 1, 2], [0, 1, 2, 1, 2, 2]]
+        sigma = 0.0 if trial % 5 < 3 else float(np.exp(rng.uniform(-9, -3)))
+        nu = float(rng.choice([1.0, 1.5, 3.0, 30.0, 150.0, 500.0, 5000.0]))
+        op = float(rng.choice([-1, 1]) * rng.uniform(0.02, 0.99))
+        n = 48
+        dfrac = rng.uniform(-1, 1, (n, 2))
+        dfrac[:6] *= 1e-3
+        dLdT = rng.normal(size=n) * (rng.uniform(size=n) < 0.6)
+        dcon = rng.normal(size=4) * 10.0 ** rng.uniform(-6, 0) * (rng.uniform() < 0.7)
+        keep = [_f32(np.array([x, y, z])), _f32(cov6), _f32(dfrac.reshape(-1)), _f32(dLdT), _f32(dcon)]
+        outs = {k: _f32(np.zeros(m)) for k, m in (("T", n), ("dd", 2 * n), ("dcov6", 6), ("dt", 3))}
+        sc_ = {k: ctypes.c_float() for k in ("dnu", "dop", "radius")}
+        fast = ctypes.c_int()
+        ok = lib.run_full(keep[0][1], keep[1][1], ctypes.c_float(sigma), ctypes.c_float(nu), ctypes.c_float(0.1),
+                          ctypes.c_float(op), ctypes.c_float(1000.0), ctypes.c_float(0.5), n, keep[2][1],
+                          keep[3][1], keep[4][1], ctypes.c_float(float(rng.normal())), outs["T"][1],
+                          ctypes.byref(sc_["dnu"]), outs["dd"][1], outs["dcov6"][1], outs["dt"][1],
+                          ctypes.byref(sc_["dop"]), ctypes.byref(fast), ctypes.byref(sc_["radius"]))
+        if not ok:
+            continue
+        drawn["fast" if fast.value else "B"] += 1
+        for k, v in list(outs.items()) + list(sc_.items()):
+            val = v[0] if isinstance(v, tuple) else v.value
+            assert np.isfinite(val).all(), (trial, kind, sigma, nu, k)
+    assert drawn["B"] > 1000 and drawn["fast"] > 300

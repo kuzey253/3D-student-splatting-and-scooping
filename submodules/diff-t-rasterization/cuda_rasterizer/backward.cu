@@ -677,63 +677,12 @@ __global__ void computeCovOptionB(int P,
 	optb_projection(means[idx], h_x, h_y, tan_fovx, tan_fovy, view_matrix, Tm, t, xmul, ymul);
 	const float sigma = filter3d != nullptr ? filter3d[idx] : 0.0f;
 	const OptbComp oc = optb_component(Tm, cov3D, sigma, nu_degree[idx], kernel_size);
-	float acc[OPTB_ACC];
-	if (b_slot[idx] < 0)
-	{
-		// conic gradient w.r.t. covp, with SSS's formula (including its 1e-7 damping)
-		const float a = oc.covp[0], b = oc.covp[1], c = oc.covp[2];
-		const float3 dL_dconic = { dL_dconics[4 * idx], dL_dconics[4 * idx + 1], dL_dconics[4 * idx + 3] };
-		const float denom = a * c - b * b;
-		const float denom2inv = 1.0f / ((denom * denom) + 0.0000001f);
-		const float dL_da = denom2inv * (-c * c * dL_dconic.x + 2 * b * c * dL_dconic.y + (denom - a * c) * dL_dconic.z);
-		const float dL_dc = denom2inv * (-a * a * dL_dconic.z + 2 * a * b * dL_dconic.y + (denom - a * c) * dL_dconic.x);
-		const float dL_db = denom2inv * 2 * (b * c * dL_dconic.x - (denom + 2 * b * b) * dL_dconic.y + a * b * dL_dconic.z);
-		// effective opacity o·hp
-		const float hp = expf(oc.loghp);
-		const float dL_dopeff = dL_dopacity[idx];
-		const float dlh = dL_dopeff * opacities[idx] * hp;
-		dL_dopacity[idx] = dL_dopeff * hp;
-		float iS2f[3], icovp[3];
-		optb_inv2(oc.S2f, iS2f);
-		optb_inv2(oc.covp, icovp);
-		const float s2 = sigma * sigma;
-		const float G[3] = { dL_da + dlh * 0.5f * (iS2f[0] - icovp[0]),
-			0.5f * dL_db + dlh * 0.5f * (iS2f[1] - icovp[1]),
-			dL_dc + dlh * 0.5f * (iS2f[2] - icovp[2]) };
-		for (int i = 0; i < 3; i++)
-		{
-			acc[i] = G[i];
-			acc[3 + i] = G[i];
-		}
-		// D·dL/dD, dL/dm, dL/dtr (mip_optionb.h); zero at sigma = 0, where D may be 0
-		const bool on3 = sigma > 0.f;
-		acc[6] = on3 ? dlh * 0.5f * oc.e / oc.det3f : 0.f;
-		acc[7] = on3 ? dlh * -0.5f * s2 / oc.det3f : 0.f;
-		acc[8] = on3 ? dlh * -0.5f * s2 * s2 / oc.det3f : 0.f;
-	}
-	else
-	{
-		for (int i = 0; i < OPTB_ACC; i++)
-			acc[i] = dL_dB[OPTB_ACC * idx + i];
-	}
-	float dcov6[6], dT[6];
-	optb_chain(cov3D, sigma, Tm, acc, dcov6, dT);
-	for (int i = 0; i < 6; i++)
-		dL_dcov[6 * idx + i] = dcov6[i];
-	// T = J W (W[i][j] = view[4j + i]): gradients for J's non-zero entries, then t, as computeCov2DCUDA
-	float dJ00 = 0.f, dJ02 = 0.f, dJ11 = 0.f, dJ12 = 0.f;
-	for (int j = 0; j < 3; j++)
-	{
-		dJ00 += dT[j] * view_matrix[4 * j + 0];
-		dJ02 += dT[j] * view_matrix[4 * j + 2];
-		dJ11 += dT[3 + j] * view_matrix[4 * j + 1];
-		dJ12 += dT[3 + j] * view_matrix[4 * j + 2];
-	}
-	const float tz = 1.f / t.z, tz2 = tz * tz, tz3 = tz2 * tz;
-	const float dL_dtx = xmul * -h_x * tz2 * dJ02;
-	const float dL_dty = ymul * -h_y * tz2 * dJ12;
-	const float dL_dtz = -h_x * tz2 * dJ00 - h_y * tz2 * dJ11 + (2 * h_x * t.x) * tz3 * dJ02 + (2 * h_y * t.y) * tz3 * dJ12;
-	dL_dmeans[idx] = transformVec4x3Transpose({ dL_dtx, dL_dty, dL_dtz }, view_matrix);
+	float dL_dop = dL_dopacity[idx];
+	float3 dL_dt;
+	optb_cov_backward(oc, cov3D, sigma, Tm, t, xmul, ymul, h_x, h_y, view_matrix, dL_dconics + 4 * idx,
+		b_slot[idx] >= 0, dL_dB + OPTB_ACC * idx, opacities[idx], dL_dop, dL_dcov + 6 * idx, dL_dt);
+	dL_dopacity[idx] = dL_dop;
+	dL_dmeans[idx] = transformVec4x3Transpose(dL_dt, view_matrix);
 }
 
 void BACKWARD::preprocess(
