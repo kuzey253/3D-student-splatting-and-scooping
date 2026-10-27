@@ -9,6 +9,9 @@
  *   node k: cov2_k = Sigma2/lam_k + P, filt2_k = cov2_k + sI,
  *           log g0_k = log w_k + log c3_k + log c2_k.
  * Symmetric 2x2 matrices are stored as (m00, m01, m11).
+ * Float32-safe forms (NOTES.md 43): the D gradient is carried as D·d/dD and chained with Sigma3^-1;
+ * the 3D terms use e = det3f - D and L3_k = lam^3 det3_k = D + e3_k, so they vanish exactly at
+ * sigma = 0, where D is not used (c3 = 1, cov2_k = Sigma2/lam_k exactly).
  */
 #pragma once
 
@@ -209,7 +212,7 @@ __device__ inline void optb_project(const float Tm[6], const float* c, float S2[
 struct OptbComp
 {
 	float S2[3], P[3], S2f[3], covp[3];
-	float D, m, tr, det3f, loghp;
+	float D, m, tr, e, det3f, detS2f, loghp;
 	bool fast;
 };
 
@@ -228,8 +231,12 @@ __device__ inline OptbComp optb_component(const float Tm[6], const float* cov6, 
 	o.covp[0] += s;
 	o.covp[2] += s;
 	optb_invariants(cov6, o.D, o.m, o.tr);
-	o.det3f = o.D + s2 * o.m + s4 * o.tr + s6;
-	o.loghp = 0.5f * (logf(o.D) - logf(o.det3f) + logf(optb_det2(o.S2f)) - logf(optb_det2(o.covp)));
+	o.e = s2 * o.m + s4 * o.tr + s6;
+	o.det3f = o.D + o.e;
+	o.detS2f = optb_det2(o.S2f);
+	o.loghp = 0.5f * (logf(o.detS2f) - logf(optb_det2(o.covp)));
+	if (sigma > 0.f)
+		o.loghp += 0.5f * (logf(o.D) - logf(o.det3f));
 	const float rho = optb_threshold(nu);
 	const bool ok3 = (sigma == 0.f) || optb_lmin3(cov6) >= rho * s2;
 	const bool ok2 = (s == 0.f) || optb_lmin2(o.S2f) >= rho * s;
@@ -252,9 +259,11 @@ __device__ inline float optb_fill(const OptbComp& c, float sigma, float nu, floa
 		ob[OB_LH + i] = 0.5f * (iS2f[i] - icovp[i]);
 		ob[OB_S2 + i] = c.S2[i];
 	}
-	ob[OB_HINV + 0] = 0.5f * (1.f / c.D - 1.f / c.det3f);
-	ob[OB_HINV + 1] = -0.5f * s2 / c.det3f;
-	ob[OB_HINV + 2] = -0.5f * s4 / c.det3f;
+	// D·d(log hp)/dD, d/dm, d/dtr; all zero at sigma = 0 (D may then be 0 for a flat component)
+	const bool on3 = sigma > 0.f;
+	ob[OB_HINV + 0] = on3 ? 0.5f * c.e / c.det3f : 0.f;
+	ob[OB_HINV + 1] = on3 ? -0.5f * s2 / c.det3f : 0.f;
+	ob[OB_HINV + 2] = on3 ? -0.5f * s4 / c.det3f : 0.f;
 
 	float lam[OPTB_K], logw[OPTB_K], w[OPTB_K], dlogw[OPTB_K], dlam[OPTB_K];
 	optb_nodes(nu, lam, logw, w, dlogw, dlam);
@@ -268,17 +277,37 @@ __device__ inline float optb_fill(const OptbComp& c, float sigma, float nu, floa
 	{
 		float* nd = ob + OPTB_HEAD + k * OPTB_NODE;
 		const float l = lam[k];
-		const float det3 = c.D / (l * l * l) + s2 * c.m / (l * l) + s4 * c.tr / l + s6;
 		float cov2[3], filt2[3], icov2[3], ifilt2[3];
 		for (int i = 0; i < 3; i++)
 			cov2[i] = c.S2[i] / l + c.P[i];
 		filt2[0] = cov2[0] + s;
 		filt2[1] = cov2[1];
 		filt2[2] = cov2[2] + s;
-		optb_inv2(cov2, icov2);
 		optb_inv2(filt2, ifilt2);
-		const float logc3 = 0.5f * (logf(c.D) - 3.f * logf(l) - logf(det3));
-		const float logc2 = 0.5f * (logf(optb_det2(cov2)) - logf(optb_det2(filt2)));
+		float logc3 = 0.f, logdet_cov2, dlc3 = 0.f;
+		nd[ON_C3INV + 0] = nd[ON_C3INV + 1] = nd[ON_C3INV + 2] = 0.f;
+		if (on3)
+		{
+			// L3 = lam^3 det(Sigma3/lam + sigma^2 I) = D + e3; c3 = sqrt(D / L3)
+			const float e3 = l * s2 * c.m + l * l * s4 * c.tr + l * l * l * s6;
+			const float L3 = c.D + e3;
+			logc3 = 0.5f * (logf(c.D) - logf(L3));
+			nd[ON_C3INV + 0] = 0.5f * e3 / L3;  // D·d(log c3)/dD
+			nd[ON_C3INV + 1] = -0.5f * s2 * l / L3;
+			nd[ON_C3INV + 2] = -0.5f * s4 * l * l / L3;
+			dlc3 = -0.5f * (s2 * c.m + 2.f * l * s4 * c.tr + 3.f * l * l * s6) / L3;
+			optb_inv2(cov2, icov2);
+			logdet_cov2 = logf(optb_det2(cov2));
+		}
+		else
+		{
+			// cov2 = Sigma2/lam exactly: reuse det(Sigma2) (checked positive in preprocess)
+			optb_inv2(c.S2, icov2);
+			for (int i = 0; i < 3; i++)
+				icov2[i] *= l;
+			logdet_cov2 = logf(c.detS2f) - 2.f * logf(l);
+		}
+		const float logc2 = 0.5f * (logdet_cov2 - logf(optb_det2(filt2)));
 		float L2[3];
 		for (int i = 0; i < 3; i++)
 		{
@@ -289,11 +318,6 @@ __device__ inline float optb_fill(const OptbComp& c, float sigma, float nu, floa
 		nd[ON_LOGG0] = logw[k] + logc3 + logc2;
 		nd[ON_LAM] = l;
 		nd[ON_W] = w[k];
-		nd[ON_C3INV + 0] = 0.5f * (1.f / c.D - 1.f / (l * l * l) / det3);
-		nd[ON_C3INV + 1] = -0.5f * s2 / (l * l) / det3;
-		nd[ON_C3INV + 2] = -0.5f * s4 / l / det3;
-		const float ddet3 = -3.f * c.D / (l * l * l * l) - 2.f * s2 * c.m / (l * l * l) - s4 * c.tr / (l * l);
-		const float dlc3 = 0.5f * (-3.f / l - ddet3 / det3);
 		// tr(L2 S2) with symmetric storage: off-diagonal counted twice
 		const float dlc2 = -(L2[0] * c.S2[0] + 2.f * L2[1] * c.S2[1] + L2[2] * c.S2[2]) / (l * l);
 		nd[ON_A] = dlogw[k] + (dlc3 + dlc2) * dlam[k];
@@ -401,15 +425,21 @@ __device__ inline void optb_chain(const float* c, float sigma, const float Tm[6]
 					v += T[a][i] * GS[a][b] * T[b][j];
 			dS[i][j] = v;
 		}
-	// invariants: dD/dSigma = adjugate, dm/dSigma = tr I - Sigma, dtr/dSigma = I
-	const float adj[3][3] = {
-		{ S[1][1] * S[2][2] - S[1][2] * S[2][1], S[0][2] * S[2][1] - S[0][1] * S[2][2], S[0][1] * S[1][2] - S[0][2] * S[1][1] },
-		{ S[1][2] * S[2][0] - S[1][0] * S[2][2], S[0][0] * S[2][2] - S[0][2] * S[2][0], S[0][2] * S[1][0] - S[0][0] * S[1][2] },
-		{ S[1][0] * S[2][1] - S[1][1] * S[2][0], S[0][1] * S[2][0] - S[0][0] * S[2][1], S[0][0] * S[1][1] - S[0][1] * S[1][0] } };
-	const float tr = S[0][0] + S[1][1] + S[2][2];
-	for (int i = 0; i < 3; i++)
-		for (int j = 0; j < 3; j++)
-			dS[i][j] += acc[6] * adj[i][j] + acc[7] * ((i == j ? tr : 0.f) - S[i][j]) + (i == j ? acc[8] : 0.f);
+	// invariants (sigma > 0 only; at sigma = 0 they do not enter): acc[6] is D·dL/dD and
+	// (dD/dSigma)/D = adj/D = Sigma^-1; dm/dSigma = tr I - Sigma, dtr/dSigma = I
+	if (sigma > 0.f)
+	{
+		const float adj[3][3] = {
+			{ S[1][1] * S[2][2] - S[1][2] * S[2][1], S[0][2] * S[2][1] - S[0][1] * S[2][2], S[0][1] * S[1][2] - S[0][2] * S[1][1] },
+			{ S[1][2] * S[2][0] - S[1][0] * S[2][2], S[0][0] * S[2][2] - S[0][2] * S[2][0], S[0][2] * S[1][0] - S[0][0] * S[1][2] },
+			{ S[1][0] * S[2][1] - S[1][1] * S[2][0], S[0][1] * S[2][0] - S[0][0] * S[2][1], S[0][0] * S[1][1] - S[0][1] * S[1][0] } };
+		// adj/D entry by entry: 1/D alone can overflow for a denormal D while every ratio is finite
+		const float D = S[0][0] * adj[0][0] + S[0][1] * adj[1][0] + S[0][2] * adj[2][0];
+		const float tr = S[0][0] + S[1][1] + S[2][2];
+		for (int i = 0; i < 3; i++)
+			for (int j = 0; j < 3; j++)
+				dS[i][j] += acc[6] * (adj[i][j] / D) + acc[7] * ((i == j ? tr : 0.f) - S[i][j]) + (i == j ? acc[8] : 0.f);
+	}
 	dcov6[0] = dS[0][0];
 	dcov6[1] = dS[0][1] + dS[1][0];
 	dcov6[2] = dS[0][2] + dS[2][0];

@@ -16,7 +16,10 @@ Per pixel, offset d = xy − pixel:
   T = τ + Σ_k [ g0_k exp(−½ dᵀ filt2_k⁻¹ d) − w_k hp exp(−½ λ_k q') ]   (Option B)
   T = τ                                                                  (fast path)
 Backward accumulators per component (what CUDA's render pass adds with atomics):
-  G_S (dT/dΣ2), G_P (dT/dP) as symmetric 2x2 matrices, g_inv (dT/d(D, m, tr)), dT/dν, dT/dd.
+  G_S (dT/dΣ2), G_P (dT/dP) as symmetric 2x2 matrices, g_inv (D·dT/dD, dT/dm, dT/dtr), dT/dν, dT/dd.
+Float32-safe forms (M4, NOTES.md 43): the D gradient is carried as D·∂/∂D, which is bounded, and the
+chain applies Σ3⁻¹ = adj/D; the 3D terms go through e = det3f − D and L3_k = λ³det3_k = D + e3_k, so
+they are exactly zero at σ = 0, where D is not used at all (c3 ≡ 1, and cov2_k = Σ2/λ_k exactly).
 """
 import math
 
@@ -85,11 +88,15 @@ def preprocess(S3, sigma, T, nu, s):
     covp = S2f + s * I2
     D, m, tr = invariants(S3)
     s2, s4, s6 = sigma ** 2, sigma ** 4, sigma ** 6
-    det3f = D + s2 * m + s4 * tr + s6
-    loghp = 0.5 * (torch.log(D) - torch.log(det3f) + logdet2(S2f) - logdet2(covp))
-    # ∂log hp/∂Σ2f (= ∂/∂Σ2 = ∂/∂P), ∂log hp/∂(D, m, tr)
+    e = s2 * m + s4 * tr + s6
+    det3f = D + e
+    on3 = float(sigma) > 0
+    loghp = 0.5 * (logdet2(S2f) - logdet2(covp))
+    if on3:
+        loghp = loghp + 0.5 * (torch.log(D) - torch.log(det3f))
+    # ∂log hp/∂Σ2f (= ∂/∂Σ2 = ∂/∂P), (D·∂/∂D, ∂/∂m, ∂/∂tr) of log hp
     Lh = 0.5 * (sym_inv(S2f) - sym_inv(covp))
-    hinv = torch.stack([0.5 * (1 / D - 1 / det3f), -0.5 * s2 / det3f, -0.5 * s4 / det3f])
+    hinv = torch.stack([0.5 * e / det3f, -0.5 * s2 / det3f, -0.5 * s4 / det3f])
     rho = fast_threshold(nu)
     lam3_min = torch.linalg.eigvalsh(S3)[0]
     lam2_min = torch.linalg.eigvalsh(S2f)[0]
@@ -103,17 +110,26 @@ def preprocess(S3, sigma, T, nu, s):
     nodes = []
     for k in range(K):
         lam = nd["lam"][k]
-        det3 = D / lam ** 3 + s2 * m / lam ** 2 + s4 * tr / lam + s6
         cov2 = S2 / lam + P
         filt2 = cov2 + s * I2
-        L2 = 0.5 * (sym_inv(cov2) - sym_inv(filt2))  # ∂log c2/∂cov2
-        logc3 = 0.5 * (torch.log(D) - 3 * torch.log(lam) - torch.log(det3))
-        logc2 = 0.5 * (logdet2(cov2) - logdet2(filt2))
-        # ∂log c3/∂(D, m, tr) and ∂log c3/∂λ, ∂log c2/∂λ
-        c3inv = torch.stack([0.5 * (1 / D - lam ** -3 / det3), -0.5 * s2 * lam ** -2 / det3,
-                             -0.5 * s4 / lam / det3])
-        ddet3 = -3 * D / lam ** 4 - 2 * s2 * m / lam ** 3 - s4 * tr / lam ** 2
-        dlc3 = 0.5 * (-3 / lam - ddet3 / det3)
+        if on3:
+            # L3 = λ³·det(Σ3/λ + σ²I) = D + e3, c3 = sqrt(D / L3)
+            e3 = lam * s2 * m + lam ** 2 * s4 * tr + lam ** 3 * s6
+            L3 = D + e3
+            logc3 = 0.5 * (torch.log(D) - torch.log(L3))
+            # (D·∂/∂D, ∂/∂m, ∂/∂tr) and ∂/∂λ of log c3
+            c3inv = torch.stack([0.5 * e3 / L3, -0.5 * s2 * lam / L3, -0.5 * s4 * lam ** 2 / L3])
+            dlc3 = -0.5 * (s2 * m + 2 * lam * s4 * tr + 3 * lam ** 2 * s6) / L3
+            icov2 = sym_inv(cov2)
+            logdet_cov2 = logdet2(cov2)
+        else:
+            logc3 = torch.zeros((), dtype=S3.dtype)
+            c3inv = torch.zeros(3, dtype=S3.dtype)
+            dlc3 = torch.zeros((), dtype=S3.dtype)
+            icov2 = lam * sym_inv(S2)
+            logdet_cov2 = logdet2(S2) - 2 * torch.log(lam)
+        L2 = 0.5 * (icov2 - sym_inv(filt2))  # ∂log c2/∂cov2
+        logc2 = 0.5 * (logdet_cov2 - logdet2(filt2))
         dlc2 = -(L2 * S2).sum() / lam ** 2  # tr(L2 · ∂cov2/∂λ), ∂cov2/∂λ = −Σ2/λ²
         nodes.append({
             "lam": lam, "w": nd["w"][k], "dlogw": nd["dlogw"][k], "dlam": nd["dlam"][k],
@@ -190,9 +206,8 @@ def chain(S3, sigma, T, acc):
     G_S, G_P, (gD, gm, gt) = acc["G_S"], acc["G_P"], acc["g_inv"]
     I3 = torch.eye(3, dtype=S3.dtype)
     dS3 = T.T @ G_S @ T
-    D = torch.det(S3)
-    adj = D * torch.linalg.inv(S3)  # ∂D/∂Σ3
-    dS3 = dS3 + gD * adj + gm * (torch.trace(S3) * I3 - S3) + gt * I3
+    if float(sigma) > 0:  # gD is D·dL/dD, and ∂D/∂Σ3 / D = Σ3⁻¹; at σ = 0 all three are zero
+        dS3 = dS3 + gD * torch.linalg.inv(S3) + gm * (torch.trace(S3) * I3 - S3) + gt * I3
     # Σ2 = TΣ3Tᵀ → ∂/∂T = (G + Gᵀ) T Σ3; P = σ²TTᵀ → σ²(G + Gᵀ) T
     dT = (G_S + G_S.T) @ T @ S3 + sigma ** 2 * (G_P + G_P.T) @ T
     return dS3, dT
@@ -208,7 +223,11 @@ def direct(S3, sigma, T, nu, s, d):
     covp = S2f + s * I2
     D, m, tr = invariants(S3)
     det3f = D + sigma ** 2 * m + sigma ** 4 * tr + sigma ** 6
-    hp = torch.exp(0.5 * (torch.log(D) - torch.log(det3f) + logdet2(S2f) - logdet2(covp)))
+    on3 = float(sigma) > 0  # at σ = 0, c3 ≡ 1 and D cancels from every term
+    loghp = 0.5 * (logdet2(S2f) - logdet2(covp))
+    if on3:
+        loghp = loghp + 0.5 * (torch.log(D) - torch.log(det3f))
+    hp = torch.exp(loghp)
     qp = ((d @ sym_inv(covp)) * d).sum(1)
     out = hp * torch.exp(-(nu + 2) / 2 * torch.log1p(qp / nu))
     if pre["fast"]:
@@ -219,8 +238,8 @@ def direct(S3, sigma, T, nu, s, d):
         det3 = D / lam ** 3 + sigma ** 2 * m / lam ** 2 + sigma ** 4 * tr / lam + sigma ** 6
         cov2 = S2 / lam + P
         filt2 = cov2 + s * I2
-        logg0 = logw + 0.5 * (torch.log(D) - 3 * torch.log(lam) - torch.log(det3)) + 0.5 * (
-            logdet2(cov2) - logdet2(filt2))
+        logc3 = 0.5 * (torch.log(D) - 3 * torch.log(lam) - torch.log(det3)) if on3 else 0.0
+        logg0 = logw + logc3 + 0.5 * (logdet2(cov2) - logdet2(filt2))
         q = ((d @ sym_inv(filt2)) * d).sum(1)
         out = out + torch.exp(logg0 - 0.5 * q) - torch.exp(logw) * hp * torch.exp(-0.5 * lam * qp)
     return out

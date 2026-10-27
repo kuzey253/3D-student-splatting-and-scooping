@@ -252,7 +252,8 @@ __global__ void preprocessCUDA(int P, int D, int M,
 		optb_projection(p_orig, focal_x, focal_y, tan_fovx, tan_fovy, viewmatrix, Tm, tcam, xmul, ymul);
 		const float sigma = filter3d != nullptr ? filter3d[idx] : 0.0f;
 		const OptbComp oc = optb_component(Tm, cov3D, sigma, nu_degree[idx], kernel_size);
-		if (!(oc.D > 0.0f) || !isfinite(oc.loghp))
+		// D only enters with the 3D filter on; at sigma = 0 a flat component is kept, as in SSS
+		if ((sigma > 0.0f && !(oc.D > 0.0f)) || !isfinite(oc.loghp))
 			return;
 		cov = { oc.covp[0], oc.covp[1], oc.covp[2] };
 		optb_flag = !oc.fast;

@@ -1,0 +1,128 @@
+"""mip_optionb.h (the M4 CUDA device code) compiled as host C++, against optionb_staged.py.
+
+Checks the transliteration in float32 before any GPU time, and that degenerate components (flat,
+needle, edge-on; σ3 = 0 and > 0; ν = 1) give finite values and gradients. Skipped without a C++
+compiler.
+"""
+import ctypes
+import math
+import shutil
+import subprocess
+from pathlib import Path
+
+import numpy as np
+import pytest
+import torch
+
+from mip_sss import optionb_staged as ob
+from mip_sss.raster_ref import optb_radius_bound
+
+ROOT = Path(__file__).resolve().parents[1]
+HERE = Path(__file__).resolve().parent / "optb_host"
+CXX = shutil.which("clang++") or shutil.which("g++")
+F = ctypes.POINTER(ctypes.c_float)
+
+
+@pytest.fixture(scope="module")
+def lib(tmp_path_factory):
+    if CXX is None:
+        pytest.skip("no C++ compiler")
+    out = tmp_path_factory.mktemp("optb") / "liboptb.so"
+    subprocess.run([CXX, "-std=c++17", "-O1", "-shared", "-fPIC", "-I", str(HERE),
+                    "-I", str(ROOT / "submodules/diff-t-rasterization/cuda_rasterizer"),
+                    "-o", str(out), str(HERE / "harness.cpp")], check=True)
+    return ctypes.CDLL(str(out))
+
+
+def _f32(a):
+    a = np.ascontiguousarray(a, dtype=np.float32)
+    return a, a.ctypes.data_as(F)
+
+
+def run(lib, T, cov6, sigma, nu, s, opacity, d, dLdT):
+    n = len(dLdT)
+    keep = [_f32(T.reshape(-1)), _f32(cov6), _f32(d.reshape(-1)), _f32(dLdT)]
+    out = {k: _f32(np.zeros(m)) for k, m in (("T", n), ("acc", 9), ("dd", 2 * n), ("dcov6", 6), ("dT", 6))}
+    sc = {k: ctypes.c_float() for k in ("dnu", "loghp", "radius")}
+    fast = ctypes.c_int()
+    lib.run(keep[0][1], keep[1][1], ctypes.c_float(sigma), ctypes.c_float(nu), ctypes.c_float(s),
+            ctypes.c_float(opacity), n, keep[2][1], keep[3][1], out["T"][1], out["acc"][1], ctypes.byref(sc["dnu"]),
+            out["dd"][1], out["dcov6"][1], out["dT"][1], ctypes.byref(fast), ctypes.byref(sc["loghp"]),
+            ctypes.byref(sc["radius"]))
+    res = {k: v[0].astype(np.float64) for k, v in out.items()}
+    res.update({k: v.value for k, v in sc.items()})
+    res["fast"] = bool(fast.value)
+    return res
+
+
+def case(seed, sigma):  # as tests/test_optionb_staged.py
+    g = torch.Generator().manual_seed(seed)
+    q, _ = torch.linalg.qr(torch.randn(3, 3, generator=g, dtype=torch.float64))
+    S3 = q @ torch.diag(torch.exp(torch.randn(3, generator=g, dtype=torch.float64) - 7)) @ q.T
+    T = torch.randn(2, 3, generator=g, dtype=torch.float64) * 6 + torch.tensor([[40.0, 0, 0], [0, 40.0, 0]],
+                                                                               dtype=torch.float64)
+    d = torch.randn(40, 2, generator=g, dtype=torch.float64) * 1.5
+    dLdT = torch.randn(40, generator=g, dtype=torch.float64)
+    return S3, torch.tensor(sigma, dtype=torch.float64), T, d, dLdT
+
+
+def rel(a, b):
+    a, b = np.asarray(a, np.float64).ravel(), np.asarray(b, np.float64).ravel()
+    return float(np.linalg.norm(a - b) / max(np.linalg.norm(b), 1e-30))
+
+
+@pytest.mark.parametrize("nu", [1.0, 1.5, 3.0, 30.0])
+@pytest.mark.parametrize("sigma", [0.0, 0.004])
+@pytest.mark.parametrize("seed", range(4))
+def test_header_matches_staged(lib, seed, sigma, nu):
+    S3, sig, T, d, dLdT = case(seed, sigma)
+    s, o = 0.1, 0.7
+    nut = torch.tensor(nu, dtype=torch.float64)
+    pre = ob.preprocess(S3, sig, T, nut, s)
+    val, acc = ob.pixel(d, pre, nut, dLdT)
+    dS3, dT = ob.chain(S3, sig, T, acc)
+    dcov6 = torch.stack([dS3[0, 0], dS3[0, 1] + dS3[1, 0], dS3[0, 2] + dS3[2, 0], dS3[1, 1],
+                         dS3[1, 2] + dS3[2, 1], dS3[2, 2]])
+    cov6 = S3[[0, 0, 0, 1, 1, 2], [0, 1, 2, 1, 2, 2]]
+    r = run(lib, T.numpy(), cov6.numpy(), float(sig), nu, s, o, d.numpy(), dLdT.numpy())
+    assert r["fast"] == pre["fast"]
+    assert abs(r["loghp"] - float(pre["loghp"])) < 1e-5
+    assert rel(r["T"], val) < 1e-5
+    if pre["fast"]:
+        return
+    assert rel(r["dd"], acc["dd"]) < 1e-4
+    assert rel(r["dcov6"], dcov6) < 1e-4
+    assert rel(r["dT"], dT) < 1e-4
+    # ν ≤ 30: float32 cancellation grows above (NOTES.md 41)
+    assert rel([r["dnu"]], [float(acc["dnu"])]) < 1e-4
+    assert abs(r["radius"] / optb_radius_bound(pre, nut, o, s) - 1) < 1e-5
+
+
+def test_degenerate_components_stay_finite(lib):
+    """Flat, needle and edge-on components (det Σ3 down to 0, near-singular Σ2), ν = 1 (Option B),
+    σ3 = 0 and > 0: whenever preprocess would draw the component, every value and gradient is
+    finite (the M4 G4 run hit NaN gradients here, NOTES.md 43)."""
+    rng = np.random.default_rng(0)
+    drawn = 0
+    for trial in range(1500):
+        q, _ = np.linalg.qr(rng.normal(size=(3, 3)))
+        sc = np.exp(rng.uniform(-9, -1, 3)) * np.array([1, 1, 10.0 ** rng.uniform(-12, 0)])
+        S = q @ np.diag(sc ** 2) @ q.T
+        if trial % 3 == 0:  # flat plane seen edge-on
+            S = np.diag([sc[2] ** 2, sc[0] ** 2, sc[1] ** 2])
+        cov6 = S[[0, 0, 0, 1, 1, 2], [0, 1, 2, 1, 2, 2]].astype(np.float32)
+        z, f = 4.0, 55.0
+        x, y = rng.uniform(-2, 2, 2)
+        T = np.array([f / z, 0, -f * x / z ** 2, 0, f / z, -f * y / z ** 2])
+        sigma = 0.0 if trial % 2 == 0 else float(np.exp(rng.uniform(-8, -4)))
+        d = rng.normal(size=(30, 2)) * 2
+        dLdT = rng.normal(size=30) * (rng.uniform(size=30) < 0.7)
+        r = run(lib, T, cov6, sigma, 1.0, 0.1, 0.8, d, dLdT)
+        c = cov6.astype(np.float32)
+        D = c[0] * (c[3] * c[5] - c[4] * c[4]) - c[1] * (c[1] * c[5] - c[4] * c[2]) + c[2] * (c[1] * c[4] - c[3] * c[2])
+        if not math.isfinite(r["loghp"]) or (sigma > 0 and not D > 0):
+            continue  # preprocess skips it (forward.cu)
+        drawn += 1
+        for k in ("T", "acc", "dd", "dcov6", "dT", "dnu", "radius"):
+            assert np.isfinite(r[k]).all(), (trial, sigma, k)
+    assert drawn > 1000

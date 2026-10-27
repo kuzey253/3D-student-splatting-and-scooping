@@ -1,0 +1,11 @@
+head ae694c0bdb946a74e4278d2ffabac4f7c69182ad
+status:
+?? COLAB_GPU_RUNBOOK.md
+?? results/m0/dry_20261020_162208/m0_results.tar.gz
+?? results/m0/dry_20261027_170330/
+?? results/m0/dry_20261027_171218/
+?? results/m0/run_20261020_181819/m0_results.tar.gz
+?? results/m2/dry2_20261027_151548/m0_results.tar.gz
+?? results/m2/run_20261027_152224/m0_results.tar.gz
+?? results/m3/dry_20261027_155757/m0_results.tar.gz
+?? results/m3/run_20261027_160410/m0_results.tar.gz

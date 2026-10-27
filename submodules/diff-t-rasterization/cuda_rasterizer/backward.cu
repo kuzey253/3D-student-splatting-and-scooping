@@ -705,9 +705,11 @@ __global__ void computeCovOptionB(int P,
 			acc[i] = G[i];
 			acc[3 + i] = G[i];
 		}
-		acc[6] = dlh * 0.5f * (1.f / oc.D - 1.f / oc.det3f);
-		acc[7] = dlh * -0.5f * s2 / oc.det3f;
-		acc[8] = dlh * -0.5f * s2 * s2 / oc.det3f;
+		// D·dL/dD, dL/dm, dL/dtr (mip_optionb.h); zero at sigma = 0, where D may be 0
+		const bool on3 = sigma > 0.f;
+		acc[6] = on3 ? dlh * 0.5f * oc.e / oc.det3f : 0.f;
+		acc[7] = on3 ? dlh * -0.5f * s2 / oc.det3f : 0.f;
+		acc[8] = on3 ? dlh * -0.5f * s2 * s2 / oc.det3f : 0.f;
 	}
 	else
 	{

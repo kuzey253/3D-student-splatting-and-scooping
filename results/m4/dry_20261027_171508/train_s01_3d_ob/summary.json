@@ -1,0 +1,33 @@
+{
+ "run": "train_s01_3d_ob",
+ "scene": "train",
+ "dry": true,
+ "iterations": 1000,
+ "config": {
+  "cap_max": 100000,
+  "nu_degree": 100,
+  "C_burnin": 500000.0,
+  "C": 120.0,
+  "burnin_iterations": 7000,
+  "iterations": 1000,
+  "mip_kernel_size": 0.1,
+  "mip_filter_3d": true,
+  "mip_option_b": true
+ },
+ "components": 182686,
+ "psnr": 14.759993553161621,
+ "ssim": 0.5136713981628418,
+ "lpips": 0.5621604323387146,
+ "fps": 112.54821264807856,
+ "render_size": [
+  980,
+  545
+ ],
+ "test_views": 38,
+ "peak_gpu_mem_mib": 4079,
+ "train_s": 44.3,
+ "render_s": 14.2,
+ "metrics_s": 20.8,
+ "fps_s": 5.3,
+ "stats_s": 3.9
+}

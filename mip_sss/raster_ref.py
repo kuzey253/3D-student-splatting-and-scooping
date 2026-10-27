@@ -189,7 +189,10 @@ def rasterize_option_b(means3D, cov3D, colors, opacity, nu, sigma3, world_view, 
             D, m, tr = ob.invariants(S3)
             S2f = covp - kernel_size * I2
             det3f = D + sig ** 2 * m + sig ** 4 * tr + sig ** 6
-            hp = torch.exp(0.5 * (torch.log(D) - torch.log(det3f) + ob.logdet2(S2f) - ob.logdet2(covp)))
+            loghp = 0.5 * (ob.logdet2(S2f) - ob.logdet2(covp))
+            if sig > 0:  # at σ = 0, D cancels (and a flat component is kept, as in CUDA)
+                loghp = loghp + 0.5 * (torch.log(D) - torch.log(det3f))
+            hp = torch.exp(loghp)
             dc = ob.logdet2(covp).exp().detach()
             covp_c = _ConicGradDamping.apply(covp[None], (dc ** 2 / (dc ** 2 + 1e-7))[None])[0]
             Qp = ob.sym_inv(covp_c)
