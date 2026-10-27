@@ -53,7 +53,7 @@ def render(viewpoint_camera, pc : NTModel, pipe, bg_color : torch.Tensor, scalin
 
     means3D = pc.get_xyz
     means2D = screenspace_points
-    opacity = pc.get_opacity
+    opacity = pc.get_opacity_with_3D_filter if pipe.mip_filter_3d else pc.get_opacity
 
     nu_degree = pc.get_nu_degree
 
@@ -68,9 +68,9 @@ def render(viewpoint_camera, pc : NTModel, pipe, bg_color : torch.Tensor, scalin
     rotations = None
     cov3D_precomp = None
     if pipe.compute_cov3D_python:
-        cov3D_precomp = pc.get_covariance(scaling_modifier)
+        cov3D_precomp = pc.get_covariance(scaling_modifier, filter_3D=pipe.mip_filter_3d)
     else:
-        scales = pc.get_scaling
+        scales = pc.get_scaling_with_3D_filter if pipe.mip_filter_3d else pc.get_scaling
         rotations = pc.get_rotation
 
     # If precomputed colors are provided, use them. Otherwise, if it is desired to precompute colors

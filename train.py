@@ -80,6 +80,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         (model_params, first_iter) = torch.load(checkpoint)
         primitives.restore(model_params, opt)
 
+    # Mip-SSS 3D smoothing filter: computed before training, after every relocation (SGHMC moves
+    # means more than 3DGS does), and every 100 iterations as Mip-Splatting does
+    if pipe.mip_filter_3d:
+        primitives.compute_3D_filter(scene.getTrainCameras(), pipe.mip_filter_3d_variance)
+
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
 
@@ -166,7 +171,12 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 primitives.recycle_components(dead_mask=dead_mask)
                 primitives.add_components(cap_max=args.cap_max)
 
+                if pipe.mip_filter_3d:
+                    primitives.compute_3D_filter(scene.getTrainCameras(), pipe.mip_filter_3d_variance)
+
                 torch.cuda.empty_cache()
+            elif pipe.mip_filter_3d and iteration % 100 == 0 and iteration < opt.iterations - 100:
+                primitives.compute_3D_filter(scene.getTrainCameras(), pipe.mip_filter_3d_variance)
 
             if (iteration in checkpoint_iterations):
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))

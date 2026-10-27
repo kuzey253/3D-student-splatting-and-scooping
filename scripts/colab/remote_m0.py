@@ -1,6 +1,6 @@
 """Remote side of scripts/colab/run_m0.sh, executed in the Colab kernel with `colab exec -f`.
 
-The STEP env var selects the step: setup, data, parity, launch, status or collect. Every step ends with a
+The STEP env var selects the step: setup, data, parity, m3, launch, status or collect. Every step ends with a
 line `M0_<STEP>=OK` or `M0_<STEP>=FAIL <reason>`, because `colab exec` exits 0 even when remote
 code fails: the runner reads these answers, not exit codes.
 """
@@ -181,6 +181,14 @@ def step_parity():
     return "OK" if verdict.startswith("M2_CHECKS=OK") else f"FAIL {verdict or 'checks crashed'}"
 
 
+def step_m3():
+    """M3 checks (scripts/colab/m3_checks.py); needs the train scene's data."""
+    p = sh([sys.executable, "scripts/colab/m3_checks.py"], cwd=SSS, log=M0 / "m3_checks.log")
+    print("\n".join(l for l in p.stdout.splitlines() if l.startswith(("{", "M3_"))))
+    verdict = next((l for l in p.stdout.splitlines() if l.startswith("M3_CHECKS=")), "")
+    return "OK" if verdict.startswith("M3_CHECKS=OK") else f"FAIL {verdict or 'checks crashed'}"
+
+
 def step_launch(scenes, runs, dry):
     if pipeline_pid():
         return "FAIL a pipeline is already running"
@@ -228,7 +236,7 @@ def step_status():
 def step_collect():
     out = ROOT / "m0_results.tar.gz"
     keep = ("summary.json", "config.json", "results.json", "per_view.json", "fps.json", "cfg_args",
-            "cameras.json", "mem.csv", ".log", ".md", "stats.json", "m2_checks.json")
+            "cameras.json", "mem.csv", ".log", ".md", "stats.json", "m2_checks.json", "m3_checks.json")
     with tarfile.open(out, "w:gz") as t:
         for p in sorted(M0.rglob("*")):
             if p.is_file() and (p.name.endswith(keep) or p.parent.name == "stats"):
@@ -250,7 +258,7 @@ def main():
         return
     try:
         result = {"setup": step_setup, "data": lambda: step_data(scenes),
-                  "parity": step_parity, "launch": lambda: step_launch(scenes, runs, dry),
+                  "parity": step_parity, "m3": step_m3, "launch": lambda: step_launch(scenes, runs, dry),
                   "status": step_status,
                   "collect": step_collect}[step]()
     except KeyError:

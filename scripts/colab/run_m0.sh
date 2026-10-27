@@ -9,7 +9,8 @@
 #
 # Env: SESSION (required), DRY (0/1), SCENES (default "train garden"), RUNS (named runs with config
 # overrides, "name:scene:key=value,..." space-separated; replaces SCENES for training), PARITY=1
-# (M2 checks: also build the rasterizer at OLD_REF, default 19b1b53, and compare), POLL (seconds
+# (M2 checks: also build the rasterizer at OLD_REF, default 19b1b53, and compare), M3CHECKS=1 (M3
+# checks, after the data step; stops before training if they fail), POLL (seconds
 # between status checks; default 30 dry, 300 real). Remote steps answer with M0_<STEP>=OK|FAIL
 # lines, which this script checks; `colab exec` itself exits 0 even when the remote code fails.
 set -euo pipefail
@@ -19,6 +20,7 @@ DRY=${DRY:-0}
 SCENES=${SCENES:-train garden}
 RUNS=${RUNS:-}
 PARITY=${PARITY:-0}
+M3CHECKS=${M3CHECKS:-0}
 OLD_REF=${OLD_REF:-19b1b53}
 POLL=${POLL:-$([ "$DRY" = 1 ] && echo 30 || echo 300)}
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -84,6 +86,15 @@ fi
 log "data: download and extract $SCENES ${RUNS:+(runs: $RUNS)}"
 step data 3600
 grep -E "images|GB" "$OUT/data.log" || true
+if [ "$M3CHECKS" = 1 ]; then
+  log "m3: 3D filter wiring vs float64 reference, filter values on real cameras"
+  if ! try_step m3 1800; then
+    log "M3 checks did not pass; stopping before training:"
+    grep -E "^M0_M3=|^M3_" "$OUT/m3.log" || tail -20 "$OUT/m3.log"
+    exit 1
+  fi
+  grep -E "^M3_" "$OUT/m3.log" || true
+fi
 log "launch"
 step launch 120
 

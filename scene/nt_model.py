@@ -74,6 +74,9 @@ class NTModel:
         # NOTE: This is always 1
         self._negative = torch.empty(0)
 
+        # Mip-SSS 3D smoothing filter: per-component std σ3, shape (N, 1); None when it is off
+        self.filter_3D = None
+
     def capture(self):
         return (
             self.active_sh_degree,
@@ -134,6 +137,34 @@ class NTModel:
     def get_opacity(self):
         return self.opacity_activation(self._opacity)
 
+    def _checked_filter_3D(self):
+        if self.filter_3D is None or self.filter_3D.shape[0] != self._xyz.shape[0]:
+            raise RuntimeError("3D filter is stale or missing: call compute_3D_filter after "
+                               "components are added or relocated")
+        return self.filter_3D
+
+    @property
+    def get_scaling_with_3D_filter(self):
+        # Σ + σ3²I = R (S² + σ3²) Rᵀ: the isotropic 3D filter only changes the scales
+        return torch.sqrt(torch.square(self.get_scaling) + torch.square(self._checked_filter_3D()))
+
+    @property
+    def get_opacity_with_3D_filter(self):
+        # Option A in 3D: opacity × sqrt(|Σ| / |Σ + σ3²I|), which keeps each component's mass
+        s2 = torch.square(self.get_scaling)
+        coef = torch.sqrt(s2.prod(dim=1) / (s2 + torch.square(self._checked_filter_3D())).prod(dim=1))
+        return self.get_opacity * coef[:, None]
+
+    @torch.no_grad()
+    def compute_3D_filter(self, cameras, filter_variance=0.2):
+        """σ3 per component from the training cameras, as Mip-Splatting's compute_3D_filter."""
+        from mip_sss.filter3d import PinholeCamera, filter_3d_std, fov2focal
+        cams = [PinholeCamera(R=c.R, T=c.T, focal_x=fov2focal(c.FoVx, c.image_width),
+                              focal_y=fov2focal(c.FoVy, c.image_height),
+                              image_width=c.image_width, image_height=c.image_height)
+                for c in cameras]
+        self.filter_3D = filter_3d_std(self.get_xyz.detach(), cams, filter_variance)[:, None]
+
     @property
     def get_nu_degree(self):
         return self.nu_degree_activation(self._degree)
@@ -142,8 +173,9 @@ class NTModel:
     def get_negative(self):
         return self._negative
     
-    def get_covariance(self, scaling_modifier = 1):
-        return self.covariance_activation(self.get_scaling, scaling_modifier, self._rotation)
+    def get_covariance(self, scaling_modifier = 1, filter_3D = False):
+        scaling = self.get_scaling_with_3D_filter if filter_3D else self.get_scaling
+        return self.covariance_activation(scaling, scaling_modifier, self._rotation)
 
     def oneupSHdegree(self):
         if self.active_sh_degree < self.max_sh_degree:
@@ -238,6 +270,8 @@ class NTModel:
 
         l.append('degree')
         l.append('negative')
+        if self.filter_3D is not None:
+            l.append('filter_3D')
         
         return l
 
@@ -260,6 +294,8 @@ class NTModel:
 
         elements = np.empty(xyz.shape[0], dtype=dtype_full)
         attributes = np.concatenate((xyz, normals, f_dc, f_rest, opacities, scale, rotation, degree, negative), axis=1)
+        if self.filter_3D is not None:
+            attributes = np.concatenate((attributes, self._checked_filter_3D().detach().cpu().numpy()), axis=1)
         elements[:] = list(map(tuple, attributes))
         el = PlyElement.describe(elements, 'vertex')
         PlyData([el]).write(path)
@@ -311,6 +347,9 @@ class NTModel:
         self._degree = nn.Parameter(torch.tensor(degrees, dtype=torch.float, device="cuda").requires_grad_(True))
         negatives = np.asarray(plydata.elements[0]["negative"])[..., np.newaxis]
         self._negative = nn.Parameter(torch.tensor(negatives, dtype=torch.float, device="cuda").requires_grad_(False))
+        if "filter_3D" in [p.name for p in plydata.elements[0].properties]:
+            filter_3D = np.asarray(plydata.elements[0]["filter_3D"])[..., np.newaxis]
+            self.filter_3D = torch.tensor(filter_3D, dtype=torch.float, device="cuda")
     
     def cat_tensors_to_optimizer(self, tensors_dict, inds):
         optimizable_tensors = {}
