@@ -2,7 +2,7 @@
 
 2026-10-27. Colab G4: RTX PRO 6000 Blackwell (sm_120), torch 2.11.0+cu130, CUDA 13.0.
 
-There were five VM sessions (units from the account balance before and after each):
+There were six VM sessions (units from the account balance before and after each):
 
 | Session | Time | Build | Units |
 | --- | --- | --- | --- |
@@ -11,7 +11,8 @@ There were five VM sessions (units from the account balance before and after eac
 | 3 | 18:54–19:09 | `5f0fe20` | 2.22 |
 | 4 | 19:17–19:38 | `d42e77c` (= `850ea3f` + this report) | 2.55 |
 | 5 | 19:45–20:02 | `b35e9a0` (= `850ea3f` + the NaN capture) | 2.20 |
-| **Total** | | | **14.86** (at 8.9 units/h) |
+| 6 | 20:03–~20:24 | `d647940` (same code) | 1.69 (balance read right after stopping) |
+| **Total** | | | **16.55** (at 8.9 units/h) |
 
 ## Status
 
@@ -21,6 +22,7 @@ There were five VM sessions (units from the account balance before and after eac
 - **In session 5 the same run completed all 7000 iterations.** That session used the final CUDA code plus a NaN capture (NOTES.md 46), so the capture had nothing to record. The final code has now failed once (session 4) and succeeded once.
 - **The NaN is intermittent and its cause is not found.** Training is not bit-reproducible (atomic adds), so the same build can fail or not. Three float32 failure modes in the Option B code were found and fixed (NOTES.md 43–45), and each is real: it is reproduced and cleared by stress-testing the exact device code compiled as host C++. They did not remove the failure.
 - **The capture is in place.** It will record the failing state the next time the NaN occurs (see Open).
+- **Session 6** ran three capture-enabled copies of `train_s01_ob`. It was stopped at your request: `ob_a` had finished 7000 iterations without a NaN, and `ob_b` was about 6.6 minutes into training, also without one. The VM stopped before the collect step, so neither run's outputs came back. With the final code, the tally is 1 failure in 3 runs that reached iteration ~5700.
 
 ## What was built (NOTES.md 37–42)
 
