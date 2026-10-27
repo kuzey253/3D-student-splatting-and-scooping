@@ -78,7 +78,7 @@ def cuda_render(p, cam, kernel_size, filter_3d, set_filter=True):
     if set_filter:
         pc.filter_3D = p["filter_3D"].cuda()
     pipe = SimpleNamespace(debug=False, compute_cov3D_python=False, convert_SHs_python=False,
-                           mip_kernel_size=kernel_size, mip_filter_3d=filter_3d)
+                           mip_kernel_size=kernel_size, mip_filter_3d=filter_3d, mip_option_b=False)
     img = render(cam, pc, pipe, torch.tensor(BG, device="cuda"), override_color=p["colors"].cuda())["render"]
     (img * p["weights"].cuda()).sum().backward()
     return img.detach(), {k: getattr(pc, k).grad.detach() for k in PARAMS}
