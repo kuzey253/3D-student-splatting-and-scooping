@@ -2,22 +2,23 @@
 
 2026-10-27. Colab G4: RTX PRO 6000 Blackwell (sm_120), torch 2.11.0+cu130, CUDA 13.0.
 
-There were three VM sessions:
+There were four VM sessions (units from the account balance before and after each):
 
 | Session | Time | Build | Units |
 | --- | --- | --- | --- |
 | 1 | 17:03–17:45 | `ae694c0` | 6.16 |
 | 2 | 18:28–18:42 | `3c890e6` | 1.73 |
-| 3 | 18:54–19:09 | `5f0fe20` | 1.48 |
-| **Total** | | | **9.37** (at 8.9 units/h) |
+| 3 | 18:54–19:09 | `5f0fe20` | 2.22 |
+| 4 | 19:17–19:38 | `d42e77c` (= `850ea3f` + this report) | 2.55 |
+| **Total** | | | **12.66** (at 8.9 units/h) |
 
 ## Status
 
 - **Option B in CUDA is written and matches the float64 reference on the GPU.** All checks passed in all three sessions.
 - **Training with the 3D filter on completed 7000 iterations.** That run was on the first build (session 1).
-- **Training without the 3D filter (σ3 = 0) hit NaN gradients in all three sessions,** at iterations 3860, 4360 and 2390.
-- **Three float32 failure modes were found and fixed** (NOTES.md 43–45). The last one is the 0·∞ on tiny, invisible components, and it explains all three failures.
-- **The final fix (`850ea3f`) is verified on the Mac only.** It is reproduced and cleared there by stress-testing the exact device code compiled as host C++. It has not yet run on a GPU.
+- **Training without the 3D filter (σ3 = 0) hit NaN gradients in all four sessions,** at iterations 3860, 4360, 2390 and 5700. The guard that fires is `grad_means3D`, the first one checked.
+- **The cause is not found.** Three float32 failure modes in the Option B code were found and fixed (NOTES.md 43–45), and each is real: it is reproduced and cleared by stress-testing the exact device code compiled as host C++. But the GPU failure persisted through all three fixes, at no consistent iteration. So the cause lies outside what the stress tests exercise.
+- **Next is a diagnostic run that captures the failing state** (see Open), not another fix from a hypothesis.
 
 ## What was built (NOTES.md 37–42)
 
@@ -70,13 +71,26 @@ There were three VM sessions:
 | --- | --- | --- | --- |
 | `3c890e6` (NOTES.md 43) | ½(1/D − 1/det3f) gives ∞ − ∞ for flat components; per-node log det from rounded entries | D gradient carried as D·∂/∂D; 3D terms through e and L3 = D + e3, exactly zero at σ3 = 0 | host test; GPU session 2 still failed |
 | `5f0fe20` (NOTES.md 44) | a·c − b² cancels for nearly rank-1 footprints (Σ2/λ_k up to ~1e7 px²) | determinants built from non-negative pieces: det(A + B) = det A + det B + tr(adj(A)B), det(A + sI) = det A + s tr A + s² | host stress (20 of 8,348 → 0); GPU session 3 still failed |
-| `850ea3f` (NOTES.md 45) | tiny, invisible components: det Σ2f is denormal, 1/det = ∞, and the zero incoming gradient gives 0·∞ = NaN; the 3D filter's P term prevents it | inverses divide entry by entry, as M2 does; zero incoming gradients return exact zeros | host stress with the render's alpha test: the session-3 header fails 313 of 3,449 tiny components, this one 0 of 14,436 tiny ones |
+| `850ea3f` (NOTES.md 45) | tiny, invisible components: det Σ2f is denormal, 1/det = ∞, and the zero incoming gradient gives 0·∞ = NaN; the 3D filter's P term prevents it | inverses divide entry by entry, as M2 does; zero incoming gradients return exact zeros | host stress with the render's alpha test: the session-3 header fails 313 of 3,449 tiny components, this one 0 of 14,436 tiny ones; GPU session 4 still failed (iteration 5700) |
 
-All three are float32 arithmetic in my code; none is a bug in SSS. The host test now covers ordinary, extreme and tiny components through the whole per-component path, with the alpha test the render applies. There are 537 local tests in total, all passing.
+All three are float32 hazards in my code, and none is a bug in SSS. The host test covers ordinary, extreme and tiny components through the whole per-component path, with the alpha test the render applies. There are 537 local tests in total, all passing.
+
+**What the host tests do not exercise,** so where the remaining cause must be:
+- the render kernels' per-pixel compositing of Option B values: forward and backward, many components per pixel, |alpha| clamped at 0.99, negative opacities;
+- the atomic sums of per-pixel accumulators over a whole image;
+- the mean2D gradient path;
+- the interplay with training: relocation, the opacity and scale regularizers, and SSS's ν handling, as ν drifts to 1 under Option B.
+
+The only sign so far is which guard fires: a NaN in the mean gradient, at iterations 2390–5700, only at σ3 = 0. Session 4 (build `d42e77c`) passed every check again: flag-off parity against M3, M2, M3 and M4.
 
 ## Open
 
-1. **Run the final build on the G4.** That means the dry run with flag-off parity and the M3/M4 checks, then `train_s01_ob` and `train_s01_3d_ob` for 7000 iterations: about 35 minutes, ~5 units.
+1. **Capture the failing state on the G4 instead of guessing.**
+   - At the first non-finite gradient, save the camera, the iteration, whether the rendered image and loss were finite, and the gradient tensors.
+   - For every component with a non-finite gradient, also save its parameters (mean, scales, rotation, opacity, ν, σ3, radius, mode, slot).
+   - Then replay those components locally, in the host harness and the float64 reference.
+   - Cost: one `train_s01_ob` run until it fails, about 10–15 minutes including the build, ~2 units.
+   - `train_s01_3d_ob` was not re-run on the final build. It did not fail in session 1.
 2. **ν drift under Option B** (31.8% at ν = 1): understand it before M5's comparisons.
 3. **The float32 ν gradient for Option B components with ν in (30, 400)** (NOTES.md 41).
 
@@ -88,3 +102,4 @@ Outputs are in `results/m4/`:
 | `dry_20261027_171508`, `run_20261027_172201` | session 1's passing dry run and real run |
 | `dry_20261027_182804`, `run_20261027_183503` | session 2 |
 | `dry_20261027_185410`, `run_20261027_190143` | session 3 |
+| `dry_20261027_191736`, `run_20261027_192502` | session 4 (its `train_s01_3d_ob` directory holds the dry-run files; the real run stopped at `train_s01_ob`) |
