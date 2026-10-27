@@ -2,11 +2,15 @@
 
 1. Wiring, exactly: M3 is Python only (two NTModel getters and their autograd chain), so it is
    checked against the CUDA rasterizer itself, independent of the rasterizer's own float32
-   error. (a) The filtered render must equal an unfiltered render of a model given the filtered
-   scales and opacity (computed in float64). (b) The raw-parameter gradients must equal the
-   float64 chain rule through the getters applied to that render's gradients. Tolerance 1e-4
-   (README); a case with 1-3 pixels off by > 1e-3 is a discrete float32 decision flip (reported,
-   not scored; more than two such cases fail).
+   error. (a) The getters' effective scales and opacity equal the float64 formulas to float32
+   precision (≤ 1e-6). (b) The filtered render equals an unfiltered render of a model given
+   those effective parameters (folded in float64), to 1e-4 (README). (c) The raw-parameter
+   gradients equal the float64 chain rule through the getters applied to that render's
+   gradients, to max(1e-4, 2 × the change from random ±1-ulp perturbations of the folded
+   scales and opacities): the two models differ by exactly such ulps, and SSS's float32
+   gradients for needle-shaped components move by up to ~1e-3 of their size under them
+   (NOTES.md 36). A case with 1-3 pixels off by > 1e-3 is a discrete float32 decision flip
+   (reported, not scored; more than two such cases fail).
    Reported, not gating: CUDA vs mip_sss.raster_ref in float64, with and without the filter.
    SSS's own float32 scale/rotation path exceeds 1e-4 there on very elongated components
    whether or not the filter is on (NOTES.md 34).
@@ -125,6 +129,30 @@ def chain_through_getters(p, eq, eq_grads):
     return {"_scaling": log_s.grad, "_opacity": raw_o.grad}
 
 
+def ulp_jitter(q, seed):
+    """Random ±1-ulp perturbation of the folded scales and opacities (float32)."""
+    g = torch.Generator().manual_seed(1000 + seed)
+    out = dict(q)
+    for k in ("_scaling", "_opacity"):
+        up = torch.rand(q[k].shape, generator=g) < 0.5
+        out[k] = torch.nextafter(q[k], torch.where(up, torch.full_like(q[k], 1e9), torch.full_like(q[k], -1e9)))
+    return out
+
+
+def getter_exactness(p):
+    """Max relative difference of the getters' effective scale/opacity from the float64 formulas."""
+    pc = NTModel(0, 100.0)
+    pc._xyz, pc._scaling, pc._opacity = p["_xyz"].cuda(), p["_scaling"].cuda(), p["_opacity"].cuda()
+    pc.filter_3D = p["filter_3D"].cuda()
+    d = torch.float64
+    s2 = torch.exp(p["_scaling"].to(d)) ** 2
+    s2f = s2 + p["filter_3D"].to(d) ** 2
+    o = torch.tanh(p["_opacity"].to(d)[:, 0]) * torch.sqrt(s2.prod(1) / s2f.prod(1))
+    es = float(((pc.get_scaling_with_3D_filter.double().cpu() - s2f.sqrt()).abs() / s2f.sqrt()).max())
+    eo = float(((pc.get_opacity_with_3D_filter.double().cpu()[:, 0] - o).abs() / o.abs()).max())
+    return max(es, eo)
+
+
 def wiring():
     c = camera()
     fovy = 2 * math.atan(math.tan(FOV / 2) * H / W)
@@ -140,13 +168,16 @@ def wiring():
             eq_img, eq_grads = cuda_render(eq, cam, ks, False)
             want = dict(eq_grads, **chain_through_getters(p, eq, eq_grads))
             diff = (img.double() - eq_img.double()).abs().max(0).values
-            row = {"kernel_size": ks, "seed": seed,
+            row = {"kernel_size": ks, "seed": seed, "getter_rel_err": getter_exactness(p),
                    "image": float((img.double() - eq_img.double()).abs().max() / eq_img.abs().max()),
                    "pixels_off_by_1e-3": int((diff > 1e-3).sum())}
             row.update({f"grad{k}": rel_norm(grads[k], want[k]) for k in PARAMS})
+            _, jit_grads = cuda_render(ulp_jitter(eq, seed), cam, ks, False)
+            row["ulp_sensitivity"] = {f"grad{k}": rel_norm(jit_grads[k], eq_grads[k]) for k in PARAMS}
             row["flip"] = 1 <= row["pixels_off_by_1e-3"] <= 3
-            row["ok"] = row["flip"] or (row["pixels_off_by_1e-3"] == 0 and all(
-                v <= TOL for k, v in row.items() if k == "image" or k.startswith("grad")))
+            row["ok"] = row["flip"] or (
+                row["pixels_off_by_1e-3"] == 0 and row["getter_rel_err"] <= 1e-6 and row["image"] <= TOL
+                and all(row[k] <= max(TOL, 2 * row["ulp_sensitivity"][k]) for k in row["ulp_sensitivity"]))
             # reported only: CUDA vs float64 reference, filter on and off
             ref_img, ref_grads = reference(p, cam, ks)
             q = dict(p, filter_3D=torch.zeros_like(p["filter_3D"]))
