@@ -62,13 +62,17 @@ def cuda_option_b(sc, cam, sigma3):
                       negative_value=torch.ones(n, 1, device="cuda"), colors_precomp=leaves["colors"],
                       cov3D_precomp=leaves["cov6"], filter_3d=sigma3.float().contiguous())
     (img * sc["weights"]).sum().backward()
-    out = {"image": img.detach(), "radii": radii.detach()}
-    out.update({f"grad_{k}": v.grad.detach() for k, v in leaves.items()})
+    out = {"image": img.detach().cpu(), "radii": radii.detach().cpu()}
+    out.update({f"grad_{k}": v.grad.detach().cpu() for k, v in leaves.items()})
     return out
 
 
 def reference(sc, cam, sigma3):
+    """On the CPU (optionb_staged builds its constants there)."""
     d = torch.float64
+    sc = {k: v.cpu() for k, v in sc.items()}
+    cam = {k: (v.cpu() if torch.is_tensor(v) else v) for k, v in cam.items()}
+    sigma3 = sigma3.cpu()
     c = sc["cov3"].to(d)
     leaves = {"means": sc["means"].to(d), "colors": sc["colors"].to(d), "opacity": sc["opacity"].to(d),
               "nu": sc["nu"].to(d),
@@ -80,7 +84,7 @@ def reference(sc, cam, sigma3):
                         torch.stack([v[:, 2], v[:, 4], v[:, 5]], -1)], 1)
     img, fast = rasterize_option_b(leaves["means"], cov3, leaves["colors"], leaves["opacity"], leaves["nu"],
                                    sigma3.to(d), cam["world_view"].to(d), cam["full_proj"].to(d), cam["tanfovx"],
-                                   cam["tanfovy"], H, W, torch.tensor(BG, dtype=d, device="cuda"), S)
+                                   cam["tanfovy"], H, W, torch.tensor(BG, dtype=d), S)
     (img * sc["weights"].to(d)).sum().backward()
     out = {"image": img.detach(), "fast": fast}
     out.update({f"grad_{k}": t.grad.detach() for k, t in leaves.items()})
@@ -143,14 +147,12 @@ def wiring():
         d = torch.float64
         s2 = torch.exp(p["_scaling"].to(d)) ** 2
         Rm = quat_to_rot(p["_rotation"].to(d))
-        cov3 = (Rm @ torch.diag_embed(s2) @ Rm.transpose(1, 2)).cuda()
-        ref, _ = rasterize_option_b(p["_xyz"].to(d).cuda(), cov3, p["colors"].to(d).cuda(),
-                                    torch.tanh(p["_opacity"].to(d)[:, 0]).cuda(),
-                                    torch.clamp(p["_degree"].to(d)[:, 0], 1, 1e4).cuda(),
-                                    p["filter_3D"].to(d)[:, 0].cuda(), c["world_view"].to(d), c["full_proj"].to(d),
-                                    math.tan(FOV / 2), math.tan(fovy / 2), H, W,
-                                    torch.tensor(BG, dtype=d, device="cuda"), S)
-        diff = (img.detach().double() - ref).abs()
+        cov3 = Rm @ torch.diag_embed(s2) @ Rm.transpose(1, 2)
+        ref, _ = rasterize_option_b(p["_xyz"].to(d), cov3, p["colors"].to(d), torch.tanh(p["_opacity"].to(d)[:, 0]),
+                                    torch.clamp(p["_degree"].to(d)[:, 0], 1, 1e4), p["filter_3D"].to(d)[:, 0],
+                                    c["world_view"].cpu().to(d), c["full_proj"].cpu().to(d),
+                                    math.tan(FOV / 2), math.tan(fovy / 2), H, W, torch.tensor(BG, dtype=d), S)
+        diff = (img.detach().cpu().double() - ref).abs()
         row = {"seed": seed, "image": float(diff.max() / ref.abs().max()),
                "pixels_off_by_1e-3": int((diff.max(0).values > 1e-3).sum()),
                "grads_finite": all(bool(torch.isfinite(getattr(pc, k).grad).all()) for k in m3_checks.PARAMS)}
