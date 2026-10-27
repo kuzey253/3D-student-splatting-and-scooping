@@ -1,6 +1,6 @@
 """Remote side of scripts/colab/run_m0.sh, executed in the Colab kernel with `colab exec -f`.
 
-The STEP env var selects the step: setup, data, launch, status or collect. Every step ends with a
+The STEP env var selects the step: setup, data, parity, launch, status or collect. Every step ends with a
 line `M0_<STEP>=OK` or `M0_<STEP>=FAIL <reason>`, because `colab exec` exits 0 even when remote
 code fails: the runner reads these answers, not exit codes.
 """
@@ -148,12 +148,49 @@ def pipeline_pid():
         return None
 
 
-def step_launch(scenes, dry):
+def step_parity():
+    """M2 checks: build the pre-M2 rasterizer separately, render with it, then compare."""
+    old_pkg = ROOT / "old_raster.tar.gz"
+    if not old_pkg.exists():
+        return "FAIL no /content/old_raster.tar.gz uploaded"
+    old_src, old_ext = ROOT / "old_raster", ROOT / "ext_old"
+    if not (old_ext / "diff_t_rasterization").exists():
+        shutil.rmtree(old_src, ignore_errors=True)
+        old_src.mkdir()
+        with tarfile.open(old_pkg) as t:
+            t.extractall(old_src)
+        import torch
+        cap = torch.cuda.get_device_capability(0)
+        env = dict(os.environ, TORCH_CUDA_ARCH_LIST=f"{cap[0]}.{cap[1]}", MAX_JOBS="16")
+        t0 = time.time()
+        p = sh([sys.executable, "-m", "pip", "install", "--no-build-isolation", "--no-deps",
+                "--target", str(old_ext), str(old_src / "submodules" / "diff-t-rasterization")],
+               log=M0 / "build_old.log", env=env)
+        print(f"old build: {time.time() - t0:.0f}s, exit {p.returncode}")
+        if p.returncode:
+            return "FAIL old rasterizer build (see /content/m0/build_old.log)"
+    env = dict(os.environ, PYTHONPATH=str(old_ext))
+    p = sh([sys.executable, "scripts/colab/m2_scene.py", "--out", str(M0 / "m2_old.pt")],
+           cwd=SSS, env=env)
+    print(p.stdout.strip())
+    if p.returncode:
+        return "FAIL rendering with the old build"
+    p = sh([sys.executable, "scripts/colab/m2_checks.py"], cwd=SSS, log=M0 / "m2_checks.log")
+    print("\n".join(l for l in p.stdout.splitlines() if l.startswith(("{", "M2_"))))
+    verdict = next((l for l in p.stdout.splitlines() if l.startswith("M2_CHECKS=")), "")
+    return "OK" if verdict.startswith("M2_CHECKS=OK") else f"FAIL {verdict or 'checks crashed'}"
+
+
+def step_launch(scenes, runs, dry):
     if pipeline_pid():
         return "FAIL a pipeline is already running"
     for f in ("status.json", "pipeline.log"):
         (M0 / f).unlink(missing_ok=True)
-    cmd = [sys.executable, "scripts/colab/m0_pipeline.py", "--scenes", *scenes]
+    cmd = [sys.executable, "scripts/colab/m0_pipeline.py"]
+    if runs:
+        cmd += ["--runs", *runs]
+    else:
+        cmd += ["--scenes", *scenes]
     if dry:
         cmd.append("--dry")
     log = open(M0 / "pipeline.log", "w")
@@ -191,7 +228,7 @@ def step_status():
 def step_collect():
     out = ROOT / "m0_results.tar.gz"
     keep = ("summary.json", "config.json", "results.json", "per_view.json", "fps.json", "cfg_args",
-            "cameras.json", "mem.csv", ".log", ".md", "stats.json")
+            "cameras.json", "mem.csv", ".log", ".md", "stats.json", "m2_checks.json")
     with tarfile.open(out, "w:gz") as t:
         for p in sorted(M0.rglob("*")):
             if p.is_file() and (p.name.endswith(keep) or p.parent.name == "stats"):
@@ -203,7 +240,9 @@ def step_collect():
 
 def main():
     step = os.environ.get("STEP", "")
+    runs = os.environ.get("RUNS", "").split()
     scenes = os.environ.get("SCENES", "train garden").split()
+    scenes += [r.split(":")[1] for r in runs if ":" in r and r.split(":")[1] not in scenes]
     dry = os.environ.get("DRY", "0") == "1"
     unknown = [s for s in scenes if s not in SCENE_ARCHIVE]
     if unknown:
@@ -211,7 +250,8 @@ def main():
         return
     try:
         result = {"setup": step_setup, "data": lambda: step_data(scenes),
-                  "launch": lambda: step_launch(scenes, dry), "status": step_status,
+                  "parity": step_parity, "launch": lambda: step_launch(scenes, runs, dry),
+                  "status": step_status,
                   "collect": step_collect}[step]()
     except KeyError:
         result = f"FAIL unknown STEP '{step}'"

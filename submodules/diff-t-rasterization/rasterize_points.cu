@@ -56,7 +56,8 @@ RasterizeTCUDA(
 	const bool debug,
 	const torch::Tensor& nu_degree,
 	const torch::Tensor& cover,
-	const torch::Tensor& negative_value)
+	const torch::Tensor& negative_value,
+	const float kernel_size)
 {
   if (means3D.ndimension() != 2 || means3D.size(1) != 3) {
     AT_ERROR("means3D must have dimensions (num_points, 3)");
@@ -116,7 +117,8 @@ RasterizeTCUDA(
 		cover.contiguous().data_ptr<float>(),
 		negative_value.contiguous().data_ptr<float>(),
 		radii.contiguous().data_ptr<int>(),
-		debug);
+		debug,
+		kernel_size);
   }
   return std::make_tuple(rendered, out_color, radii, geomBuffer, binningBuffer, imgBuffer);
 }
@@ -145,7 +147,9 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
 	const torch::Tensor& imageBuffer,
 	const bool debug,
 	const torch::Tensor& nu_degree,
-	const torch::Tensor& negative_value) 
+	const torch::Tensor& negative_value,
+	const torch::Tensor& opacities,
+	const float kernel_size) 
 {
   const int P = means3D.size(0);
   const int H = dL_dout_color.size(1);
@@ -204,7 +208,9 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
 	  debug,
 	  nu_degree.contiguous().data_ptr<float>(),
 	  dL_dnudegree.contiguous().data_ptr<float>(),
-	  negative_value.contiguous().data_ptr<float>());
+	  negative_value.contiguous().data_ptr<float>(),
+	  opacities.contiguous().data_ptr<float>(),
+	  kernel_size);
   }
 
   return std::make_tuple(dL_dmeans2D, dL_dcolors, dL_dopacity, dL_dmeans3D, dL_dcov3D, dL_dsh, dL_dscales, dL_drotations, dL_dnudegree);

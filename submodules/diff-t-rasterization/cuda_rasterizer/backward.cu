@@ -150,7 +150,10 @@ __global__ void computeCov2DCUDA(int P,
 	const float* view_matrix,
 	const float* dL_dconics,
 	float3* dL_dmeans,
-	float* dL_dcov)
+	float* dL_dcov,
+	const float* opacities,
+	float* dL_dopacity,
+	const float kernel_size)
 {
 	auto idx = cg::this_grid().thread_rank();
 	if (idx >= P || !(radii[idx] > 0))
@@ -203,6 +206,22 @@ __global__ void computeCov2DCUDA(int P,
 	float b = cov2D[0][1];
 	float c = cov2D[1][1];
 
+	// Mip-SSS 2D filter, Option A (see forward.cu): the conic uses Σ' = Σ + sI (∂Σ'/∂Σ = I), and
+	// the effective opacity o·coef with coef = sqrt(|Σ|/|Σ'|) feeds gradients into Σ and o.
+	float dL_dcoef = 0.0f, coef = 1.0f, det_0 = 1.0f, det_1 = 1.0f;
+	const float a_0 = a, c_0 = c;
+	if (kernel_size > 0.0f)
+	{
+		det_0 = a * c - b * b;
+		a += kernel_size;
+		c += kernel_size;
+		det_1 = a * c - b * b;
+		coef = det_0 > 0.0f ? sqrtf(det_0 / det_1) : 0.0f;
+		const float dL_deff = dL_dopacity[idx];  // w.r.t. the effective opacity o·coef
+		dL_dcoef = dL_deff * opacities[idx];
+		dL_dopacity[idx] = dL_deff * coef;
+	}
+
 
 	float denom = a * c - b * b;
 	float dL_da = 0, dL_db = 0, dL_dc = 0;
@@ -216,6 +235,14 @@ __global__ void computeCov2DCUDA(int P,
 		dL_da = denom2inv * (-c * c * dL_dconic.x + 2 * b * c * dL_dconic.y + (denom - a * c) * dL_dconic.z);
 		dL_dc = denom2inv * (-a * a * dL_dconic.z + 2 * a * b * dL_dconic.y + (denom - a * c) * dL_dconic.x);
 		dL_db = denom2inv * 2 * (b * c * dL_dconic.x - (denom + 2 * b * b) * dL_dconic.y + a * b * dL_dconic.z);
+
+		if (kernel_size > 0.0f && det_0 > 0.0f)
+		{
+			// ∂coef/∂(a, b, c) for coef = sqrt(det_0/det_1), at the unfiltered entries
+			dL_da += dL_dcoef * 0.5f * coef * (c_0 / det_0 - c / det_1);
+			dL_dc += dL_dcoef * 0.5f * coef * (a_0 / det_0 - a / det_1);
+			dL_db += dL_dcoef * coef * b * (1.0f / det_1 - 1.0f / det_0);
+		}
 
 		// Gradients of loss L w.r.t. each 3D covariance matrix (Vrk) entry, 
 		// given gradients w.r.t. 2D covariance matrix (diagonal).
@@ -617,7 +644,10 @@ void BACKWARD::preprocess(
 	float* dL_dcov3D,
 	float* dL_dsh,
 	glm::vec3* dL_dscale,
-	glm::vec4* dL_drot)
+	glm::vec4* dL_drot,
+	const float* opacities,
+	float* dL_dopacity,
+	const float kernel_size)
 {
 	// Propagate gradients for the path of 2D conic matrix computation. 
 	// Somewhat long, thus it is its own kernel rather than being part of 
@@ -635,7 +665,10 @@ void BACKWARD::preprocess(
 		viewmatrix,
 		dL_dconic,
 		(float3*)dL_dmean3D,
-		dL_dcov3D);
+		dL_dcov3D,
+		opacities,
+		dL_dopacity,
+		kernel_size);
 
 	// Propagate gradients for remaining steps: finish 3D mean gradients,
 	// propagate color gradients to SH (if desireD), propagate 3D covariance

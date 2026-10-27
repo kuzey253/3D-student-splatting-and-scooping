@@ -38,7 +38,8 @@ RasterizeTCUDA(
 	const bool debug,
 	const torch::Tensor& nu_degree,
 	const torch::Tensor& cover,
-	const torch::Tensor& negative_value);
+	const torch::Tensor& negative_value,
+	const float kernel_size);
 
 std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor>
  RasterizeTBackwardCUDA(
@@ -64,7 +65,9 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
 	const torch::Tensor& imageBuffer,
 	const bool debug,
 	const torch::Tensor& nu_degree,
-	const torch::Tensor& negative_value);
+	const torch::Tensor& negative_value,
+	const torch::Tensor& opacities,
+	const float kernel_size);
 		
 torch::Tensor markVisible(
 		torch::Tensor& means3D,

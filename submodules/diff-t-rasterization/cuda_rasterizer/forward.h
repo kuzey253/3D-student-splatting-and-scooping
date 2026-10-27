@@ -47,7 +47,8 @@ namespace FORWARD
 		uint32_t* tiles_touched,
 		bool prefiltered,
 		const float* nu_degree,
-		const float* cover);
+		const float* cover,
+		const float kernel_size);
 
 	// Main rasterization method.
 	void render(

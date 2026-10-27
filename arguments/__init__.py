@@ -77,6 +77,7 @@ class PipelineParams(ParamGroup):
         self.convert_SHs_python = False
         self.compute_cov3D_python = False
         self.debug = False
+        self.mip_kernel_size = 0.0  # Mip-SSS 2D filter variance in px²; 0 = off (Mip-Splatting: 0.1)
         super().__init__(parser, "Pipeline Parameters")
 
 class OptimizationParams(ParamGroup):

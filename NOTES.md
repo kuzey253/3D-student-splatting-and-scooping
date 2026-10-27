@@ -63,3 +63,10 @@ Every departure from the handoff README (`../ReadMe.md`), with the reason. Newes
     - Every remote step answers with `M0_<STEP>=OK|FAIL`, and every phase checks its output files, because `metrics.py` swallows its own errors.
     - Only small results are brought back.
     - The runner never starts or stops the VM.
+
+## M2: 2D Mip filter in CUDA, Option A (2026-10-27)
+
+25. **No dilation to replace** (see 1). The filter is added in `preprocessCUDA` right after `computeCov2D`: Σ′ = Σ + sI and opacity × sqrt(|Σ|/|Σ′|). It is guarded by `kernel_size > 0`, so with the flag off the arithmetic is SSS's, bit for bit. The radius comes from SSS's own rule applied to Σ′; the README allows this for Option A.
+26. **Flag:** `--mip_kernel_size` (a pipeline parameter, default 0 = off; Mip-Splatting uses 0.1). It reaches the rasterizer as `TRasterizationSettings.kernel_size`. Caveat: `render.py`'s `get_combined_args` lets the command-line default (0.0) override the trained value, so filtered models must be rendered with `--mip_kernel_size` passed explicitly. The M0/M2 pipeline does this.
+27. **Backward.** The conic gradient carries over unchanged (∂Σ′/∂Σ = I). The coefficient's gradient is added to dL/d(a, b, c) before the existing chain to the 3D covariance and the mean. The render kernel's gradient for the effective opacity o·coef becomes ×coef for the raw opacity. To do this the backward pass now receives the raw opacities: one more saved tensor and one more argument in the C++ binding.
+28. **Parity method.** `mip_sss/raster_ref.py` re-implements the CUDA path in float64, including tile culling and SSS's ν gradient as written (`sss_nu_grad=True`). Locally it is checked against an independent pinhole projection plus the M1 kernels, to 1e-9. On the GPU, `scripts/colab/m2_checks.py` compares CUDA against it for s ∈ {0, 0.1, 0.3}, and compares filter-off against a build of the pre-M2 rasterizer (`OLD_REF`).

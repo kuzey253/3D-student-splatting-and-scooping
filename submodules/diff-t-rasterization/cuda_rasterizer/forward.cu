@@ -183,7 +183,8 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	uint32_t* tiles_touched,
 	bool prefiltered,
 	const float* nu_degree,
-	const float* cover)
+	const float* cover,
+	const float kernel_size)
 {
 	auto idx = cg::this_grid().thread_rank();
 	if (idx >= P)
@@ -220,6 +221,18 @@ __global__ void preprocessCUDA(int P, int D, int M,
 
 	// Compute 2D screen-space covariance matrix
 	float3 cov = computeCov2D(p_orig, focal_x, focal_y, tan_fovx, tan_fovy, cov3D, viewmatrix);
+
+	// Mip-SSS 2D filter, Option A: Σ' = Σ + sI and opacity × sqrt(|Σ|/|Σ'|), which keeps each
+	// component's mass. Off (plain SSS, bit for bit) when kernel_size == 0.
+	float opacity_coef = 1.0f;
+	if (kernel_size > 0.0f)
+	{
+		const float det_0 = cov.x * cov.z - cov.y * cov.y;
+		cov.x += kernel_size;
+		cov.z += kernel_size;
+		const float det_1 = cov.x * cov.z - cov.y * cov.y;
+		opacity_coef = det_0 > 0.0f ? sqrtf(det_0 / det_1) : 0.0f;
+	}
 
 	// Invert covariance (EWA algorithm)
 	float det = (cov.x * cov.z - cov.y * cov.y);
@@ -307,7 +320,8 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	radii[idx] = my_radius;
 	points_xy_image[idx] = point_image;
 	// Inverse 2D covariance and opacity neatly pack into one float4
-	conic_opacity[idx] = { conic.x, conic.y, conic.z, opacities[idx] };
+	conic_opacity[idx] = { conic.x, conic.y, conic.z,
+		kernel_size > 0.0f ? opacities[idx] * opacity_coef : opacities[idx] };
 	tiles_touched[idx] = (rect_max.y - rect_min.y) * (rect_max.x - rect_min.x);
 }
 
@@ -509,7 +523,8 @@ void FORWARD::preprocess(int P, int D, int M,
 	uint32_t* tiles_touched,
 	bool prefiltered,
 	const float* nu_degree,
-	const float* cover)
+	const float* cover,
+	const float kernel_size)
 {
 	preprocessCUDA<NUM_CHANNELS> << <(P + 255) / 256, 256 >> > (
 		P, D, M,
@@ -538,6 +553,7 @@ void FORWARD::preprocess(int P, int D, int M,
 		tiles_touched,
 		prefiltered,
 		nu_degree,
-		cover
+		cover,
+		kernel_size
 		);
 }

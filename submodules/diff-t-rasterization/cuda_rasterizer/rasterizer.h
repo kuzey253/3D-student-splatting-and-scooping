@@ -54,7 +54,8 @@ namespace CudaRasterizer
 			const float* cover,
 			const float* negative_value,
 			int* radii = nullptr,
-			bool debug = false);
+			bool debug = false,
+			const float kernel_size = 0.0f);
 
 		static void backward(
 			const int P, int D, int M, int R,
@@ -88,7 +89,9 @@ namespace CudaRasterizer
 			bool debug,
 			const float* nu_degree,
 			float* dL_dnudegree,
-			const float* negative_value);
+			const float* negative_value,
+			const float* opacities = nullptr,
+			const float kernel_size = 0.0f);
 	};
 };
 

@@ -88,7 +88,8 @@ class _RasterizeT(torch.autograd.Function):
             raster_settings.debug,
             nu_degree,
             cover,
-            negative_value
+            negative_value,
+            raster_settings.kernel_size
         )
 
         # Invoke C++/CUDA rasterizer
@@ -106,7 +107,7 @@ class _RasterizeT(torch.autograd.Function):
         # Keep relevant tensors for backward
         ctx.raster_settings = raster_settings
         ctx.num_rendered = num_rendered
-        ctx.save_for_backward(colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer, nu_degree, negative_value)
+        ctx.save_for_backward(colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer, nu_degree, negative_value, opacities)
         return color, radii
 
     @staticmethod
@@ -115,7 +116,7 @@ class _RasterizeT(torch.autograd.Function):
         # Restore necessary values from context
         num_rendered = ctx.num_rendered
         raster_settings = ctx.raster_settings
-        colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer, nu_degree, negative_value = ctx.saved_tensors
+        colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer, nu_degree, negative_value, opacities = ctx.saved_tensors
 
         # Restructure args as C++ method expects them
         args = (raster_settings.bg,
@@ -140,7 +141,9 @@ class _RasterizeT(torch.autograd.Function):
                 imgBuffer,
                 raster_settings.debug,
                 nu_degree,
-                negative_value)
+                negative_value,
+                opacities,
+                raster_settings.kernel_size)
 
         # Compute gradients for relevant tensors by invoking backward method
         if raster_settings.debug:
@@ -212,6 +215,7 @@ class TRasterizationSettings(NamedTuple):
     campos : torch.Tensor
     prefiltered : bool
     debug : bool
+    kernel_size : float = 0.0  # Mip-SSS 2D filter variance s in px²; 0 = off (plain SSS)
 
 class TRasterizer(nn.Module):
     def __init__(self, raster_settings):

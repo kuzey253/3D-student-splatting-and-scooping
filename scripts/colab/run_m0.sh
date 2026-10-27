@@ -7,14 +7,19 @@
 #            real run:   SESSION=g4 bash scripts/colab/run_m0.sh
 # This runner never starts or stops the VM. Afterwards: colab stop -s g4, and kill keep-alive helpers.
 #
-# Env: SESSION (required), DRY (0/1), SCENES (default "train garden"), POLL (seconds between status
-# checks; default 30 dry, 300 real). Remote steps answer with M0_<STEP>=OK|FAIL lines, which this
-# script checks; `colab exec` itself exits 0 even when the remote code fails.
+# Env: SESSION (required), DRY (0/1), SCENES (default "train garden"), RUNS (named runs with config
+# overrides, "name:scene:key=value,..." space-separated; replaces SCENES for training), PARITY=1
+# (M2 checks: also build the rasterizer at OLD_REF, default 19b1b53, and compare), POLL (seconds
+# between status checks; default 30 dry, 300 real). Remote steps answer with M0_<STEP>=OK|FAIL
+# lines, which this script checks; `colab exec` itself exits 0 even when the remote code fails.
 set -euo pipefail
 
 SESSION=${SESSION:?set SESSION, e.g. SESSION=g4}
 DRY=${DRY:-0}
 SCENES=${SCENES:-train garden}
+RUNS=${RUNS:-}
+PARITY=${PARITY:-0}
+OLD_REF=${OLD_REF:-19b1b53}
 POLL=${POLL:-$([ "$DRY" = 1 ] && echo 30 || echo 300)}
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 TAG=$([ "$DRY" = 1 ] && echo dry || echo run)_$(date +%Y%m%d_%H%M%S)
@@ -28,7 +33,7 @@ quiet() { grep -v -E "new version of Colab CLI|colab update --install|uv tool in
 try_step() {  # try_step <name> <timeout_s>: run one remote step; return 0 iff it answered OK
   local name=$1 timeout=$2 out="$OUT/$1.log"
   colab exec -s "$SESSION" --timeout "$timeout" --env "STEP=$name" --env "DRY=$DRY" \
-    --env "SCENES=$SCENES" -f "$REMOTE" 2>&1 | quiet > "$out"
+    --env "SCENES=$SCENES" --env "RUNS=$RUNS" -f "$REMOTE" 2>&1 | quiet > "$out"
   local upper
   upper=$(echo "$name" | tr '[:lower:]' '[:upper:]')
   grep -q "^M0_${upper}=OK" "$out"
@@ -58,11 +63,25 @@ cp "$PKG_DIR/GIT_STATE.txt" "$OUT/"
 COPYFILE_DISABLE=1 tar rf "$PKG_DIR/sss.tar" -C "$PKG_DIR" GIT_STATE.txt
 gzip "$PKG_DIR/sss.tar"
 colab upload -s "$SESSION" "$PKG_DIR/sss.tar.gz" /content/sss.tar.gz 2>&1 | quiet
+if [ "$PARITY" = 1 ]; then
+  git -C "$ROOT" archive --format=tar.gz -o "$PKG_DIR/old_raster.tar.gz" "$OLD_REF" submodules/diff-t-rasterization
+  colab upload -s "$SESSION" "$PKG_DIR/old_raster.tar.gz" /content/old_raster.tar.gz 2>&1 | quiet
+fi
 
 log "setup: unpack, record versions, build the CUDA extensions"
 step setup 3600
 grep -E '"(gpu|torch|torch_cuda|nvcc|capability)"|^build:' "$OUT/setup.log" || true
-log "data: download and extract $SCENES"
+if [ "$PARITY" = 1 ]; then
+  log "parity: build the rasterizer at $OLD_REF, CUDA vs float64 reference, filter-off unchanged"
+  if ! try_step parity 3600; then
+    log "parity checks did not pass; stopping before training:"
+    grep -E "^M0_PARITY=|^M2_" "$OUT/parity.log" || tail -20 "$OUT/parity.log"
+    exit 1
+  else
+    grep -E "^M2_" "$OUT/parity.log" || true
+  fi
+fi
+log "data: download and extract $SCENES ${RUNS:+(runs: $RUNS)}"
 step data 3600
 grep -E "images|GB" "$OUT/data.log" || true
 log "launch"

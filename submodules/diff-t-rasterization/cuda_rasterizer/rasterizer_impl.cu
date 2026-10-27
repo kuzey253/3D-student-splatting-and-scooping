@@ -220,7 +220,8 @@ int CudaRasterizer::Rasterizer::forward(
 	const float* cover,
 	const float* negative_value,
 	int* radii,
-	bool debug)
+	bool debug,
+	const float kernel_size)
 {
 	const float focal_y = height / (2.0f * tan_fovy);
 	const float focal_x = width / (2.0f * tan_fovx);
@@ -274,7 +275,8 @@ int CudaRasterizer::Rasterizer::forward(
 		geomState.tiles_touched,
 		prefiltered,
 		nu_degree,
-		cover
+		cover,
+		kernel_size
 	), debug)
 
 	// Compute prefix sum over full list of touched tile counts by Gaussians
@@ -376,7 +378,9 @@ void CudaRasterizer::Rasterizer::backward(
 	bool debug,
 	const float* nu_degree,
 	float* dL_dnudegree,
-	const float* negative_value)
+	const float* negative_value,
+	const float* opacities,
+	const float kernel_size)
 {
 	GeometryState geomState = GeometryState::fromChunk(geom_buffer, P);
 	BinningState binningState = BinningState::fromChunk(binning_buffer, R);
@@ -443,5 +447,8 @@ void CudaRasterizer::Rasterizer::backward(
 		dL_dcov3D,
 		dL_dsh,
 		(glm::vec3*)dL_dscale,
-		(glm::vec4*)dL_drot), debug)
+		(glm::vec4*)dL_drot,
+		opacities,
+		dL_dopacity,
+		kernel_size), debug)
 }
