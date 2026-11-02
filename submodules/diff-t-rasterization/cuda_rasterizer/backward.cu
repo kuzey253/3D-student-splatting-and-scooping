@@ -666,6 +666,7 @@ __global__ void computeCovOptionB(int P,
 	const float* filter3d,
 	const float* nu_degree,
 	const int* b_slot,
+	const float* b_keep,
 	const float* dL_dB)
 {
 	auto idx = cg::this_grid().thread_rank();
@@ -676,7 +677,7 @@ __global__ void computeCovOptionB(int P,
 	float3 t;
 	optb_projection(means[idx], h_x, h_y, tan_fovx, tan_fovy, view_matrix, Tm, t, xmul, ymul);
 	const float sigma = filter3d != nullptr ? filter3d[idx] : 0.0f;
-	const OptbComp oc = optb_component(Tm, cov3D, sigma, nu_degree[idx], kernel_size);
+	const OptbComp oc = optb_component(Tm, cov3D, sigma, nu_degree[idx], kernel_size, b_keep + 2 * idx);
 	float dL_dop = dL_dopacity[idx];
 	float3 dL_dt;
 	optb_cov_backward(oc, cov3D, sigma, Tm, t, xmul, ymul, h_x, h_y, view_matrix, dL_dconics + 4 * idx,
@@ -715,6 +716,7 @@ void BACKWARD::preprocess(
 	const float* filter3d,
 	const float* nu_degree,
 	const int* b_slot,
+	const float* b_keep,
 	const float* dL_dB)
 {
 	// Propagate gradients for the path of 2D conic matrix computation. 
@@ -724,7 +726,7 @@ void BACKWARD::preprocess(
 	if (option_b)
 		computeCovOptionB << <(P + 255) / 256, 256 >> > (P, means3D, radii, cov3Ds, focal_x,
 			focal_y, tan_fovx, tan_fovy, viewmatrix, dL_dconic, (float3*)dL_dmean3D, dL_dcov3D, opacities,
-			dL_dopacity, kernel_size, filter3d, nu_degree, b_slot, dL_dB);
+			dL_dopacity, kernel_size, filter3d, nu_degree, b_slot, b_keep, dL_dB);
 	else
 	computeCov2DCUDA << <(P + 255) / 256, 256 >> > (
 		P,

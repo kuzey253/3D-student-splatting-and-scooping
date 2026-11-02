@@ -1,0 +1,32 @@
+{
+ "run": "ob_a",
+ "scene": "train",
+ "dry": false,
+ "iterations": 7000,
+ "config": {
+  "cap_max": 1100000,
+  "nu_degree": 100,
+  "C_burnin": 500000.0,
+  "C": 120.0,
+  "burnin_iterations": 7000,
+  "iterations": 7000,
+  "mip_kernel_size": 0.1,
+  "mip_option_b": true
+ },
+ "components": 1100000,
+ "psnr": 19.87841796875,
+ "ssim": 0.7048661112785339,
+ "lpips": 0.33904993534088135,
+ "fps": 33.05679275512626,
+ "render_size": [
+  980,
+  545
+ ],
+ "test_views": 38,
+ "peak_gpu_mem_mib": 8651,
+ "train_s": 466.8,
+ "render_s": 15.0,
+ "metrics_s": 24.2,
+ "fps_s": 9.7,
+ "stats_s": 3.1
+}

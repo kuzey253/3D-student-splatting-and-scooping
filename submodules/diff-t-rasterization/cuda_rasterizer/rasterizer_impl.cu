@@ -169,6 +169,7 @@ CudaRasterizer::GeometryState CudaRasterizer::GeometryState::fromChunk(char*& ch
 	obtain(chunk, geom.point_offsets, P, 128);
 	obtain(chunk, geom.b_flag, P, 128);
 	obtain(chunk, geom.b_slot, P, 128);
+	obtain(chunk, geom.b_keep, 2 * P, 128);
 	cub::DeviceScan::ExclusiveSum(nullptr, geom.b_scan_size, geom.b_flag, geom.b_slot, P);
 	obtain(chunk, geom.b_scan_space, geom.b_scan_size, 128);
 	return geom;
@@ -287,7 +288,8 @@ int CudaRasterizer::Rasterizer::forward(
 		kernel_size,
 		filter3d,
 		option_b,
-		geomState.b_flag
+		geomState.b_flag,
+		geomState.b_keep
 	), debug)
 
 	// Mip-SSS Option B: slots for flagged components, then their nodes and widened radii
@@ -302,7 +304,7 @@ int CudaRasterizer::Rasterizer::forward(
 		optb_ptr = reinterpret_cast<float*>(optbBuffer((size_t)(num_optb > 0 ? num_optb : 1) * OPTB_STRIDE * sizeof(float)));
 		CHECK_CUDA(FORWARD::preprocessOptionB(P, means3D, cov3D_precomp, geomState.cov3D, opacities, nu_degree,
 			filter3d, viewmatrix, focal_x, focal_y, tan_fovx, tan_fovy, kernel_size, geomState.b_flag,
-			geomState.b_slot, optb_ptr, radii, geomState.means2D, geomState.tiles_touched, tile_grid), debug)
+			geomState.b_slot, geomState.b_keep, optb_ptr, radii, geomState.means2D, geomState.tiles_touched, tile_grid), debug)
 	}
 
 	// Compute prefix sum over full list of touched tile counts by Gaussians
@@ -490,5 +492,6 @@ void CudaRasterizer::Rasterizer::backward(
 		filter3d,
 		nu_degree,
 		geomState.b_slot,
+		geomState.b_keep,
 		dL_dB), debug)
 }

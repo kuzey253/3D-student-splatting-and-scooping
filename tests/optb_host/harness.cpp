@@ -21,7 +21,7 @@ extern "C" void run(const float* Tm, const float* cov6, float sigma, float nu, f
         for (int i = 0; i < OPTB_ACC; i++) acc[i] += a[i];
         *dnu += dn; dd[2*p] = ddp.x; dd[2*p+1] = ddp.y;
     }
-    optb_chain(cov6, sigma, Tm, acc, dcov6, dT);
+    optb_chain(cov6, sigma, c.D, Tm, acc, dcov6, dT);
 }
 
 // The whole per-component path of Option B mode, as forward.cu / backward.cu run it: projection
@@ -83,19 +83,22 @@ extern "C" int run_full(const float* mean, const float* cov6, float sigma, float
 
 // Replay of one captured component's per-component backward (scripts/m4_nan_replay.py): camera-space
 // mean and covariance, the camera's intrinsics, and the incoming gradients as the GPU had them.
+// keep (nullable): det Sigma2 and D from the forward pass, as backward.cu passes them.
 extern "C" int run_cov_backward(const float* mean_cam, const float* cov6_cam, float sigma, float nu, float s,
                                 float opacity, float fx, float fy, float tanx, float tany,
                                 const float* dL_dconic4, float dL_dop_in, const float* accB,
-                                float* dcov6, float* dL_dt, float* dL_dop, int* fast, float* loghp)
+                                float* dcov6, float* dL_dt, float* dL_dop, int* fast, float* loghp,
+                                const float* keep)
 {
     const float view[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
     float Tm[6], xmul, ymul;
     float3 t;
     optb_projection({ mean_cam[0], mean_cam[1], mean_cam[2] }, fx, fy, tanx, tany, view, Tm, t, xmul, ymul);
-    const OptbComp c = optb_component(Tm, cov6_cam, sigma, nu, s);
+    const OptbComp c = optb_component(Tm, cov6_cam, sigma, nu, s, keep);
     *fast = c.fast;
     *loghp = c.loghp;
-    if ((sigma > 0.f && !(c.D > 0.f)) || !std::isfinite(c.loghp))
+    // without keep, apply preprocess's cull; with it, run as computeCovOptionB does (no cull there)
+    if (keep == nullptr && ((sigma > 0.f && !(c.D > 0.f)) || !std::isfinite(c.loghp)))
         return 0;
     float op = dL_dop_in;
     float3 dt;

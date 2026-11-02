@@ -226,7 +226,10 @@ struct OptbComp
 	bool fast;
 };
 
-__device__ inline OptbComp optb_component(const float Tm[6], const float* cov6, float sigma, float nu, float s)
+// keep: det Sigma2 and D as preprocessCUDA computed them (NOTES.md 47). The other kernels pass them so a
+// component drawn in the forward pass never meets a rounded-to-zero determinant in a later kernel.
+__device__ inline OptbComp optb_component(const float Tm[6], const float* cov6, float sigma, float nu, float s,
+	const float* keep = nullptr)
 {
 	OptbComp o;
 	float TT[3];
@@ -241,11 +244,13 @@ __device__ inline OptbComp optb_component(const float Tm[6], const float* cov6, 
 	o.covp[0] += s;
 	o.covp[2] += s;
 	optb_invariants(cov6, o.D, o.m, o.tr);
+	if (keep != nullptr)
+		o.D = keep[1];
 	o.e = s2 * o.m + s4 * o.tr + s6;
 	o.det3f = o.D + o.e;
 	// det Sigma2 as a*c - b*b clamped at 0 (more accurate in float32 than Cauchy-Binet for ordinary
 	// footprints; a rounded 0 then skips the component at sigma = 0, as M2 does); det(T T^T) = |T_0 x T_1|^2
-	o.detS2 = fmaxf(0.f, o.S2[0] * o.S2[2] - o.S2[1] * o.S2[1]);
+	o.detS2 = keep != nullptr ? keep[0] : fmaxf(0.f, o.S2[0] * o.S2[2] - o.S2[1] * o.S2[1]);
 	const float n0 = Tm[1] * Tm[5] - Tm[2] * Tm[4], n1 = Tm[2] * Tm[3] - Tm[0] * Tm[5], n2 = Tm[0] * Tm[4] - Tm[1] * Tm[3];
 	o.detP = s4 * (n0 * n0 + n1 * n1 + n2 * n2);
 	o.crossP = optb_cross2(o.S2, o.P);
@@ -420,7 +425,7 @@ __device__ inline void optb_pixel_backward(const float* ob, float4 con_o, float 
 
 // chain(): accumulators (+ Sigma3, sigma, T) -> dL/dcov6 (SSS convention: off-diagonals doubled)
 // and dL/dT (2x3)
-__device__ inline void optb_chain(const float* c, float sigma, const float Tm[6], const float acc[OPTB_ACC],
+__device__ inline void optb_chain(const float* c, float sigma, float D, const float Tm[6], const float acc[OPTB_ACC],
 	float dcov6[6], float dT[6])
 {
 	// G as full symmetric matrices
@@ -446,8 +451,8 @@ __device__ inline void optb_chain(const float* c, float sigma, const float Tm[6]
 			{ S[1][1] * S[2][2] - S[1][2] * S[2][1], S[0][2] * S[2][1] - S[0][1] * S[2][2], S[0][1] * S[1][2] - S[0][2] * S[1][1] },
 			{ S[1][2] * S[2][0] - S[1][0] * S[2][2], S[0][0] * S[2][2] - S[0][2] * S[2][0], S[0][2] * S[1][0] - S[0][0] * S[1][2] },
 			{ S[1][0] * S[2][1] - S[1][1] * S[2][0], S[0][1] * S[2][0] - S[0][0] * S[2][1], S[0][0] * S[1][1] - S[0][1] * S[1][0] } };
-		// adj/D entry by entry: 1/D alone can overflow for a denormal D while every ratio is finite
-		const float D = S[0][0] * adj[0][0] + S[0][1] * adj[1][0] + S[0][2] * adj[2][0];
+		// adj/D entry by entry: 1/D alone can overflow for a denormal D while every ratio is finite.
+		// D is the forward pass's (OptbComp.D), positive whenever sigma > 0 and the component is drawn.
 		const float tr = S[0][0] + S[1][1] + S[2][2];
 		for (int i = 0; i < 3; i++)
 			for (int j = 0; j < 3; j++)
@@ -539,7 +544,7 @@ __device__ inline void optb_cov_backward(const OptbComp& oc, const float* cov3D,
 			acc[i] = accB[i];
 	}
 	float dT[6];
-	optb_chain(cov3D, sigma, Tm, acc, dcov6, dT);
+	optb_chain(cov3D, sigma, oc.D, Tm, acc, dcov6, dT);
 	// T = J W (W[i][j] = view[4j + i]): gradients for J's non-zero entries, then t, as computeCov2DCUDA
 	float dJ00 = 0.f, dJ02 = 0.f, dJ11 = 0.f, dJ12 = 0.f;
 	for (int j = 0; j < 3; j++)

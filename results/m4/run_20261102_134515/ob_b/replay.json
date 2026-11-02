@@ -1,0 +1,71 @@
+{
+ "summary": {
+  "P": 1100000,
+  "n_bad": 1,
+  "counts": {
+   "grad_means3D": 1,
+   "grad_means2D": 0,
+   "grad_sh": 0,
+   "grad_colors_precomp": 0,
+   "grad_opacities": 0,
+   "grad_scales": 1,
+   "grad_rotations": 1,
+   "grad_cov3Ds_precomp": 1,
+   "grad_nu_degree": 0,
+   "dL_dconic": 0,
+   "dL_dB": 0
+  },
+  "nan_counts": {
+   "grad_means3D": 1,
+   "grad_means2D": 0,
+   "grad_sh": 0,
+   "grad_colors_precomp": 0,
+   "grad_opacities": 0,
+   "grad_scales": 1,
+   "grad_rotations": 1,
+   "grad_cov3Ds_precomp": 1,
+   "grad_nu_degree": 0,
+   "dL_dconic": 0,
+   "dL_dB": 0
+  },
+  "color_finite": true,
+  "grad_out_finite": true
+ },
+ "first_stage": {
+  "grad_cov3Ds_precomp": 1
+ },
+ "replay": {
+  "finite": 1,
+  "nonfinite": 0,
+  "skipped": 0
+ },
+ "rows": [
+  {
+   "idx": 768174,
+   "nonfinite_stages": [
+    "grad_cov3Ds_precomp",
+    "grad_scales",
+    "grad_rotations",
+    "grad_means3D"
+   ],
+   "mode": "fast",
+   "nu": 5657.10791015625,
+   "opacity": 0.23851291835308075,
+   "depth": 3.115940999897509,
+   "scales": [
+    1.4464781284332275,
+    0.00017416523769497871,
+    0.30633673071861267
+   ],
+   "cov3_eig": [
+    3.033353024686414e-08,
+    0.09384219258736785,
+    2.0922989760356927
+   ],
+   "loghp": -1.463282823562622,
+   "radius": 1009.0,
+   "incoming_finite": true,
+   "replay": "finite"
+  }
+ ]
+}

@@ -51,7 +51,8 @@ namespace FORWARD
 		const float kernel_size,
 		const float* filter3d,
 		const bool option_b,
-		int* b_flag);
+		int* b_flag,
+		float* b_keep);
 
 	// Mip-SSS Option B: quadrature nodes and radius for flagged components (M4)
 	void preprocessOptionB(int P,
@@ -67,6 +68,7 @@ namespace FORWARD
 		const float kernel_size,
 		const int* b_flag,
 		int* b_slot,
+		const float* b_keep,
 		float* optb,
 		int* radii,
 		const float2* means2D,

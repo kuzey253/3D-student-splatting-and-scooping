@@ -2,7 +2,7 @@
 
 2026-10-27. Colab G4: RTX PRO 6000 Blackwell (sm_120), torch 2.11.0+cu130, CUDA 13.0.
 
-There were six VM sessions (units from the account balance before and after each):
+There were seven VM sessions (units from the account balance before and after each):
 
 | Session | Time | Build | Units |
 | --- | --- | --- | --- |
@@ -12,7 +12,8 @@ There were six VM sessions (units from the account balance before and after each
 | 4 | 19:17–19:38 | `d42e77c` (= `850ea3f` + this report) | 2.55 |
 | 5 | 19:45–20:02 | `b35e9a0` (= `850ea3f` + the NaN capture) | 2.20 |
 | 6 | 20:03–~20:24 | `d647940` (same code) | 1.69 (balance read right after stopping) |
-| **Total** | | | **16.55** (at 8.9 units/h) |
+| 7 | 2026-11-02 13:44–14:04 | `62f8f4f` (= `c3c60cf` on the fork) | 3.17 (at 10.05 units/h) |
+| **Total** | | | **19.72** |
 
 ## Status
 
@@ -21,7 +22,8 @@ There were six VM sessions (units from the account balance before and after each
 - **Training without the 3D filter (σ3 = 0) hit NaN gradients in sessions 1–4,** at iterations 3860, 4360, 2390 and 5700. The guard that fires is `grad_means3D`, the first one checked.
 - **In session 5 the same run completed all 7000 iterations.** That session used the final CUDA code plus a NaN capture (NOTES.md 46), so the capture had nothing to record. The final code has now failed once (session 4) and succeeded once.
 - **The NaN is intermittent and its cause is not found.** Training is not bit-reproducible (atomic adds), so the same build can fail or not. Three float32 failure modes in the Option B code were found and fixed (NOTES.md 43–45), and each is real: it is reproduced and cleared by stress-testing the exact device code compiled as host C++. They did not remove the failure.
-- **The capture is in place.** It will record the failing state the next time the NaN occurs (see Open).
+- **Session 7 caught it, and the cause is found** (NOTES.md 47). The forward, slot-fill and backward kernels each recomputed det Σ2 in float32. For a disc seen nearly edge-on, det Σ2 is ±1–2 ulps of rounding noise, and nvcc fuses multiply-adds per call site. So the forward could draw a component with det > 0 while the backward got 0, and 0·∞ gave NaN.
+- **Fix:** the forward stores the det Σ2 and D it used, and the later kernels reuse them. It is verified locally against the captured component, not yet on a GPU.
 - **Session 6** ran three capture-enabled copies of `train_s01_ob`. It was stopped at your request: `ob_a` had finished 7000 iterations without a NaN, and `ob_b` was about 6.6 minutes into training, also without one. The VM stopped before the collect step, so neither run's outputs came back. With the final code, the tally is 1 failure in 3 runs that reached iteration ~5700.
 
 ## What was built (NOTES.md 37–42)
@@ -71,7 +73,7 @@ There were six VM sessions (units from the account balance before and after each
 - **The fixes since this run change arithmetic only, not the math.** `train_s01_3d_ob` has not been repeated on the final build.
 - **The σ3 = 0 run that completed (session 5) looks like the 3D-filtered one.** Quality is the same, ν drifts the same way (26.1% at ν = 1), and the Option B share is similar (28.2%).
 
-## The NaN at σ3 = 0: three float32 hazards fixed; intermittent failure remains
+## The NaN at σ3 = 0: three float32 hazards fixed, then the root cause caught and fixed
 
 | Fix | Cause | Change | Verified |
 | --- | --- | --- | --- |
@@ -91,14 +93,18 @@ The only sign so far is which guard fires: a NaN in the mean gradient, at iterat
 
 **Session 5 (NOTES.md 46).**
 - **The capture:** the rasterizer backward now also returns the conic gradients and the Option B accumulators. With `nan_capture=true`, the first NaN gradient saves which components and which backward stages are non-finite, their inputs and gradients, the camera, whether the image and loss gradient were finite, and a compact copy of the scene. `scripts/m4_nan_replay.py` replays them locally.
-- **The run** trained to the end with no NaN, so there is nothing to replay yet.
+- **The run** trained to the end with no NaN, so there was nothing to replay.
+
+**Session 7: the capture caught the NaN** (`ob_b`, iteration 5740; `ob_a` completed: 19.88 dB, SSIM 0.705, LPIPS 0.339, 33 FPS, 467 s, 26.4% at ν = 1).
+- One component of 1.1M had a non-finite gradient. Its incoming gradients were finite, and the NaN first appeared in its covariance gradient.
+- It is a fast-path disc seen nearly edge-on: true det Σ2 = 163 px⁴ against an ulp of 128 for a·c. The forward drew it with a positive det, and the backward recomputed 0.
+- Fix `b_keep` (NOTES.md 47): later kernels reuse the forward's det Σ2 and D. The regression test on the captured component is NaN with the backward's own det and finite with the forward's.
 
 ## Open
 
-1. **Catch the intermittent NaN with the capture.**
-   - The final code failed in 1 of 2 runs, so a single run may again finish cleanly.
-   - Running several `train_s01_ob` copies in one session raises the odds. Each costs about 8 minutes, ~1.2 units, plus ~2 minutes of build per session.
-   - `train_s01_3d_ob` has not been re-run on the final build. It did not fail in session 1.
+1. **Verify the `b_keep` fix on the G4.**
+   - Run several `train_s01_ob` copies with the capture on, plus `train_s01_3d_ob` on the final build. The 3D-filtered run has not been repeated since session 1.
+   - Each run is about 8 minutes, ~1.4 units at 10.05 units/h, plus about 4 minutes for the build and checks.
 2. **ν drift under Option B** (31.8% at ν = 1): understand it before M5's comparisons.
 3. **The float32 ν gradient for Option B components with ν in (30, 400)** (NOTES.md 41).
 
@@ -112,3 +118,4 @@ Outputs are in `results/m4/`:
 | `dry_20261027_185410`, `run_20261027_190143` | session 3 |
 | `dry_20261027_191736`, `run_20261027_192502` | session 4 (its `train_s01_3d_ob` directory holds the dry-run files; the real run stopped at `train_s01_ob`) |
 | `dry_20261027_194454`, `run_20261027_194916` | session 5 (capture enabled; `train_s01_ob` completed) |
+| `run_20261102_134515` | session 7: `ob_a` completed, `ob_b` with `nan_capture.pt` and `replay.json` (the 81 MB scene snapshot is kept locally, not committed) |

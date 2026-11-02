@@ -73,6 +73,7 @@ namespace BACKWARD
 		const float* filter3d,
 		const float* nu_degree,
 		const int* b_slot,
+		const float* b_keep,
 		const float* dL_dB);
 }
 

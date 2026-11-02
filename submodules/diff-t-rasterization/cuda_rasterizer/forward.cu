@@ -188,7 +188,8 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	const float kernel_size,
 	const float* filter3d,
 	const bool option_b,
-	int* b_flag)
+	int* b_flag,
+	float* b_keep)
 {
 	auto idx = cg::this_grid().thread_rank();
 	if (idx >= P)
@@ -256,6 +257,8 @@ __global__ void preprocessCUDA(int P, int D, int M,
 		// D only enters with the 3D filter on; at sigma = 0 a flat component is kept, as in SSS
 		if ((sigma > 0.0f && !(oc.D > 0.0f)) || !isfinite(oc.loghp))
 			return;
+		b_keep[2 * idx] = oc.detS2;
+		b_keep[2 * idx + 1] = oc.D;
 		cov = { oc.covp[0], oc.covp[1], oc.covp[2] };
 		optb_detcovp = oc.detcovp;
 		optb_flag = !oc.fast;
@@ -571,7 +574,8 @@ void FORWARD::preprocess(int P, int D, int M,
 	const float kernel_size,
 	const float* filter3d,
 	const bool option_b,
-	int* b_flag)
+	int* b_flag,
+	float* b_keep)
 {
 	preprocessCUDA<NUM_CHANNELS> << <(P + 255) / 256, 256 >> > (
 		P, D, M,
@@ -604,7 +608,8 @@ void FORWARD::preprocess(int P, int D, int M,
 		kernel_size,
 		filter3d,
 		option_b,
-		b_flag
+		b_flag,
+		b_keep
 		);
 }
 
@@ -623,6 +628,7 @@ __global__ void preprocessOptionBCUDA(int P,
 	const float kernel_size,
 	const int* b_flag,
 	int* b_slot,
+	const float* b_keep,
 	float* optb,
 	int* radii,
 	const float2* points_xy_image,
@@ -644,7 +650,7 @@ __global__ void preprocessOptionBCUDA(int P,
 	optb_projection(p, focal_x, focal_y, tan_fovx, tan_fovy, viewmatrix, Tm, tcam, xmul, ymul);
 	const float sigma = filter3d != nullptr ? filter3d[idx] : 0.0f;
 	const float nu = nu_degree[idx];
-	const OptbComp oc = optb_component(Tm, cov3D, sigma, nu, kernel_size);
+	const OptbComp oc = optb_component(Tm, cov3D, sigma, nu, kernel_size, b_keep + 2 * idx);
 	const float bound = optb_fill(oc, sigma, nu, kernel_size, opacities[idx], optb + (size_t)b_slot[idx] * OPTB_STRIDE);
 	const int r = max(radii[idx], (int)ceilf(bound));
 	uint2 rect_min, rect_max;
@@ -666,6 +672,7 @@ void FORWARD::preprocessOptionB(int P,
 	const float kernel_size,
 	const int* b_flag,
 	int* b_slot,
+	const float* b_keep,
 	float* optb,
 	int* radii,
 	const float2* means2D,
@@ -674,5 +681,5 @@ void FORWARD::preprocessOptionB(int P,
 {
 	preprocessOptionBCUDA << <(P + 255) / 256, 256 >> > (P, means3D, cov3D_precomp, cov3Ds, opacities,
 		nu_degree, filter3d, viewmatrix, focal_x, focal_y, tan_fovx, tan_fovy, kernel_size, b_flag,
-		b_slot, optb, radii, means2D, tiles_touched, grid);
+		b_slot, b_keep, optb, radii, means2D, tiles_touched, grid);
 }

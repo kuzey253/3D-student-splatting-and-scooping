@@ -103,7 +103,7 @@ def main():
                                      ctypes.c_float(s), ctypes.c_float(op), ctypes.c_float(fx), ctypes.c_float(fy),
                                      ctypes.c_float(tanx), ctypes.c_float(tany), keep[2][1], ctypes.c_float(0.0),
                                      keep[3][1], outs[0][1], outs[1][1], ctypes.byref(dop), ctypes.byref(fast),
-                                     ctypes.byref(loghp))
+                                     ctypes.byref(loghp), None)
         hp = float(np.exp(loghp.value)) if np.isfinite(loghp.value) else 0.0
         g_op = float(rows["grad_opacities"][i].reshape(-1)[0]) if "grad_opacities" in rows else 0.0
         if drawn and fast.value and hp > 0 and np.isfinite(g_op):  # rerun with the incoming opacity gradient
@@ -111,7 +111,7 @@ def main():
                                  ctypes.c_float(s), ctypes.c_float(op), ctypes.c_float(fx), ctypes.c_float(fy),
                                  ctypes.c_float(tanx), ctypes.c_float(tany), keep[2][1], ctypes.c_float(g_op / hp),
                                  keep[3][1], outs[0][1], outs[1][1], ctypes.byref(dop), ctypes.byref(fast),
-                                 ctypes.byref(loghp))
+                                 ctypes.byref(loghp), None)
         if not drawn:
             replay["skipped"] += 1
             rep = "skipped (preprocess would cull)"

@@ -176,3 +176,47 @@ def test_full_component_path_stays_finite(lib, sizes):
             val = v[0] if isinstance(v, tuple) else v.value
             assert np.isfinite(val).all(), (trial, kind, sigma, nu, k)
     assert drawn["B"] > 1000 and drawn["fast"] > 100
+
+
+def test_backward_uses_the_forward_determinant(lib):
+    """The component captured at the first NaN of the G4 run (NOTES.md 47): a fast-path disc seen
+    nearly edge-on, whose det Σ2 (true 163 px⁴) is ±1–2 ulps of a·c (ulp 128). The forward kernel
+    drew it with a positive det; if a later kernel's own rounding gives 0, Σ2f⁻¹ = ∞ and the zero
+    opacity gradient makes 0·∞ = NaN. Passing the forward's det (as backward.cu now does) is finite."""
+    view = np.array([0.11051491647958755, 0.13440485298633575, 0.9847445487976074, 0.0, -0.03881309926509857,
+                     0.9906415939331055, -0.13085384666919708, 0.0, -0.9931163191795349, -0.023759685456752777,
+                     0.11469734460115433, 0.0, 0.42403748631477356, 0.13484427332878113, 2.72666335105896, 1.0])
+    mean = np.array([0.33434492349624634, -1.702770709991455, -1.419220209121704])
+    scales = np.array([1.4464781284332275, 0.00017416523769497871, 0.30633673071861267])
+    q = np.array([0.8559366464614868, -0.2753865122795105, -0.43533140420913696, -0.044959891587495804])
+    r, x, y, z = q / np.linalg.norm(q)
+    R = np.array([[1 - 2 * (y * y + z * z), 2 * (x * y - r * z), 2 * (x * z + r * y)],
+                  [2 * (x * y + r * z), 1 - 2 * (x * x + z * z), 2 * (y * z - r * x)],
+                  [2 * (x * z - r * y), 2 * (y * z + r * x), 1 - 2 * (x * x + y * y)]])
+    W = np.array([[view[4 * j + i] for j in range(3)] for i in range(3)])
+    t = W @ mean + view[12:15]
+    cov = W @ R @ np.diag(scales ** 2) @ R.T @ W.T
+    cov6 = cov[[0, 0, 0, 1, 1, 2], [0, 1, 2, 1, 2, 2]]
+    H, Wd, tx, ty = 545, 980, 0.8446965112441064, 0.4679476755039769
+    fx, fy = Wd / (2 * tx), H / (2 * ty)
+    D = float(np.linalg.det(cov))
+    dcon = np.array([-0.0004224069125484675, 0.0002058896643575281, 0.0, -0.00010035467857960612])
+
+    def backward(keep):
+        k = [_f32(t), _f32(cov6), _f32(dcon), _f32(np.zeros(9))]
+        outs = [_f32(np.zeros(6)), _f32(np.zeros(3))]
+        dop, fast, lh = ctypes.c_float(), ctypes.c_int(), ctypes.c_float()
+        kp = _f32(np.array(keep)) if keep is not None else None
+        drawn = lib.run_cov_backward(k[0][1], k[1][1], ctypes.c_float(0.0), ctypes.c_float(5657.1), ctypes.c_float(0.1),
+                                     ctypes.c_float(0.2385), ctypes.c_float(fx), ctypes.c_float(fy), ctypes.c_float(tx),
+                                     ctypes.c_float(ty), k[2][1], ctypes.c_float(0.0), k[3][1], outs[0][1], outs[1][1],
+                                     ctypes.byref(dop), ctypes.byref(fast), ctypes.byref(lh),
+                                     kp[1] if kp is not None else None)
+        return drawn, bool(fast.value), np.concatenate([outs[0][0], outs[1][0]])
+
+    drawn, fast, _ = backward(None)
+    assert drawn and fast  # the forward draws it on the fast path (ν = 5657)
+    _, _, g = backward([198.0, D])  # the forward's det (one of the float32 roundings of a·c − b²)
+    assert np.isfinite(g).all()
+    _, _, g0 = backward([0.0, D])  # what the GPU's backward kernel had: det rounded to 0
+    assert not np.isfinite(g0).all()

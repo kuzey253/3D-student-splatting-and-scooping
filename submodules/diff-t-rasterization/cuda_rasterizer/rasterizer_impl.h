@@ -42,6 +42,7 @@ namespace CudaRasterizer
 		uint32_t* tiles_touched;
 		int* b_flag;  // Mip-SSS Option B: 1 if the component takes the quadrature
 		int* b_slot;  // its slot in the node buffer, or -1
+		float* b_keep;  // det Sigma2 and D as preprocess computed them (2 per component)
 		size_t b_scan_size;
 		char* b_scan_space;
 
