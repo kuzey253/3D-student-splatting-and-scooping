@@ -1,8 +1,8 @@
 # M4 report: Option B (scale-mixture quadrature) in CUDA
 
-2026-10-27. Colab G4: RTX PRO 6000 Blackwell (sm_120), torch 2.11.0+cu130, CUDA 13.0.
+2026-10-27 and 2026-11-02. Colab G4: RTX PRO 6000 Blackwell (sm_120), torch 2.11.0+cu130, CUDA 13.0.
 
-There were seven VM sessions (units from the account balance before and after each):
+There were eight VM sessions (units from the account balance before and after each):
 
 | Session | Time | Build | Units |
 | --- | --- | --- | --- |
@@ -13,18 +13,23 @@ There were seven VM sessions (units from the account balance before and after ea
 | 5 | 19:45–20:02 | `b35e9a0` (= `850ea3f` + the NaN capture) | 2.20 |
 | 6 | 20:03–~20:24 | `d647940` (same code) | 1.69 (balance read right after stopping) |
 | 7 | 2026-11-02 13:44–14:04 | `62f8f4f` (= `c3c60cf` on the fork) | 3.17 (at 10.05 units/h) |
-| **Total** | | | **19.72** |
+| 8 | 2026-11-02 14:18–14:58 | `7213172` (final) | 6.68 (at 10.05 units/h) |
+| **Total** | | | **26.40** |
 
 ## Status
 
-- **Option B in CUDA is written and matches the float64 reference on the GPU.** All checks passed in every session.
-- **Training with the 3D filter on completed 7000 iterations.** That run was on the first build (session 1).
-- **Training without the 3D filter (σ3 = 0) hit NaN gradients in sessions 1–4,** at iterations 3860, 4360, 2390 and 5700. The guard that fires is `grad_means3D`, the first one checked.
-- **In session 5 the same run completed all 7000 iterations.** That session used the final CUDA code plus a NaN capture (NOTES.md 46), so the capture had nothing to record. The final code has now failed once (session 4) and succeeded once.
-- **The NaN is intermittent and its cause is not found.** Training is not bit-reproducible (atomic adds), so the same build can fail or not. Three float32 failure modes in the Option B code were found and fixed (NOTES.md 43–45), and each is real: it is reproduced and cleared by stress-testing the exact device code compiled as host C++. They did not remove the failure.
-- **Session 7 caught it, and the cause is found** (NOTES.md 47). The forward, slot-fill and backward kernels each recomputed det Σ2 in float32. For a disc seen nearly edge-on, det Σ2 is ±1–2 ulps of rounding noise, and nvcc fuses multiply-adds per call site. So the forward could draw a component with det > 0 while the backward got 0, and 0·∞ gave NaN.
-- **Fix:** the forward stores the det Σ2 and D it used, and the later kernels reuse them. It is verified locally against the captured component, not yet on a GPU.
-- **Session 6** ran three capture-enabled copies of `train_s01_ob`. It was stopped at your request: `ob_a` had finished 7000 iterations without a NaN, and `ob_b` was about 6.6 minutes into training, also without one. The VM stopped before the collect step, so neither run's outputs came back. With the final code, the tally is 1 failure in 3 runs that reached iteration ~5700.
+**M4 is done, with one open quality question (ν drift).**
+
+- **Option B in CUDA matches the float64 reference on the GPU.** All checks passed in all eight sessions, including the final build `7213172` (session 8).
+- **Training is stable on the final build.** In session 8, Option B with the 3D filter and three runs without it (σ3 = 0) all completed 7000 iterations with no NaN.
+- **The NaN at σ3 = 0 is fixed.** In sessions 1–4 and 7, training without the 3D filter hit NaN gradients in 5 of 8 runs. The cause was found with a NaN capture (session 7, NOTES.md 47), and the fix makes later kernels reuse the forward pass's determinant.
+  - **The cause:** the forward, slot-fill and backward kernels each recomputed det Σ2 in float32. For a disc seen nearly edge-on, that is ±1–2 ulps of rounding noise, and nvcc fuses multiply-adds differently per call site. So the forward drew a component with det > 0, the backward got 0, and 0·∞ gave NaN.
+  - **The evidence for the fix** is a regression test on the captured component (NaN with the backward's own det, finite with the forward's), plus three clean σ3 = 0 runs. With the pre-fix code, the comparable runs that reached iteration ~5700 failed 2 of 5 times. Three clean runs alone would be weak evidence (about a 1 in 5 chance under the old failure rate); the mechanism and the test are what make it conclusive.
+- **Three earlier float32 hazards were also fixed on the way** (NOTES.md 43–45). Each was reproduced and cleared on the host, but none of them was the cause of the training NaN.
+- **Session history:**
+  - Session 5 completed a σ3 = 0 run on `850ea3f` code with the capture on.
+  - Session 6 was stopped at your request, mid-run, with no NaN so far.
+  - Session 7 caught the NaN.
 
 ## What was built (NOTES.md 37–42)
 
@@ -43,19 +48,33 @@ There were seven VM sessions (units from the account balance before and after ea
   - by compiling the header as host C++ in `tests/test_optionb_header.py`, which compares it with the staging and stress-tests degenerate components.
 - **With the flag off, nothing new is allocated or launched.**
 
-## GPU checks (session 3, build `5f0fe20`; sessions 1 and 2 passed the same checks)
+## GPU checks (session 8, final build `7213172`; every earlier session passed the same checks)
 
 | Check | Result |
 | --- | --- |
-| Flag off vs the M3 build (`7183bc4`) | image bitwise equal, radii equal, gradients within 1.1e-5 (atomic-add noise 9.2e-6) |
+| Flag off vs the M3 build (`7183bc4`) | image bitwise equal, radii equal, gradients within 6.0e-6 (atomic-add noise 8.9e-6) |
 | M2 suite (Option A in 2D vs float64, 18 cases) | pass, worst 7.9e-5 |
 | M3 suite (3D filter wiring, 12 cases; filter values on real cameras) | pass |
-| Option B CUDA vs float64 `rasterize_option_b`: 12 scenes, σ3 off and on, 22–29 Option B components each | 12/12 pass, 0 float32 flips; worst relative error: image 7.9e-5, means 7.3e-5, cov3D 4.9e-5, colors 8.4e-5, opacity 8.2e-5, ν 1.1e-5 (tolerance 1e-4) |
+| Option B CUDA vs float64 `rasterize_option_b`: 12 scenes, σ3 off and on, 22–29 Option B components each | 12/12 pass, 0 float32 flips; worst relative error: image 7.9e-5, means 7.3e-5, cov3D 5.0e-5, colors 8.4e-5, opacity 8.2e-5, ν 1.0e-5 (tolerance 1e-4) |
 | SSS `render()` in Option B mode on an `NTModel` (scales/rotations path) | image ≤ 7.2e-5 in 4/4, all gradients finite |
 
 **Known float32 limit (NOTES.md 41).** The ν gradient of an Option B component is off by up to 6e-3 at ν = 150. The staged Python run in float32 shows the same error, so it comes from cancellation in the formula, not from the CUDA code. The checks' Option B components have ν ≤ 30.
 
-## Training: `train`, 7000 iterations, session 1 (build `ae694c0`, before the fixes in NOTES.md 43–45)
+## Training on the final build: `train`, 7000 iterations, session 8 (`7213172`)
+
+| Run | PSNR | SSIM | LPIPS | FPS | Peak GPU memory | Train time | ν median | ν at 1 | Option B share (visible pairs) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Option B + 3D filter (`train_s01_3d_ob`) | 19.85 | 0.703 | 0.344 | 28 | 8.9 GB | 531 s | 2590 | 31.5% | 34.4% |
+| Option B, σ3 = 0 (`ob_a`) | 19.67 | 0.703 | 0.340 | 34 | 8.3 GB | 460 s | 2990 | 25.9% | 27.9% |
+| Option B, σ3 = 0 (`ob_b`) | 19.73 | 0.703 | 0.341 | 33 | 8.5 GB | 464 s | 2970 | 26.0% | 28.2% |
+| Option B, σ3 = 0 (`ob_c`) | 19.67 | 0.703 | 0.342 | 33 | 8.4 GB | 468 s | 2940 | 26.5% | 28.6% |
+
+- **All four completed with no NaN.** The three σ3 = 0 runs had the capture on, and it was never triggered.
+- **Their spread shows the run-to-run noise:** 19.67–19.73 dB across three identical σ3 = 0 runs.
+- **Against the M3 configuration below** (19.68 dB, 130 FPS, 239 s; session 1), Option B costs about 2× in training time (460–531 s) and 4–5× in rendering speed (28–34 FPS).
+- **There is no clear quality change at the training resolution.** Option B runs scored 19.67–19.88 dB across sessions 5–8, against 19.68 for the M3 configuration. The baseline was not re-run in these sessions, so differences under ~0.2 dB are not resolved. As in M3, the anti-aliasing is meant to show at other scales (M6).
+
+## Training: `train`, 7000 iterations, session 1 (build `ae694c0`, before the fixes in NOTES.md 43–47)
 
 | Run | PSNR | SSIM | LPIPS | FPS | Peak GPU memory | Train time | ν median | ν at 1 | Option B share (visible pairs) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -102,11 +121,8 @@ The only sign so far is which guard fires: a NaN in the mean gradient, at iterat
 
 ## Open
 
-1. **Verify the `b_keep` fix on the G4.**
-   - Run several `train_s01_ob` copies with the capture on, plus `train_s01_3d_ob` on the final build. The 3D-filtered run has not been repeated since session 1.
-   - Each run is about 8 minutes, ~1.4 units at 10.05 units/h, plus about 4 minutes for the build and checks.
-2. **ν drift under Option B** (31.8% at ν = 1): understand it before M5's comparisons.
-3. **The float32 ν gradient for Option B components with ν in (30, 400)** (NOTES.md 41).
+1. **ν drift under Option B** (31.8% at ν = 1): understand it before M5's comparisons.
+2. **The float32 ν gradient for Option B components with ν in (30, 400)** (NOTES.md 41).
 
 Outputs are in `results/m4/`:
 
@@ -118,4 +134,5 @@ Outputs are in `results/m4/`:
 | `dry_20261027_185410`, `run_20261027_190143` | session 3 |
 | `dry_20261027_191736`, `run_20261027_192502` | session 4 (its `train_s01_3d_ob` directory holds the dry-run files; the real run stopped at `train_s01_ob`) |
 | `dry_20261027_194454`, `run_20261027_194916` | session 5 (capture enabled; `train_s01_ob` completed) |
+| `run_20261102_141838` | session 8 (final build): checks, `train_s01_3d_ob`, `ob_a`–`ob_c` |
 | `run_20261102_134515` | session 7: `ob_a` completed, `ob_b` with `nan_capture.pt` and `replay.json` (the 81 MB scene snapshot is kept locally, not committed) |
