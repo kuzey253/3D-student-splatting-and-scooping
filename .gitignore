@@ -169,3 +169,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# the user's Colab runbook (another project): never commit
+COLAB_GPU_RUNBOOK.md
