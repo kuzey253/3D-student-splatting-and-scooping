@@ -12,7 +12,8 @@
 # (M2 checks: also build the rasterizer at OLD_REF, default 19b1b53, and compare), M3CHECKS=1 (M3
 # checks, after the data step; stops before training if they fail), M4CHECKS=1 (M4 Option B checks,
 # likewise), M5CHECKS=1 (M5 exact-ν-gradient flag checks, likewise), MIP=1 (M6: fetch and build
-# Mip-Splatting dda02ab for method=mip runs, after the data step), POLL (seconds
+# Mip-Splatting dda02ab for method=mip runs, after the data step), ATTACH (the user's
+# attach_session.py, used to re-attach a lost session), POLL (seconds
 # between status checks; default 30 dry, 300 real). Remote steps answer with M0_<STEP>=OK|FAIL
 # lines, which this script checks; `colab exec` itself exits 0 even when the remote code fails.
 set -euo pipefail
@@ -26,11 +27,13 @@ M3CHECKS=${M3CHECKS:-0}
 M4CHECKS=${M4CHECKS:-0}
 M5CHECKS=${M5CHECKS:-0}
 MIP=${MIP:-0}
+ATTACH=${ATTACH:-$HOME/Desktop/Diffusion_Experiment/scripts/attach_session.py}
 OLD_REF=${OLD_REF:-19b1b53}
 POLL=${POLL:-$([ "$DRY" = 1 ] && echo 30 || echo 300)}
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 TAG=$([ "$DRY" = 1 ] && echo dry || echo run)_$(date +%Y%m%d_%H%M%S)
-OUT="$ROOT/results/m0/$TAG"
+OUT=${OUT:-$ROOT/results/m0/$TAG}
+RETRY=${RETRY:-60}
 REMOTE="$ROOT/scripts/colab/remote_m0.py"
 mkdir -p "$OUT"
 
@@ -126,16 +129,37 @@ fi
 log "launch"
 step launch 120
 
+fetch_results() {  # collect on the VM, download, extract; return 0 iff all three worked
+  try_step collect 600 || return 1
+  colab download -s "$SESSION" /content/m0_results.tar.gz "$OUT/m0_results.tar.gz" 2>&1 | quiet
+  [ -s "$OUT/m0_results.tar.gz" ] && tar xzf "$OUT/m0_results.tar.gz" -C "$OUT"
+}
+
+reattach() {  # the CLI sometimes loses the session while the VM runs on (NOTES.md 58); re-attach it
+  local out="$OUT/reattach_$(date +%H%M%S).log"
+  (cd "$(dirname "$ATTACH")/.." && python3 "$ATTACH" --name "$SESSION" --require-large --keep-alive) 2>&1 \
+    | quiet > "$out" || true
+  grep -E "Attached|keep-alive daemon pid|no active runtimes" "$out" | sed 's/^/    /' || true
+  if grep -q "no active runtimes" "$out"; then
+    log "the VM is gone; runs collected so far are in $OUT"
+    exit 1
+  fi
+}
+
 # Training runs detached on the VM; each status check is a separate short exec, so no command is
-# ever sent into a streaming job. A failed check (dropped connection) is retried; the pipeline
-# keeps running on the VM regardless.
+# ever sent into a streaming job. A failed check re-attaches the session (keep-alive helpers it
+# starts must be killed afterwards) and retries after a minute; the pipeline keeps running on the
+# VM regardless. Each finished run is collected as soon as a status check reports it, so a lost VM
+# does not take finished runs with it.
 state=running
 misses=0
+collected=0
 while [ "$state" = running ] || [ "$state" = starting ]; do
-  sleep "$POLL"
+  sleep "$([ "$misses" -gt 0 ] && echo "$RETRY" || echo "$POLL")"
   if ! try_step status 120; then
     misses=$((misses + 1))
-    log "status check failed ($misses in a row); retrying"
+    log "status check failed ($misses in a row); re-attaching"
+    reattach
     if [ "$misses" -ge 6 ]; then
       log "giving up on status checks; the pipeline may still be running on the VM"
       exit 1
@@ -145,13 +169,20 @@ while [ "$state" = running ] || [ "$state" = starting ]; do
   misses=0
   state=$(grep -o '^M0_STATE=[a-z]*' "$OUT/status.log" | cut -d= -f2)
   log "$state $(grep '^M0_PROGRESS=' "$OUT/status.log" | cut -d= -f2-)"
+  done_n=$(grep -o '^M0_DONE=[0-9]*' "$OUT/status.log" | cut -d= -f2)
+  if [ "$state" = running ] && [ "${done_n:-0}" -gt "$collected" ]; then
+    if fetch_results; then
+      collected=$done_n
+      log "collected $collected finished run(s)"
+    else
+      log "collecting finished runs failed; will retry"
+    fi
+  fi
 done
 grep '^M0_ERROR=' "$OUT/status.log" || true
 
 log "collect"
-step collect 600
-colab download -s "$SESSION" /content/m0_results.tar.gz "$OUT/m0_results.tar.gz" 2>&1 | quiet
-tar xzf "$OUT/m0_results.tar.gz" -C "$OUT"
+fetch_results || { log "final collect failed; runs collected so far are in $OUT"; exit 1; }
 for s in "$OUT"/*/summary.json; do [ -f "$s" ] && cat "$s"; done
 
 if [ "$state" != done ]; then

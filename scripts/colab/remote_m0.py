@@ -333,6 +333,7 @@ def step_status():
     elapsed = now - st["t0"] if "t0" in st else 0
     in_phase = now - st["phase_t0"] if st.get("phase_t0") else 0
     print(f"M0_STATE={state}")
+    print(f"M0_DONE={len(st.get('done', []))}")
     print(f"M0_PROGRESS=scene {st.get('scene')} phase {st.get('phase')} ({in_phase / 60:.1f} min) "
           f"done {st.get('done', [])} total {elapsed / 60:.1f} min")
     if st.get("error"):
