@@ -1,0 +1,12 @@
+{
+ "cap_max": 100000,
+ "nu_degree": 100,
+ "C_burnin": 500000.0,
+ "C": 120.0,
+ "burnin_iterations": 7000,
+ "iterations": 1000,
+ "mip_kernel_size": 0.1,
+ "mip_filter_3d": true,
+ "mip_option_b": true,
+ "mip_exact_nu_grad": true
+}

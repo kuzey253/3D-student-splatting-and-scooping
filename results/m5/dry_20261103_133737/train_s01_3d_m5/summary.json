@@ -1,0 +1,34 @@
+{
+ "run": "train_s01_3d_m5",
+ "scene": "train",
+ "dry": true,
+ "iterations": 1000,
+ "config": {
+  "cap_max": 100000,
+  "nu_degree": 100,
+  "C_burnin": 500000.0,
+  "C": 120.0,
+  "burnin_iterations": 7000,
+  "iterations": 1000,
+  "mip_kernel_size": 0.1,
+  "mip_filter_3d": true,
+  "mip_relocate_effective": true,
+  "mip_reg_filtered": true
+ },
+ "components": 182686,
+ "psnr": 14.826150894165039,
+ "ssim": 0.5179309844970703,
+ "lpips": 0.5556437969207764,
+ "fps": 890.7473190918143,
+ "render_size": [
+  980,
+  545
+ ],
+ "test_views": 38,
+ "peak_gpu_mem_mib": 3309,
+ "train_s": 31.7,
+ "render_s": 13.8,
+ "metrics_s": 21.0,
+ "fps_s": 3.9,
+ "stats_s": 2.3
+}
