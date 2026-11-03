@@ -13,7 +13,8 @@
 # checks, after the data step; stops before training if they fail), M4CHECKS=1 (M4 Option B checks,
 # likewise), M5CHECKS=1 (M5 exact-ν-gradient flag checks, likewise), MIP=1 (M6: fetch and build
 # Mip-Splatting dda02ab for method=mip runs, after the data step), ATTACH (the user's
-# attach_session.py, used to re-attach a lost session), POLL (seconds
+# attach_session.py, used to re-attach a lost session), ATTACH_ARGS (its runtime filter; default
+# --require-large, i.e. >= 80 GB VRAM such as the G4; empty for a 40 GB A100), POLL (seconds
 # between status checks; default 30 dry, 300 real). Remote steps answer with M0_<STEP>=OK|FAIL
 # lines, which this script checks; `colab exec` itself exits 0 even when the remote code fails.
 set -euo pipefail
@@ -28,6 +29,7 @@ M4CHECKS=${M4CHECKS:-0}
 M5CHECKS=${M5CHECKS:-0}
 MIP=${MIP:-0}
 ATTACH=${ATTACH:-$HOME/Desktop/Diffusion_Experiment/scripts/attach_session.py}
+ATTACH_ARGS=${ATTACH_ARGS---require-large}
 OLD_REF=${OLD_REF:-19b1b53}
 POLL=${POLL:-$([ "$DRY" = 1 ] && echo 30 || echo 300)}
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -137,7 +139,7 @@ fetch_results() {  # collect on the VM, download, extract; return 0 iff all thre
 
 reattach() {  # the CLI sometimes loses the session while the VM runs on (NOTES.md 58); re-attach it
   local out="$OUT/reattach_$(date +%H%M%S).log"
-  (cd "$(dirname "$ATTACH")/.." && python3 "$ATTACH" --name "$SESSION" --require-large --keep-alive) 2>&1 \
+  (cd "$(dirname "$ATTACH")/.." && python3 "$ATTACH" --name "$SESSION" $ATTACH_ARGS --keep-alive) 2>&1 \
     | quiet > "$out" || true
   grep -E "Attached|keep-alive daemon pid|no active runtimes" "$out" | sed 's/^/    /' || true
   if grep -q "no active runtimes" "$out"; then
