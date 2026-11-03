@@ -141,7 +141,8 @@ def wiring():
         pc._features_rest = torch.zeros(n, 0, 3, device="cuda")
         pc.filter_3D = p["filter_3D"].cuda()
         pipe = SimpleNamespace(debug=False, compute_cov3D_python=False, convert_SHs_python=False,
-                               mip_kernel_size=S, mip_filter_3d=True, mip_option_b=True)
+                               mip_kernel_size=S, mip_filter_3d=True, mip_option_b=True,
+                               mip_exact_nu_grad=False)
         img = render(cam, pc, pipe, torch.tensor(BG, device="cuda"), override_color=p["colors"].cuda())["render"]
         (img * p["weights"].cuda()).sum().backward()
         d = torch.float64

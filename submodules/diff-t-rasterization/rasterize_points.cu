@@ -161,7 +161,8 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
 	const float kernel_size,
 	const torch::Tensor& filter3d,
 	const bool option_b,
-	const torch::Tensor& optbBuffer) 
+	const torch::Tensor& optbBuffer,
+	const bool exact_nu_grad) 
 {
   const int P = means3D.size(0);
   const int H = dL_dout_color.size(1);
@@ -229,7 +230,8 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
 	  filter3d_ptr,
 	  option_b,
 	  option_b ? reinterpret_cast<const char*>(optbBuffer.contiguous().data_ptr()) : nullptr,
-	  option_b ? dL_dB.data_ptr<float>() : nullptr);
+	  option_b ? dL_dB.data_ptr<float>() : nullptr,
+	  exact_nu_grad);
   }
 
   // dL_dconic and dL_dB (Option B accumulators) are returned for the NaN capture (diff_t_rasterization)

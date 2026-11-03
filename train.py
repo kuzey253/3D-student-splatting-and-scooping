@@ -80,6 +80,10 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         (model_params, first_iter) = torch.load(checkpoint)
         primitives.restore(model_params, opt)
 
+    if (opt.mip_relocate_effective or opt.mip_reg_filtered) and not pipe.mip_filter_3d:
+        raise ValueError("--mip_relocate_effective and --mip_reg_filtered need --mip_filter_3d")
+    primitives.relocate_effective = opt.mip_relocate_effective
+
     # Mip-SSS 3D smoothing filter: computed before training, after every relocation (SGHMC moves
     # means more than 3DGS does), and every 100 iterations as Mip-Splatting does
     if pipe.mip_filter_3d:
@@ -127,7 +131,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(image, gt_image))
 
         loss = loss + args.opacity_reg * torch.abs(primitives.get_opacity).mean()
-        loss = loss + args.scale_reg * torch.abs(primitives.get_scaling).mean()
+        scaling = primitives.get_scaling_with_3D_filter if opt.mip_reg_filtered else primitives.get_scaling
+        loss = loss + args.scale_reg * torch.abs(scaling).mean()
 
         loss.backward()
 
@@ -164,8 +169,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 scene.save(iteration)
 
             if iteration < opt.densify_until_iter and iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
-                dead_mask = (primitives.get_opacity < dataset.opacity_threshold).squeeze(-1)
-                dead_mask2 = (primitives.get_opacity > -dataset.opacity_threshold).squeeze(-1)
+                opacity = primitives.get_relocation_opacity
+                dead_mask = (opacity < dataset.opacity_threshold).squeeze(-1)
+                dead_mask2 = (opacity > -dataset.opacity_threshold).squeeze(-1)
                 dead_mask =  torch.logical_and(dead_mask, dead_mask2)
                 
                 primitives.recycle_components(dead_mask=dead_mask)
@@ -181,6 +187,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             if (iteration in checkpoint_iterations):
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((primitives.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
+
+    if primitives.relocate_effective:
+        print("\n[MIP-SSS] relocation on the filtered opacity: {}".format(primitives.reloc_stats))
+        with open(os.path.join(scene.model_path, "mip_reloc_stats.json"), "w") as f:
+            json.dump(primitives.reloc_stats, f)
 
 def prepare_output_and_logger(args):    
     if not args.model_path:

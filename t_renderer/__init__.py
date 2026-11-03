@@ -47,7 +47,8 @@ def render(viewpoint_camera, pc : NTModel, pipe, bg_color : torch.Tensor, scalin
         prefiltered=False,
         debug=pipe.debug,
         kernel_size=pipe.mip_kernel_size,
-        option_b=pipe.mip_option_b
+        option_b=pipe.mip_option_b,
+        exact_nu_grad=pipe.mip_exact_nu_grad
     )
 
     rasterizer = TRasterizer(raster_settings=raster_settings)

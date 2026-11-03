@@ -154,7 +154,8 @@ class _RasterizeT(torch.autograd.Function):
                 raster_settings.kernel_size,
                 filter_3d,
                 raster_settings.option_b,
-                optbBuffer)
+                optbBuffer,
+                raster_settings.exact_nu_grad)
 
         # Compute gradients for relevant tensors by invoking backward method
         if raster_settings.debug:
@@ -275,6 +276,7 @@ class TRasterizationSettings(NamedTuple):
     debug : bool
     kernel_size : float = 0.0  # Mip-SSS 2D filter variance s in px²; 0 = off (plain SSS)
     option_b : bool = False  # Mip-SSS Option B mode (M4); filter_3d is then σ3 per component
+    exact_nu_grad : bool = False  # Mip-SSS diagnostic (M5): SSS-kernel ν gradient with SSS's omitted term
 
 class TRasterizer(nn.Module):
     def __init__(self, raster_settings):

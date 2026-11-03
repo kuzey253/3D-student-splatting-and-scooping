@@ -29,7 +29,7 @@ KERNEL_SIZES = (0.0, 0.1, 0.3)
 GRADS = ("grad_means", "grad_cov6", "grad_colors", "grad_opacity", "grad_nu")
 
 
-def reference(sc, cam, kernel_size):
+def reference(sc, cam, kernel_size, sss_nu_grad=True):
     d = torch.float64
     leaves = {"means": sc["means"].to(d), "cov6": None, "colors": sc["colors"].to(d),
               "opacity": sc["opacity"].to(d), "nu": sc["nu"].to(d)}
@@ -45,7 +45,7 @@ def reference(sc, cam, kernel_size):
     img = rasterize(leaves["means"], cov3, leaves["colors"], leaves["opacity"], leaves["nu"],
                     cam["world_view"].to(d), cam["full_proj"].to(d), cam["tanfovx"],
                     cam["tanfovy"], H, W, torch.tensor([0.2, 0.3, 0.4], dtype=d, device="cuda"),
-                    kernel_size=kernel_size)
+                    kernel_size=kernel_size, sss_nu_grad=sss_nu_grad)
     (img * sc["weights"].to(d)).sum().backward()
     out = {"image": img.detach()}
     out.update({f"grad_{k}": t.grad.detach() for k, t in leaves.items()})

@@ -41,7 +41,8 @@ namespace BACKWARD
 		const float* negative_value,
 		const int* b_slot,
 		const float* optb,
-		float* dL_dB);
+		float* dL_dB,
+		const bool exact_nu_grad);
 
 	void preprocess(
 		int P, int D, int M,

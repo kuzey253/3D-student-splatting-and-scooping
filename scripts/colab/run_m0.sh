@@ -11,7 +11,7 @@
 # overrides, "name:scene:key=value,..." space-separated; replaces SCENES for training), PARITY=1
 # (M2 checks: also build the rasterizer at OLD_REF, default 19b1b53, and compare), M3CHECKS=1 (M3
 # checks, after the data step; stops before training if they fail), M4CHECKS=1 (M4 Option B checks,
-# likewise), POLL (seconds
+# likewise), M5CHECKS=1 (M5 exact-ν-gradient flag checks, likewise), POLL (seconds
 # between status checks; default 30 dry, 300 real). Remote steps answer with M0_<STEP>=OK|FAIL
 # lines, which this script checks; `colab exec` itself exits 0 even when the remote code fails.
 set -euo pipefail
@@ -23,6 +23,7 @@ RUNS=${RUNS:-}
 PARITY=${PARITY:-0}
 M3CHECKS=${M3CHECKS:-0}
 M4CHECKS=${M4CHECKS:-0}
+M5CHECKS=${M5CHECKS:-0}
 OLD_REF=${OLD_REF:-19b1b53}
 POLL=${POLL:-$([ "$DRY" = 1 ] && echo 30 || echo 300)}
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -105,6 +106,15 @@ if [ "$M4CHECKS" = 1 ]; then
     exit 1
   fi
   grep -E "^M4_" "$OUT/m4.log" || true
+fi
+if [ "$M5CHECKS" = 1 ]; then
+  log "m5: exact-ν-gradient flag vs float64 reference"
+  if ! try_step m5 1200; then
+    log "M5 checks did not pass; stopping before training:"
+    grep -E "^M0_M5=|^M5_" "$OUT/m5.log" || tail -20 "$OUT/m5.log"
+    exit 1
+  fi
+  grep -E "^M5_" "$OUT/m5.log" || true
 fi
 log "launch"
 step launch 120

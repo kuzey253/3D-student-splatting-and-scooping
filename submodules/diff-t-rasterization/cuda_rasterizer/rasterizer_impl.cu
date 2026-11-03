@@ -414,7 +414,8 @@ void CudaRasterizer::Rasterizer::backward(
 	const float* filter3d,
 	const bool option_b,
 	const char* optb_buffer,
-	float* dL_dB)
+	float* dL_dB,
+	const bool exact_nu_grad)
 {
 	GeometryState geomState = GeometryState::fromChunk(geom_buffer, P);
 	BinningState binningState = BinningState::fromChunk(binning_buffer, R);
@@ -457,7 +458,8 @@ void CudaRasterizer::Rasterizer::backward(
 		negative_value,
 		option_b ? geomState.b_slot : nullptr,
 		reinterpret_cast<const float*>(optb_buffer),
-		dL_dB), debug)
+		dL_dB,
+		exact_nu_grad), debug)
 
 	// Take care of the rest of preprocessing. Was the precomputed covariance
 	// given to us or a scales/rot pair? If precomputed, pass that. If not,

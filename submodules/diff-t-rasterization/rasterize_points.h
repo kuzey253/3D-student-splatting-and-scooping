@@ -72,7 +72,8 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Te
 	const float kernel_size,
 	const torch::Tensor& filter3d,
 	const bool option_b,
-	const torch::Tensor& optbBuffer);
+	const torch::Tensor& optbBuffer,
+	const bool exact_nu_grad);
 		
 torch::Tensor markVisible(
 		torch::Tensor& means3D,

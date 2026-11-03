@@ -452,7 +452,8 @@ renderCUDA(
 	const float* __restrict__ negative_value,
 	const int* __restrict__ b_slot,
 	const float* __restrict__ optb,
-	float* __restrict__ dL_dB)
+	float* __restrict__ dL_dB,
+	const bool exact_nu_grad)
 {
 	// We rasterize again. Compute necessary block info.
 	auto block = cg::this_thread_block();
@@ -642,6 +643,9 @@ renderCUDA(
 
 			// Update gradients for nu_degree variable
 			float gdv = (nu_degree_j + 2.0f) / 2.0f * (base / pow(nu_degree_j, 2.0f)) * pow(1.0f + (1.0f / nu_degree_j) * base, power2);;
+			// Mip-SSS diagnostic (--mip_exact_nu_grad): the −½·ln(1 + b/ν)·G term SSS omits (NOTES.md 13)
+			if (exact_nu_grad)
+				gdv -= 0.5f * log1pf(base / nu_degree_j) * G;
 			atomicAdd(&(dL_dnudegree[global_id]), gdv * dL_dG);
 		}
 	}
@@ -789,7 +793,8 @@ void BACKWARD::render(
 	const float* negative_value,
 	const int* b_slot,
 	const float* optb,
-	float* dL_dB)
+	float* dL_dB,
+	const bool exact_nu_grad)
 {
 	renderCUDA<NUM_CHANNELS> << <grid, block >> >(
 		ranges,
@@ -812,5 +817,6 @@ void BACKWARD::render(
 		b_slot,
 		optb,
 		dL_dB
-		);
+		,
+		exact_nu_grad);
 }

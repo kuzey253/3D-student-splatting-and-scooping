@@ -98,7 +98,8 @@ namespace CudaRasterizer
 			const float* filter3d = nullptr,
 			const bool option_b = false,
 			const char* optb_buffer = nullptr,
-			float* dL_dB = nullptr);
+			float* dL_dB = nullptr,
+			const bool exact_nu_grad = false);
 	};
 };
 

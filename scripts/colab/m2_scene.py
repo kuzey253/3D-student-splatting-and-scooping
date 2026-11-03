@@ -57,7 +57,7 @@ def cov6(cov3):
     return cov3[:, list(i), list(j)]
 
 
-def render_cuda(sc, cam, kernel_size=0.0):
+def render_cuda(sc, cam, kernel_size=0.0, exact_nu_grad=False):
     """Image and gradients (means, cov3D 6-vector, colors, opacity, nu) from the CUDA rasterizer."""
     from diff_t_rasterization import TRasterizationSettings, TRasterizer
     kw = dict(image_height=H, image_width=W, tanfovx=cam["tanfovx"], tanfovy=cam["tanfovy"],
@@ -68,6 +68,8 @@ def render_cuda(sc, cam, kernel_size=0.0):
         kw["kernel_size"] = kernel_size
     elif kernel_size != 0.0:
         raise RuntimeError("this rasterizer build has no kernel_size")
+    if exact_nu_grad:  # M5 diagnostic flag; older builds have no such field
+        kw["exact_nu_grad"] = True
     rast = TRasterizer(raster_settings=TRasterizationSettings(**kw))
     leaves = {"means": sc["means"].clone(), "cov6": cov6(sc["cov3"]).contiguous(),
               "colors": sc["colors"].clone(), "opacity": sc["opacity"][:, None].clone(),

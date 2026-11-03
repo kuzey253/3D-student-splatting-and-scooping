@@ -22,6 +22,7 @@ from utils.graphics_utils import BasicPointCloud
 from utils.general_utils import strip_symmetric, build_scaling_rotation
 
 from utils.reloc_utils import compute_relocation_cuda, compute_relocation_student_t_cuda
+from mip_sss.relocation import relocate
 from utils.sghmc import AdamSGHMC
 
 
@@ -76,6 +77,8 @@ class NTModel:
 
         # Mip-SSS 3D smoothing filter: per-component std σ3, shape (N, 1); None when it is off
         self.filter_3D = None
+        self.relocate_effective = False  # M5: relocation on the 3D-filtered opacity (set by train.py)
+        self.reloc_stats = {"relocated": 0, "clamped": 0}
 
     def capture(self):
         return (
@@ -154,6 +157,11 @@ class NTModel:
         s2 = torch.square(self.get_scaling)
         coef = torch.sqrt(s2.prod(dim=1) / (s2 + torch.square(self._checked_filter_3D())).prod(dim=1))
         return self.get_opacity * coef[:, None]
+
+    @property
+    def get_relocation_opacity(self):
+        # M5: recycling and relocation use the opacity the filtered render uses
+        return self.get_opacity_with_3D_filter if self.relocate_effective else self.get_opacity
 
     @torch.no_grad()
     def compute_3D_filter(self, cameras, filter_variance=0.2):
@@ -497,20 +505,20 @@ class NTModel:
         return optimizable_tensors
     
     def _update_params(self, idxs, ratio):
-        new_opacity, new_scaling = compute_relocation_student_t_cuda(
-            opacity_old = self.get_opacity[idxs, 0] * self.get_negative[idxs, 0],
-            scale_old=self.get_scaling[idxs],
-            nu_degree = self.get_nu_degree[idxs, 0],
-            N=ratio[idxs, 0] + 1
-        )
-        
-        new_opacity = torch.clamp(new_opacity.unsqueeze(-1), max = 1.0 - torch.finfo(torch.float32).eps, min = -1.0 + torch.finfo(torch.float32).eps)
-        new_opacity = torch.where((new_opacity >= 0) & (new_opacity < 0.005), 0.005, new_opacity)
-        new_opacity = torch.where((new_opacity < 0) & (new_opacity > -0.005), -0.005, new_opacity)
+        # M5 (README M5.1): with relocate_effective, relocation sees the 3D-filtered opacity and
+        # writes back the raw opacity that renders the relocated one; the scale rule is SSS's
+        sigma = self._checked_filter_3D()[idxs, 0] if self.relocate_effective else None
+        new_opacity, new_scaling, clamped = relocate(
+            self.get_opacity[idxs, 0] * self.get_negative[idxs, 0], self.get_scaling[idxs],
+            self.get_nu_degree[idxs, 0], ratio[idxs, 0] + 1, sigma=sigma,
+            reloc=compute_relocation_student_t_cuda)
+        if self.relocate_effective:
+            self.reloc_stats["relocated"] += int(idxs.shape[0])
+            self.reloc_stats["clamped"] += int(clamped.sum())
         new_opacity = new_opacity / self.get_negative[idxs]
 
         new_opacity = self.inverse_opacity_activation(new_opacity)
-        new_scaling = self.scaling_inverse_activation(new_scaling.reshape(-1, 3))
+        new_scaling = self.scaling_inverse_activation(new_scaling)
 
         return self._xyz[idxs], self._features_dc[idxs], self._features_rest[idxs], new_opacity, new_scaling, self._rotation[idxs], self._degree[idxs], self._negative[idxs]
 
@@ -532,14 +540,14 @@ class NTModel:
 
         # only recycle 5% of all components at max
         if dead_mask.sum() > int(0.05 * self.get_opacity.shape[0]):
-            sorted, indices = torch.sort(torch.abs(self.get_opacity.squeeze(-1)))
+            sorted, indices = torch.sort(torch.abs(self.get_relocation_opacity.squeeze(-1)))
             dead_indices = indices[0: int(0.05 * self.get_opacity.shape[0])]
 
         if alive_indices.shape[0] <= 0:
             return
 
         # sample from alive ones based on opacity
-        probs = (self.get_opacity[alive_indices, 0]) 
+        probs = (self.get_relocation_opacity[alive_indices, 0]) 
         reinit_idx, ratio = self._sample_alives(alive_indices=alive_indices, probs=probs, num=dead_indices.shape[0])
 
         (
@@ -567,7 +575,7 @@ class NTModel:
         if num_gs <= 0:
             return 0
         
-        probs = self.get_opacity.squeeze(-1)
+        probs = self.get_relocation_opacity.squeeze(-1)
         add_idx, ratio = self._sample_alives(probs=probs, num=num_gs)
 
         (

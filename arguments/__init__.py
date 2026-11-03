@@ -81,6 +81,7 @@ class PipelineParams(ParamGroup):
         self.mip_filter_3d = False  # Mip-SSS 3D smoothing filter (Option A); off by default
         self.mip_filter_3d_variance = 0.2  # Mip-Splatting's 3D filter scale: σ3 = sqrt(this) / f̂
         self.mip_option_b = False  # Mip-SSS Option B (M4): quadrature + fast path in CUDA; off by default
+        self.mip_exact_nu_grad = False  # M5 diagnostic: SSS-kernel ν gradient with SSS's omitted term
         super().__init__(parser, "Pipeline Parameters")
 
 class OptimizationParams(ParamGroup):
@@ -110,6 +111,9 @@ class OptimizationParams(ParamGroup):
 
         self.scale_reg = 0.01
         self.opacity_reg = 0.01
+        # Mip-SSS M5, both need --mip_filter_3d; off by default
+        self.mip_relocate_effective = False  # recycle/relocate on the 3D-filtered opacity (README M5.1)
+        self.mip_reg_filtered = False  # scale regularizer on the 3D-filtered scales (README M5.2)
 
         super().__init__(parser, "Optimization Parameters")
 
