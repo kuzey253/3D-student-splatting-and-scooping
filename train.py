@@ -22,7 +22,7 @@ import uuid
 from tqdm import tqdm
 from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
-from arguments import ModelParams, PipelineParams, OptimizationParams
+from arguments import ModelParams, PipelineParams, OptimizationParams, explicit_args
 from scene.nt_model import build_scaling_rotation
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -306,8 +306,11 @@ if __name__ == "__main__":
         # Load the configuration file
         config = load_config(args.config)
         # Set the configuration parameters on args, if they are not already set by command line arguments
+        # (SSS set them unconditionally, so e.g. -r 8 was reset to the config's resolution; PLAN item 3)
+        given = explicit_args(parser, sys.argv[1:])
         for key, value in config.items():
-            setattr(args, key, value)
+            if key not in given:
+                setattr(args, key, value)
 
     args.test_iterations.append(args.iterations)
     args.save_iterations.append(args.iterations)

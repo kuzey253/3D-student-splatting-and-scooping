@@ -1,11 +1,13 @@
 """Remote side of scripts/colab/run_m0.sh, executed in the Colab kernel with `colab exec -f`.
 
-The STEP env var selects the step: setup, data, parity, m3, m4, m5, launch, status or collect. Every step ends with a
+The STEP env var selects the step: setup, data, parity, m3, m4, m5, mip, launch, status or collect. Every step ends with a
 line `M0_<STEP>=OK` or `M0_<STEP>=FAIL <reason>`, because `colab exec` exits 0 even when remote
 code fails: the runner reads these answers, not exit codes.
 """
+import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -21,10 +23,19 @@ M0 = ROOT / "m0"
 URLS = {
     "tandt": "https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/datasets/input/tandt_db.zip",
     "360": "https://storage.googleapis.com/gresearch/refraw360/360_v2.zip",
+    # NeRF-synthetic (Blender). The official copy is on Google Drive; this public mirror's files match
+    # a second, independent mirror (datasets/YouLiXiya/nerf) in name, size and CRC32 (NOTES.md 55)
+    "blender": "https://huggingface.co/donydchen/matchnerf/resolve/main/nerf_synthetic.zip",
 }
+BLENDER_SCENES = ("chair", "drums", "ficus", "hotdog", "lego", "materials", "mic", "ship")
 SCENE_ARCHIVE = {"train": "tandt", "truck": "tandt", "drjohnson": "tandt", "playroom": "tandt",
                  "bicycle": "360", "garden": "360", "stump": "360", "bonsai": "360",
-                 "counter": "360", "kitchen": "360", "room": "360"}
+                 "counter": "360", "kitchen": "360", "room": "360",
+                 **{s: "blender" for s in BLENDER_SCENES}}
+# sha256 of the sorted "<scene>/<path> <size> <crc32>" lines for the files the converter reads
+# (transforms_{train,val,test}.json and {train,val,test}/r_<i>.png; 3224 files), from the two mirrors
+BLENDER_MANIFEST_SHA256 = "42a9189428f770148104bada453230deb340cf89926d93f79012eb7d6dc9fde6"
+BLENDER_MEMBER = re.compile(r"^[a-z]+/(transforms_(train|val|test)\.json|(train|val|test)/r_[0-9]+\.png)$")
 
 
 def sh(cmd, log=None, **kw):
@@ -62,6 +73,41 @@ def extract_scene(zip_path, scene, dest):
             with z.open(n) as src, open(target, "wb") as dst:
                 shutil.copyfileobj(src, dst, 1 << 20)
     return len(members)
+
+
+def blender_members(names_info):
+    """{relative path under nerf_synthetic/: ZipInfo} for the converter's files, and the manifest digest."""
+    keep = {}
+    for i in names_info:
+        rel = i.filename.split("/", 1)[1] if "/" in i.filename else i.filename
+        if BLENDER_MEMBER.match(rel):
+            keep[rel] = i
+    lines = sorted(f"{rel} {i.file_size} {i.CRC:08x}" for rel, i in keep.items())
+    return keep, hashlib.sha256(("\n".join(lines) + "\n").encode()).hexdigest()
+
+
+def prepare_blender(zip_path, scene):
+    """Extract one NeRF-synthetic scene (CRC-checked by zipfile) and convert it to multi-scale in DATA/<scene>."""
+    with zipfile.ZipFile(zip_path) as z:
+        keep, digest = blender_members(z.infolist())
+        if digest != BLENDER_MANIFEST_SHA256:
+            raise RuntimeError(f"nerf_synthetic.zip manifest {digest[:12]} != expected {BLENDER_MANIFEST_SHA256[:12]}")
+        raw = DATA / "nerf_synthetic"
+        for rel, info in keep.items():
+            if rel.startswith(scene + "/"):
+                target = raw / rel
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with z.open(info) as src, open(target, "wb") as dst:
+                    shutil.copyfileobj(src, dst, 1 << 20)
+    p = sh([sys.executable, "scripts/convert_blender_data.py", "--blender_dir", str(raw), "--object_name", scene,
+            "--out_dir", str(DATA)], cwd=SSS, log=M0 / f"convert_{scene}.log")
+    if p.returncode:
+        raise RuntimeError(f"converting {scene} failed (see /content/m0/convert_{scene}.log)")
+    meta = json.loads((DATA / scene / "metadata.json").read_text())
+    n = {k: len(meta[k]["file_path"]) for k in ("train", "test")}
+    if n != {"train": 400, "test": 800}:
+        raise RuntimeError(f"{scene}: unexpected multi-scale counts {n}")
+    return n
 
 
 def step_setup():
@@ -125,6 +171,11 @@ def step_data(scenes):
             print(f"{archive}: {z.stat().st_size / 1e9:.2f} GB in {time.time() - t0:.0f}s")
     for s in scenes:
         dest = DATA / s
+        if SCENE_ARCHIVE[s] == "blender":
+            if not (dest / "metadata.json").exists():
+                print(f"{s}: multi-scale {prepare_blender(DATA / 'blender.zip', s)}")
+            print(f"{s}: {len(list(dest.glob('images_*/*.png')))} multi-scale images")
+            continue
         if not (dest / "sparse").exists():
             n = extract_scene(DATA / f"{SCENE_ARCHIVE[s]}.zip", s, dest)
             print(f"{s}: extracted {n} files")
@@ -205,6 +256,51 @@ def step_m5():
     return "OK" if verdict.startswith("M5_CHECKS=OK") else f"FAIL {verdict or 'checks crashed'}"
 
 
+MIP = ROOT / "mip-splatting"
+MIP_REPO, MIP_REF = "https://github.com/autonomousvision/mip-splatting.git", "dda02ab"
+
+
+def step_mip():
+    """M6 baseline: Mip-Splatting at dda02ab with build-only patches (NOTES.md 56), its rasterizer built
+    next to SSS's. simple_knn is shared: SSS's copy is Mip-Splatting's plus the same build patches."""
+    if not (MIP / ".git").exists():
+        shutil.rmtree(MIP, ignore_errors=True)
+        if sh(["git", "clone", "-q", MIP_REPO, str(MIP)]).returncode:
+            return "FAIL git clone"
+    if sh(["git", "checkout", "-q", "-f", MIP_REF], cwd=MIP).returncode:
+        return f"FAIL git checkout {MIP_REF}"
+    head = sh(["git", "rev-parse", "HEAD"], cwd=MIP).stdout.strip()
+    # build-only patches, as for SSS's CUDA sources (NOTES.md 22), and an unused import with no wheel
+    for f in (MIP / "submodules/diff-gaussian-rasterization").rglob("*.cu"):
+        s = f.read_text()
+        s2 = re.sub(r"\.data<([A-Za-z0-9_ ]+)>\(\)", r".data_ptr<\1>()", s)
+        if s2 != s:
+            f.write_text(s2)
+    h = MIP / "submodules/diff-gaussian-rasterization/cuda_rasterizer/rasterizer.h"
+    if "<cstdint>" not in h.read_text():
+        h.write_text(h.read_text().replace("#include <vector>", "#include <cstdint>\n#include <vector>", 1))
+    tr = MIP / "train.py"
+    tr.write_text(tr.read_text().replace("import open3d as o3d\n", "", 1))
+    (M0 / "mip_patch.diff").write_text(sh(["git", "diff"], cwd=MIP).stdout)
+    print(f"mip-splatting {head}, patch: {sh(['git', 'diff', '--stat'], cwd=MIP).stdout.strip().splitlines()[-1:]}")
+
+    import torch
+    cap = torch.cuda.get_device_capability(0)
+    nvcc = shutil.which("nvcc") or "/usr/local/cuda/bin/nvcc"
+    env = dict(os.environ, TORCH_CUDA_ARCH_LIST=f"{cap[0]}.{cap[1]}", MAX_JOBS="16",
+               PATH=f"{Path(nvcc).parent}:{os.environ['PATH']}")
+    t0 = time.time()
+    p = sh([sys.executable, "-m", "pip", "install", "--no-build-isolation", "--no-deps", "-v",
+            "./submodules/diff-gaussian-rasterization"], log=M0 / "build_mip.log", cwd=MIP, env=env)
+    print(f"mip build: {time.time() - t0:.0f}s, exit {p.returncode}")
+    if p.returncode:
+        return "FAIL Mip-Splatting rasterizer build (see /content/m0/build_mip.log)"
+    p = sh([sys.executable, "-c", "import cv2, diff_gaussian_rasterization, simple_knn._C; print('mip imports ok')"],
+           cwd="/tmp")
+    print(p.stdout.strip())
+    return "OK" if p.returncode == 0 and head.startswith(MIP_REF) else "FAIL Mip-Splatting imports or ref"
+
+
 def step_launch(scenes, runs, dry):
     if pipeline_pid():
         return "FAIL a pipeline is already running"
@@ -253,7 +349,7 @@ def step_collect():
     out = ROOT / "m0_results.tar.gz"
     keep = ("summary.json", "config.json", "results.json", "per_view.json", "fps.json", "cfg_args",
             "cameras.json", "mem.csv", ".log", ".md", "stats.json", "m2_checks.json", "m3_checks.json", "m4_checks.json",
-            "m5_checks.json",
+            "m5_checks.json", "per_scale.json", "mip_patch.diff",
             "nan_capture.pt", "nan_capture_scene.pt")
     with tarfile.open(out, "w:gz") as t:
         for p in sorted(M0.rglob("*")):
@@ -276,7 +372,7 @@ def main():
         return
     try:
         result = {"setup": step_setup, "data": lambda: step_data(scenes),
-                  "parity": step_parity, "m3": step_m3, "m4": step_m4, "m5": step_m5, "launch": lambda: step_launch(scenes, runs, dry),
+                  "parity": step_parity, "m3": step_m3, "m4": step_m4, "m5": step_m5, "mip": step_mip, "launch": lambda: step_launch(scenes, runs, dry),
                   "status": step_status,
                   "collect": step_collect}[step]()
     except KeyError:

@@ -9,7 +9,7 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-from argparse import ArgumentParser, Namespace
+from argparse import SUPPRESS, ArgumentParser, Namespace
 import sys
 import os
 
@@ -59,6 +59,7 @@ class ModelParams(ParamGroup):
 
         self.cap_max = -1
         self.init_type = "sfm"
+        self.load_allres = False  # multi-scale Blender: also train on the downscaled images (M6)
 
         self.C_burnin = 5e5
         self.C = 1e2
@@ -138,3 +139,14 @@ def get_combined_args(parser : ArgumentParser):
         if v != None:
             merged_dict[k] = v
     return Namespace(**merged_dict)
+
+def explicit_args(parser, argv):
+    """Destinations given on the command line (any spelling argparse accepts, e.g. -r, --resolution)."""
+    saved = [(a, a.default) for a in parser._actions]
+    try:
+        for a, _ in saved:
+            a.default = SUPPRESS
+        return set(vars(parser.parse_args(argv)))
+    finally:
+        for a, d in saved:
+            a.default = d

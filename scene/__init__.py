@@ -46,6 +46,10 @@ class Scene_nt:
         elif os.path.exists(os.path.join(args.source_path, "transforms_train.json")):
             print("Found transforms_train.json file, assuming Blender data set!")
             scene_info = sceneLoadTypeCallbacks["Blender"](args.source_path, args.white_background, args.eval, init_type=args.init_type)
+        elif os.path.exists(os.path.join(args.source_path, "metadata.json")):
+            print("Found metadata.json file, assuming multi scale Blender data set!")
+            scene_info = sceneLoadTypeCallbacks["Multi-scale"](args.source_path, args.white_background, args.eval,
+                                                               getattr(args, "load_allres", False), init_type=args.init_type)
         else:
             assert False, "Could not recognize scene type!"
 

@@ -44,8 +44,9 @@ def test_extract_scene_handles_both_archive_layouts(tmp_path):
 
 def test_every_config_has_a_known_archive():
     remote = load("remote_m0")
-    configs = {p.stem for p in (ROOT / "configs").glob("*.json")}
+    configs = {p.stem for p in (ROOT / "configs").glob("*.json")} - {"blender"}  # shared by the Blender scenes
     assert configs <= set(remote.SCENE_ARCHIVE)
+    assert {s for s, a in remote.SCENE_ARCHIVE.items() if a == "blender"} == set(remote.BLENDER_SCENES)
 
 
 def test_runner_shell_syntax():

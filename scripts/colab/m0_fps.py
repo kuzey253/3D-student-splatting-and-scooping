@@ -3,7 +3,10 @@
 Loads the model the way render.py does, warms up on a few views, then times --passes passes over
 all test views with CUDA synchronisation around the timed region (render only; no image I/O).
 
-Usage: python scripts/colab/m0_fps.py -m <model_dir> --out <fps.json> [--passes 5]
+Usage: python scripts/colab/m0_fps.py -m <model_dir> --out <fps.json> [--passes 5] [--only_suffix _d0]
+
+--only_suffix times only the test views whose image name ends with it (M6: _d0 is the full-resolution
+scale of multi-scale Blender).
 """
 import json
 import sys
@@ -27,6 +30,7 @@ def main():
     parser.add_argument("--iteration", default=-1, type=int)
     parser.add_argument("--passes", default=5, type=int)
     parser.add_argument("--out", required=True)
+    parser.add_argument("--only_suffix")
     args = get_combined_args(parser)
     dataset, pipe = model.extract(args), pipeline.extract(args)
     with torch.no_grad():
@@ -35,6 +39,8 @@ def main():
         bg = torch.tensor([1, 1, 1] if dataset.white_background else [0, 0, 0],
                           dtype=torch.float32, device="cuda")
         views = scene.getTestCameras()
+        if args.only_suffix:
+            views = [v for v in views if v.image_name.endswith(args.only_suffix)]
         for v in views[:5]:
             render(v, prims, pipe, bg)
         torch.cuda.synchronize()

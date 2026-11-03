@@ -11,7 +11,8 @@
 # overrides, "name:scene:key=value,..." space-separated; replaces SCENES for training), PARITY=1
 # (M2 checks: also build the rasterizer at OLD_REF, default 19b1b53, and compare), M3CHECKS=1 (M3
 # checks, after the data step; stops before training if they fail), M4CHECKS=1 (M4 Option B checks,
-# likewise), M5CHECKS=1 (M5 exact-ν-gradient flag checks, likewise), POLL (seconds
+# likewise), M5CHECKS=1 (M5 exact-ν-gradient flag checks, likewise), MIP=1 (M6: fetch and build
+# Mip-Splatting dda02ab for method=mip runs, after the data step), POLL (seconds
 # between status checks; default 30 dry, 300 real). Remote steps answer with M0_<STEP>=OK|FAIL
 # lines, which this script checks; `colab exec` itself exits 0 even when the remote code fails.
 set -euo pipefail
@@ -24,6 +25,7 @@ PARITY=${PARITY:-0}
 M3CHECKS=${M3CHECKS:-0}
 M4CHECKS=${M4CHECKS:-0}
 M5CHECKS=${M5CHECKS:-0}
+MIP=${MIP:-0}
 OLD_REF=${OLD_REF:-19b1b53}
 POLL=${POLL:-$([ "$DRY" = 1 ] && echo 30 || echo 300)}
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -115,6 +117,11 @@ if [ "$M5CHECKS" = 1 ]; then
     exit 1
   fi
   grep -E "^M5_" "$OUT/m5.log" || true
+fi
+if [ "$MIP" = 1 ]; then
+  log "mip: fetch Mip-Splatting dda02ab, patch the build, build its rasterizer"
+  step mip 3600
+  grep -E "^mip" "$OUT/mip.log" || true
 fi
 log "launch"
 step launch 120
