@@ -1,0 +1,13 @@
+{
+ "cap_max": 300000,
+ "nu_degree": 100,
+ "C_burnin": 500000.0,
+ "C": 120.0,
+ "burnin_iterations": 7000,
+ "iterations": 30000,
+ "white_background": true,
+ "mip_kernel_size": 0.1,
+ "mip_filter_3d": true,
+ "mip_option_b": true,
+ "mip_relocate_effective": true
+}

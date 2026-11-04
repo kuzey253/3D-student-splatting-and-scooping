@@ -1,0 +1,21 @@
+{
+ "method": "mip",
+ "protocol": "stmt",
+ "ref": "dda02ab",
+ "train_args": [
+  "-s",
+  "/content/data/lego",
+  "-m",
+  "/content/m0/lego_mip/model",
+  "--eval",
+  "--kernel_size",
+  "0.1",
+  "--iterations",
+  "30000",
+  "--save_iterations",
+  "30000",
+  "--test_iterations",
+  "30000",
+  "--white_background"
+ ]
+}

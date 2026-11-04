@@ -1,0 +1,1 @@
+Namespace(sh_degree=3, source_path='/content/data/lego', model_path='/content/m0/lego_mip/model', images='images', resolution=-1, white_background=True, data_device='cuda', eval=True, kernel_size=0.1, ray_jitter=False, resample_gt_image=False, load_allres=False, sample_more_highres=False)

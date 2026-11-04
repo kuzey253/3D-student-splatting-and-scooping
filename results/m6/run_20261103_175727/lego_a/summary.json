@@ -1,0 +1,78 @@
+{
+ "run": "lego_a",
+ "scene": "lego",
+ "dry": false,
+ "iterations": 30000,
+ "config": {
+  "cap_max": 300000,
+  "nu_degree": 100,
+  "C_burnin": 500000.0,
+  "C": 120.0,
+  "burnin_iterations": 7000,
+  "iterations": 30000,
+  "white_background": true,
+  "mip_kernel_size": 0.1,
+  "mip_filter_3d": true,
+  "mip_relocate_effective": true
+ },
+ "components": 300000,
+ "psnr": 34.015700891017914,
+ "ssim": 0.9853031930327415,
+ "lpips": 0.013468909764196724,
+ "fps": 42.62848451633164,
+ "render_size": [
+  800,
+  800
+ ],
+ "test_views": 800,
+ "peak_gpu_mem_mib": 9258,
+ "train_s": 1645.1,
+ "render_s": 94.9,
+ "metrics_s": 23.2,
+ "fps_s": 51.1,
+ "stats_s": 13.2,
+ "method": "sss",
+ "protocol": "stmt",
+ "per_scale": {
+  "0": {
+   "PSNR": 35.43054598808288,
+   "SSIM": 0.9832627695798873,
+   "LPIPS": 0.016708769546821715,
+   "n": 200,
+   "size": [
+    800,
+    800
+   ]
+  },
+  "1": {
+   "PSNR": 36.032553062438964,
+   "SSIM": 0.9894806158542633,
+   "LPIPS": 0.008429550332948565,
+   "n": 200,
+   "size": [
+    400,
+    400
+   ]
+  },
+  "2": {
+   "PSNR": 33.792607164382936,
+   "SSIM": 0.9879141077399254,
+   "LPIPS": 0.010534821441397071,
+   "n": 200,
+   "size": [
+    200,
+    200
+   ]
+  },
+  "3": {
+   "PSNR": 30.80709734916687,
+   "SSIM": 0.9805552789568901,
+   "LPIPS": 0.018202497735619546,
+   "n": 200,
+   "size": [
+    100,
+    100
+   ]
+  }
+ }
+}
