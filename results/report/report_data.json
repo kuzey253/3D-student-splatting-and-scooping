@@ -1,0 +1,6815 @@
+{
+ "quad": {
+  "source": "results/m1/quad_study.csv",
+  "series": {
+   "README (fixed K=8, Gaussian > 30)": {
+    "nu": [
+     1.0,
+     1.5,
+     2.0,
+     4.0,
+     8.0,
+     16.0,
+     30.0,
+     50.0,
+     100.0,
+     300.0,
+     1000.0,
+     10000.0
+    ],
+    "max_abs": [
+     0.05236345534060083,
+     0.06274803058747166,
+     0.09044445211257762,
+     0.1545693295507341,
+     0.2022582853397003,
+     0.2369860730471029,
+     0.2628214533237507,
+     0.00898973371522005,
+     0.004533910067680558,
+     0.0015210056049701492,
+     0.00045733526626567933,
+     4.576414092671843e-05
+    ],
+    "core_rel": [
+     0.22416273713310234,
+     0.3511502957514009,
+     0.4178059664883138,
+     0.5240226758375421,
+     2.0815505987138074,
+     4.113220050041316,
+     3.5423112755263872,
+     0.4878159775799521,
+     0.2879408826785951,
+     0.10427582590221679,
+     0.03241415607856901,
+     0.003300727961784281
+    ]
+   },
+   "Gauss K=8": {
+    "nu": [
+     1.0,
+     1.5,
+     2.0,
+     4.0,
+     8.0,
+     16.0,
+     30.0,
+     50.0,
+     100.0,
+     300.0,
+     1000.0,
+     10000.0
+    ],
+    "max_abs": [
+     0.0008115416785403687,
+     0.00044854872791623424,
+     0.00025743054065694576,
+     3.503585878600248e-05,
+     1.7695428999276938e-06,
+     3.456315375203155e-08,
+     5.460838677952273e-10,
+     1.3882385014761175e-11,
+     7.305305449109567e-14,
+     1.454392162258955e-13,
+     3.6637359812630166e-14,
+     3.0920821458835235e-12
+    ],
+    "core_rel": [
+     0.18057419436584374,
+     0.13479142651943635,
+     0.09752851505474017,
+     0.023521685736094824,
+     0.0015945827987633079,
+     2.978196717572207e-05,
+     3.9362158049566665e-07,
+     8.455103313519558e-09,
+     4.405897061115916e-11,
+     1.4844182014763528e-13,
+     3.7407740412692953e-14,
+     3.113099691252217e-12
+    ]
+   },
+   "adaptive_tail τ=1/255 K=8 cv=A": {
+    "nu": [
+     1.0,
+     1.5,
+     2.0,
+     4.0,
+     8.0,
+     16.0,
+     30.0,
+     50.0,
+     100.0,
+     300.0,
+     1000.0,
+     10000.0
+    ],
+    "max_abs": [
+     0.007862846243052446,
+     0.004797342152190742,
+     0.003086247959156463,
+     0.0007328730466729105,
+     8.671063913900934e-05,
+     5.249288462350066e-06,
+     2.934165183821058e-06,
+     2.438666907245146e-06,
+     1.8655200023642848e-06,
+     1.1454610355787764e-06,
+     6.843107676068882e-07,
+     1.1900160490352363e-07
+    ],
+    "core_rel": [
+     0.06902101974727455,
+     0.05519343576621373,
+     0.04198980140607497,
+     0.007092766167194127,
+     0.0015023089332871855,
+     0.0008457564781202366,
+     0.0007591749159322486,
+     0.0006712681080881899,
+     0.0004346295606709785,
+     0.0001882844700565318,
+     7.979701111975018e-05,
+     1.0866789672477623e-05
+    ]
+   },
+   "adaptive_tail τ=1/255 K=12 cv=A (chosen)": {
+    "nu": [
+     1.0,
+     1.5,
+     2.0,
+     4.0,
+     8.0,
+     16.0,
+     30.0,
+     50.0,
+     100.0,
+     300.0,
+     1000.0,
+     10000.0
+    ],
+    "max_abs": [
+     0.000244002982640934,
+     9.699639697946516e-05,
+     4.2540410984948096e-05,
+     1.2035267059118393e-05,
+     8.622252952311671e-06,
+     6.189323524058432e-06,
+     4.95262216176906e-06,
+     4.682993208438013e-06,
+     5.636388138108295e-06,
+     4.673724838810678e-06,
+     2.4305096602006415e-06,
+     3.725343714622298e-07
+    ],
+    "core_rel": [
+     0.01564438651534448,
+     0.012869824275129062,
+     0.011944733939516958,
+     0.007021026718816489,
+     0.0020619979056048805,
+     0.0016609585493043613,
+     0.0014907336533629173,
+     0.0013078886794299532,
+     0.000843876880031951,
+     0.00035813335870093696,
+     0.0001468963002071565,
+     1.9134845798982908e-05
+    ]
+   },
+   "adaptive_tail τ=1e-4 K=32 cv=A": {
+    "nu": [
+     1.0,
+     1.5,
+     2.0,
+     4.0,
+     8.0,
+     16.0,
+     30.0,
+     50.0,
+     100.0,
+     300.0,
+     1000.0,
+     10000.0
+    ],
+    "max_abs": [
+     1.5010747014820858e-07,
+     1.2739736010569658e-07,
+     1.116480674023812e-07,
+     7.689542799727e-08,
+     5.302304004195513e-08,
+     4.001001321918274e-08,
+     3.4148650518428525e-08,
+     7.571688498408946e-08,
+     1.7798899054621842e-07,
+     2.5165139538874115e-07,
+     1.7576501321059368e-07,
+     3.503836010221306e-08
+    ],
+    "core_rel": [
+     0.00014065909711196925,
+     0.00012104844684565454,
+     0.0001067322166536994,
+     6.736711212948114e-05,
+     2.897758890959864e-05,
+     8.531289826553988e-06,
+     1.0369241574199636e-05,
+     1.3015651427082256e-05,
+     1.1774429709549815e-05,
+     7.505633985297972e-06,
+     4.100523317362325e-06,
+     6.612690687112456e-07
+    ]
+   }
+  },
+  "scatter": [
+   {
+    "candidate": "README as written (fixed, K=8, Gaussian above ν=30)",
+    "K": 8,
+    "worst_max_abs": 0.2628214533237507,
+    "cv": "none"
+   },
+   {
+    "candidate": "fixed[-12,3] K=4 cv=none",
+    "K": 4,
+    "worst_max_abs": 0.6678250479590634,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive K=4 cv=none",
+    "K": 4,
+    "worst_max_abs": 0.5622193392259758,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=4 cv=none",
+    "K": 4,
+    "worst_max_abs": 0.2627204490691387,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=4 cv=none",
+    "K": 4,
+    "worst_max_abs": 0.13176273511583914,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss K=4 cv=none",
+    "K": 4,
+    "worst_max_abs": 0.005471246770711029,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=1 split=c-1w K=4 cv=none",
+    "K": 4,
+    "worst_max_abs": 0.007210097868780513,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=2 split=c-1w K=4 cv=none",
+    "K": 4,
+    "worst_max_abs": 0.005578016323645019,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=1 split=c-2w K=4 cv=none",
+    "K": 4,
+    "worst_max_abs": 0.0032129723039552374,
+    "cv": "none"
+   },
+   {
+    "candidate": "fixed[-12,3] K=4 cv=A",
+    "K": 4,
+    "worst_max_abs": 0.45698663668480405,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive K=4 cv=A",
+    "K": 4,
+    "worst_max_abs": 0.3974607760399511,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=4 cv=A",
+    "K": 4,
+    "worst_max_abs": 0.15682002116066407,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=4 cv=A",
+    "K": 4,
+    "worst_max_abs": 0.08436842170285874,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss K=4 cv=A",
+    "K": 4,
+    "worst_max_abs": 0.004066755714166911,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=1 split=c-1w K=4 cv=A",
+    "K": 4,
+    "worst_max_abs": 0.005556139583451893,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=2 split=c-1w K=4 cv=A",
+    "K": 4,
+    "worst_max_abs": 0.00390223073076032,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=1 split=c-2w K=4 cv=A",
+    "K": 4,
+    "worst_max_abs": 0.0021859727081613156,
+    "cv": "A"
+   },
+   {
+    "candidate": "fixed[-12,3] K=4 cv=A_prime",
+    "K": 4,
+    "worst_max_abs": 0.45698663668480405,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive K=4 cv=A_prime",
+    "K": 4,
+    "worst_max_abs": 0.3974607760399511,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=4 cv=A_prime",
+    "K": 4,
+    "worst_max_abs": 0.15682002116066396,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=4 cv=A_prime",
+    "K": 4,
+    "worst_max_abs": 0.08436842170285874,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss K=4 cv=A_prime",
+    "K": 4,
+    "worst_max_abs": 0.005282625341854821,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=1 split=c-1w K=4 cv=A_prime",
+    "K": 4,
+    "worst_max_abs": 0.006356563130958597,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=2 split=c-1w K=4 cv=A_prime",
+    "K": 4,
+    "worst_max_abs": 0.004120963821474213,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=1 split=c-2w K=4 cv=A_prime",
+    "K": 4,
+    "worst_max_abs": 0.002625538825243745,
+    "cv": "A′"
+   },
+   {
+    "candidate": "fixed[-12,3] K=8 cv=none",
+    "K": 8,
+    "worst_max_abs": 0.30417724351817005,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive K=8 cv=none",
+    "K": 8,
+    "worst_max_abs": 0.2445243989465078,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=8 cv=none",
+    "K": 8,
+    "worst_max_abs": 0.08530788239434128,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=8 cv=none",
+    "K": 8,
+    "worst_max_abs": 0.015507700311959027,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss K=8 cv=none",
+    "K": 8,
+    "worst_max_abs": 0.0008115416785403687,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=2 split=c-1w K=8 cv=none",
+    "K": 8,
+    "worst_max_abs": 0.0018940124963475677,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=4 split=c-1w K=8 cv=none",
+    "K": 8,
+    "worst_max_abs": 0.00028496101673345254,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=2 split=c-2w K=8 cv=none",
+    "K": 8,
+    "worst_max_abs": 0.00047893195414388926,
+    "cv": "none"
+   },
+   {
+    "candidate": "fixed[-12,3] K=8 cv=A",
+    "K": 8,
+    "worst_max_abs": 0.18209799441499147,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive K=8 cv=A",
+    "K": 8,
+    "worst_max_abs": 0.1447525999336169,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=8 cv=A",
+    "K": 8,
+    "worst_max_abs": 0.05248797497384594,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=8 cv=A",
+    "K": 8,
+    "worst_max_abs": 0.007862846243052446,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss K=8 cv=A",
+    "K": 8,
+    "worst_max_abs": 0.000643834488984002,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=2 split=c-1w K=8 cv=A",
+    "K": 8,
+    "worst_max_abs": 0.0016435786214389937,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=4 split=c-1w K=8 cv=A",
+    "K": 8,
+    "worst_max_abs": 0.00033007452307812647,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=2 split=c-2w K=8 cv=A",
+    "K": 8,
+    "worst_max_abs": 0.0005105608473355955,
+    "cv": "A"
+   },
+   {
+    "candidate": "fixed[-12,3] K=8 cv=A_prime",
+    "K": 8,
+    "worst_max_abs": 0.18209799441499147,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive K=8 cv=A_prime",
+    "K": 8,
+    "worst_max_abs": 0.14479754642112597,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=8 cv=A_prime",
+    "K": 8,
+    "worst_max_abs": 0.05248797497384594,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=8 cv=A_prime",
+    "K": 8,
+    "worst_max_abs": 0.007932777527294821,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss K=8 cv=A_prime",
+    "K": 8,
+    "worst_max_abs": 0.0009132369397121427,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=2 split=c-1w K=8 cv=A_prime",
+    "K": 8,
+    "worst_max_abs": 0.001823294819603586,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=4 split=c-1w K=8 cv=A_prime",
+    "K": 8,
+    "worst_max_abs": 0.00036999971249233963,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=2 split=c-2w K=8 cv=A_prime",
+    "K": 8,
+    "worst_max_abs": 0.000496050499016335,
+    "cv": "A′"
+   },
+   {
+    "candidate": "fixed[-12,3] K=12 cv=none",
+    "K": 12,
+    "worst_max_abs": 0.09954854744063224,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive K=12 cv=none",
+    "K": 12,
+    "worst_max_abs": 0.051309228086682146,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=12 cv=none",
+    "K": 12,
+    "worst_max_abs": 0.006391694589852115,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=12 cv=none",
+    "K": 12,
+    "worst_max_abs": 0.00048637384314498266,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss K=12 cv=none",
+    "K": 12,
+    "worst_max_abs": 0.0002117343378865346,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=3 split=c-1w K=12 cv=none",
+    "K": 12,
+    "worst_max_abs": 0.0006598572811556298,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=6 split=c-1w K=12 cv=none",
+    "K": 12,
+    "worst_max_abs": 0.00010599242763237315,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=3 split=c-2w K=12 cv=none",
+    "K": 12,
+    "worst_max_abs": 0.00016513629364998917,
+    "cv": "none"
+   },
+   {
+    "candidate": "fixed[-12,3] K=12 cv=A",
+    "K": 12,
+    "worst_max_abs": 0.05975205130332034,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive K=12 cv=A",
+    "K": 12,
+    "worst_max_abs": 0.031717029252250284,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=12 cv=A",
+    "K": 12,
+    "worst_max_abs": 0.00379660052780062,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=12 cv=A",
+    "K": 12,
+    "worst_max_abs": 0.000244002982640934,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss K=12 cv=A",
+    "K": 12,
+    "worst_max_abs": 0.00017551342330387673,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=3 split=c-1w K=12 cv=A",
+    "K": 12,
+    "worst_max_abs": 0.0006771878421997215,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=6 split=c-1w K=12 cv=A",
+    "K": 12,
+    "worst_max_abs": 8.966375062174746e-05,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=3 split=c-2w K=12 cv=A",
+    "K": 12,
+    "worst_max_abs": 0.00020449847015969666,
+    "cv": "A"
+   },
+   {
+    "candidate": "fixed[-12,3] K=12 cv=A_prime",
+    "K": 12,
+    "worst_max_abs": 0.05975205130332034,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive K=12 cv=A_prime",
+    "K": 12,
+    "worst_max_abs": 0.031717029252250395,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=12 cv=A_prime",
+    "K": 12,
+    "worst_max_abs": 0.003577079954829032,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=12 cv=A_prime",
+    "K": 12,
+    "worst_max_abs": 0.00024454348299707274,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss K=12 cv=A_prime",
+    "K": 12,
+    "worst_max_abs": 0.00025014661947134025,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=3 split=c-1w K=12 cv=A_prime",
+    "K": 12,
+    "worst_max_abs": 0.0007744534330267122,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=6 split=c-1w K=12 cv=A_prime",
+    "K": 12,
+    "worst_max_abs": 0.00010777939144124304,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=3 split=c-2w K=12 cv=A_prime",
+    "K": 12,
+    "worst_max_abs": 0.00020477320620846643,
+    "cv": "A′"
+   },
+   {
+    "candidate": "fixed[-12,3] K=16 cv=none",
+    "K": 16,
+    "worst_max_abs": 0.02885505988781223,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive K=16 cv=none",
+    "K": 16,
+    "worst_max_abs": 0.008532445680306255,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=16 cv=none",
+    "K": 16,
+    "worst_max_abs": 0.0008906654168449046,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=16 cv=none",
+    "K": 16,
+    "worst_max_abs": 2.3564135323473137e-05,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss K=16 cv=none",
+    "K": 16,
+    "worst_max_abs": 7.000070043480626e-05,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=4 split=c-1w K=16 cv=none",
+    "K": 16,
+    "worst_max_abs": 0.0002845375515080359,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=8 split=c-1w K=16 cv=none",
+    "K": 16,
+    "worst_max_abs": 0.00010712493814679647,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=4 split=c-2w K=16 cv=none",
+    "K": 16,
+    "worst_max_abs": 7.043211186241369e-05,
+    "cv": "none"
+   },
+   {
+    "candidate": "fixed[-12,3] K=16 cv=A",
+    "K": 16,
+    "worst_max_abs": 0.015681988808194602,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive K=16 cv=A",
+    "K": 16,
+    "worst_max_abs": 0.005068417208772602,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=16 cv=A",
+    "K": 16,
+    "worst_max_abs": 0.00042656877607882837,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=16 cv=A",
+    "K": 16,
+    "worst_max_abs": 2.081784966521949e-05,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss K=16 cv=A",
+    "K": 16,
+    "worst_max_abs": 6.141241261095609e-05,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=4 split=c-1w K=16 cv=A",
+    "K": 16,
+    "worst_max_abs": 0.0003299434731869333,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=8 split=c-1w K=16 cv=A",
+    "K": 16,
+    "worst_max_abs": 6.641111768623809e-05,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=4 split=c-2w K=16 cv=A",
+    "K": 16,
+    "worst_max_abs": 9.409630980655427e-05,
+    "cv": "A"
+   },
+   {
+    "candidate": "fixed[-12,3] K=16 cv=A_prime",
+    "K": 16,
+    "worst_max_abs": 0.015681988808194602,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive K=16 cv=A_prime",
+    "K": 16,
+    "worst_max_abs": 0.004783361348558501,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=16 cv=A_prime",
+    "K": 16,
+    "worst_max_abs": 0.0004329937832667774,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=16 cv=A_prime",
+    "K": 16,
+    "worst_max_abs": 2.2107090551344577e-05,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss K=16 cv=A_prime",
+    "K": 16,
+    "worst_max_abs": 8.605999833287328e-05,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=4 split=c-1w K=16 cv=A_prime",
+    "K": 16,
+    "worst_max_abs": 0.0003699784876072497,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=8 split=c-1w K=16 cv=A_prime",
+    "K": 16,
+    "worst_max_abs": 6.64111176862936e-05,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=4 split=c-2w K=16 cv=A_prime",
+    "K": 16,
+    "worst_max_abs": 9.605111843908937e-05,
+    "cv": "A′"
+   },
+   {
+    "candidate": "fixed[-12,3] K=32 cv=none",
+    "K": 32,
+    "worst_max_abs": 0.035408485660623656,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive K=32 cv=none",
+    "K": 32,
+    "worst_max_abs": 0.00010016598479428707,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=32 cv=none",
+    "K": 32,
+    "worst_max_abs": 4.4101901042203906e-07,
+    "cv": "none"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=32 cv=none",
+    "K": 32,
+    "worst_max_abs": 4.143885069873843e-05,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss K=32 cv=none",
+    "K": 32,
+    "worst_max_abs": 2.998680612132775e-06,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=8 split=c-1w K=32 cv=none",
+    "K": 32,
+    "worst_max_abs": 0.00010714761866392752,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=16 split=c-1w K=32 cv=none",
+    "K": 32,
+    "worst_max_abs": 0.00010713597889538962,
+    "cv": "none"
+   },
+   {
+    "candidate": "gauss2 tail=8 split=c-2w K=32 cv=none",
+    "K": 32,
+    "worst_max_abs": 5.525017984961411e-05,
+    "cv": "none"
+   },
+   {
+    "candidate": "fixed[-12,3] K=32 cv=A",
+    "K": 32,
+    "worst_max_abs": 0.02123525073732624,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive K=32 cv=A",
+    "K": 32,
+    "worst_max_abs": 6.042081187673798e-05,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=32 cv=A",
+    "K": 32,
+    "worst_max_abs": 2.5165139538874115e-07,
+    "cv": "A"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=32 cv=A",
+    "K": 32,
+    "worst_max_abs": 2.7719651422161706e-05,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss K=32 cv=A",
+    "K": 32,
+    "worst_max_abs": 3.43229369346304e-06,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=8 split=c-1w K=32 cv=A",
+    "K": 32,
+    "worst_max_abs": 6.641111615174333e-05,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=16 split=c-1w K=32 cv=A",
+    "K": 32,
+    "worst_max_abs": 6.64050851107989e-05,
+    "cv": "A"
+   },
+   {
+    "candidate": "gauss2 tail=8 split=c-2w K=32 cv=A",
+    "K": 32,
+    "worst_max_abs": 3.8919612046384167e-05,
+    "cv": "A"
+   },
+   {
+    "candidate": "fixed[-12,3] K=32 cv=A_prime",
+    "K": 32,
+    "worst_max_abs": 0.02123525073732624,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive K=32 cv=A_prime",
+    "K": 32,
+    "worst_max_abs": 6.042081187673798e-05,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive_tail τ=1e-4 K=32 cv=A_prime",
+    "K": 32,
+    "worst_max_abs": 2.5165139538874115e-07,
+    "cv": "A′"
+   },
+   {
+    "candidate": "adaptive_tail τ=1/255 K=32 cv=A_prime",
+    "K": 32,
+    "worst_max_abs": 2.8838563870170822e-05,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss K=32 cv=A_prime",
+    "K": 32,
+    "worst_max_abs": 3.972222316405826e-06,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=8 split=c-1w K=32 cv=A_prime",
+    "K": 32,
+    "worst_max_abs": 6.641111615179884e-05,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=16 split=c-1w K=32 cv=A_prime",
+    "K": 32,
+    "worst_max_abs": 6.640508511090992e-05,
+    "cv": "A′"
+   },
+   {
+    "candidate": "gauss2 tail=8 split=c-2w K=32 cv=A_prime",
+    "K": 32,
+    "worst_max_abs": 3.891961204649519e-05,
+    "cv": "A′"
+   }
+  ]
+ },
+ "shortcut": {
+  "source": "results/m1/shortcut_study.csv",
+  "series": {
+   "1.0": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     0.04626488846259476,
+     0.11079132212363446,
+     0.17129580042418152,
+     0.18020835059084495,
+     0.11694235362979277,
+     0.05409993555271431,
+     0.018695481632843403,
+     0.006514850520454973,
+     0.0019861030661907364
+    ]
+   },
+   "1.5": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     0.0333763331618086,
+     0.083667794802878,
+     0.12992206540341622,
+     0.13544242223137415,
+     0.08383457821356399,
+     0.03732967469810344,
+     0.01261704694528698,
+     0.004362008657660454,
+     0.0013258192877024788
+    ]
+   },
+   "2.0": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     0.02578816828860883,
+     0.06706473578334998,
+     0.10484156059491312,
+     0.10875366229778749,
+     0.06542430306961367,
+     0.028506818565868675,
+     0.009521877231053577,
+     0.003278615227301329,
+     0.0009950228815920337
+    ]
+   },
+   "4.0": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     0.013020652467690436,
+     0.03704796905713309,
+     0.059322615015589664,
+     0.06109604274016289,
+     0.03490892524747513,
+     0.014661466458906203,
+     0.004806292474418217,
+     0.0016446825623595007,
+     0.0004980064785016225
+    ]
+   },
+   "8.0": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     0.007102151966216441,
+     0.01935507925693647,
+     0.03177881433548824,
+     0.032651615685377666,
+     0.018084493832107085,
+     0.0074392559679755665,
+     0.002414726966569525,
+     0.0008236949206847921,
+     0.00024912727564652126
+    ]
+   },
+   "16.0": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     0.003914768522833817,
+     0.009851030850812459,
+     0.01647490494691195,
+     0.016923180147053296,
+     0.009212138091117095,
+     0.00374765264310728,
+     0.0012102899539682133,
+     0.0004121871221418605,
+     0.00012459468161341025
+    ]
+   },
+   "30.0": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     0.002183147099937291,
+     0.005289976726560008,
+     0.008939013921093197,
+     0.009184605234135668,
+     0.0049571090713673716,
+     0.002005837363090013,
+     0.0006462202119092986,
+     0.0002199178230871679,
+     6.64582275722303e-05
+    ]
+   },
+   "50.0": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     0.0013360565944637026,
+     0.0031827824377464453,
+     0.0054059986301638885,
+     0.0055557606825662464,
+     0.002986552330902059,
+     0.001205461798628349,
+     0.00038793346531129647,
+     0.00013197394298369858,
+     3.987705749353143e-05
+    ]
+   },
+   "100.0": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     0.0006782523253915651,
+     0.0015944426888959695,
+     0.0027191230148720935,
+     0.002795057060029471,
+     0.0014979318640285788,
+     0.0006034687711550246,
+     0.00019404233700937024,
+     6.599569391663174e-05,
+     1.9939324186757368e-05
+    ]
+   },
+   "300.0": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     0.00022822276355143056,
+     0.0005321180693286243,
+     0.0009099803929775163,
+     0.00093555190774397,
+     0.0005003529911298266,
+     0.0002013207249840221,
+     6.469759645655326e-05,
+     2.2000503763663914e-05,
+     6.6466183460400785e-06
+    ]
+   },
+   "1000.0": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     6.873058297363066e-05,
+     0.00015969994526054965,
+     0.00027337401096683145,
+     0.00028107435490254407,
+     0.00015021579156804243,
+     6.0413514870072405e-05,
+     1.94110456713803e-05,
+     6.600354748753645e-06,
+     1.9940040600907594e-06
+    ]
+   },
+   "10000.0": {
+    "rho": [
+     0.1,
+     0.3,
+     1.0,
+     3.0,
+     10.0,
+     30.0,
+     100.0,
+     300.0,
+     1000.0
+    ],
+    "A": [
+     6.883026477402798e-06,
+     1.5972448856815813e-05,
+     2.7352069202013496e-05,
+     2.8123239990018867e-05,
+     1.5025821309522236e-05,
+     6.042016049034871e-06,
+     1.9411696406956835e-06,
+     6.600402242540326e-07,
+     1.9939800977031297e-07
+    ]
+   }
+  }
+ },
+ "drift": {
+  "source": "results/m5/relocation_drift.md",
+  "rows": [
+   {
+    "shape": "large",
+    "nu": 1,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.004,
+    "raw_fast": 0.005,
+    "eff_fast": 0.004,
+    "raw_exact": 0.004,
+    "eff_exact": 0.004
+   },
+   {
+    "shape": "large",
+    "nu": 1,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.007,
+    "raw_fast": 0.007,
+    "eff_fast": 0.006,
+    "raw_exact": 0.006,
+    "eff_exact": 0.006
+   },
+   {
+    "shape": "large",
+    "nu": 1,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.078,
+    "raw_fast": 0.082,
+    "eff_fast": 0.065,
+    "raw_exact": 0.074,
+    "eff_exact": 0.059
+   },
+   {
+    "shape": "large",
+    "nu": 1,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.12,
+    "raw_fast": 0.128,
+    "eff_fast": 0.099,
+    "raw_exact": 0.114,
+    "eff_exact": 0.088
+   },
+   {
+    "shape": "large",
+    "nu": 100,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.006,
+    "raw_fast": 0.006,
+    "eff_fast": 0.005,
+    "raw_exact": 0.006,
+    "eff_exact": 0.005
+   },
+   {
+    "shape": "large",
+    "nu": 100,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.009,
+    "raw_fast": 0.009,
+    "eff_fast": 0.008,
+    "raw_exact": 0.009,
+    "eff_exact": 0.008
+   },
+   {
+    "shape": "large",
+    "nu": 100,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.112,
+    "raw_fast": 0.109,
+    "eff_fast": 0.092,
+    "raw_exact": 0.109,
+    "eff_exact": 0.092
+   },
+   {
+    "shape": "large",
+    "nu": 100,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.171,
+    "raw_fast": 0.166,
+    "eff_fast": 0.141,
+    "raw_exact": 0.165,
+    "eff_exact": 0.141
+   },
+   {
+    "shape": "large",
+    "nu": 3000,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.006,
+    "raw_fast": 0.006,
+    "eff_fast": 0.005,
+    "raw_exact": 0.006,
+    "eff_exact": 0.005
+   },
+   {
+    "shape": "large",
+    "nu": 3000,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.009,
+    "raw_fast": 0.009,
+    "eff_fast": 0.008,
+    "raw_exact": 0.009,
+    "eff_exact": 0.008
+   },
+   {
+    "shape": "large",
+    "nu": 3000,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.113,
+    "raw_fast": 0.11,
+    "eff_fast": 0.093,
+    "raw_exact": 0.11,
+    "eff_exact": 0.093
+   },
+   {
+    "shape": "large",
+    "nu": 3000,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.173,
+    "raw_fast": 0.167,
+    "eff_fast": 0.142,
+    "raw_exact": 0.167,
+    "eff_exact": 0.142
+   },
+   {
+    "shape": "pixel",
+    "nu": 1,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.004,
+    "raw_fast": 0.004,
+    "eff_fast": 0.0,
+    "raw_exact": 0.002,
+    "eff_exact": 0.001
+   },
+   {
+    "shape": "pixel",
+    "nu": 1,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.007,
+    "raw_fast": 0.006,
+    "eff_fast": 0.0,
+    "raw_exact": 0.003,
+    "eff_exact": 0.001
+   },
+   {
+    "shape": "pixel",
+    "nu": 1,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.078,
+    "raw_fast": 0.071,
+    "eff_fast": 0.003,
+    "raw_exact": 0.034,
+    "eff_exact": 0.007
+   },
+   {
+    "shape": "pixel",
+    "nu": 1,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.12,
+    "raw_fast": 0.104,
+    "eff_fast": 0.004,
+    "raw_exact": 0.049,
+    "eff_exact": 0.01
+   },
+   {
+    "shape": "pixel",
+    "nu": 100,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.006,
+    "raw_fast": 0.003,
+    "eff_fast": 0.0,
+    "raw_exact": 0.003,
+    "eff_exact": 0.0
+   },
+   {
+    "shape": "pixel",
+    "nu": 100,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.009,
+    "raw_fast": 0.004,
+    "eff_fast": 0.001,
+    "raw_exact": 0.004,
+    "eff_exact": 0.001
+   },
+   {
+    "shape": "pixel",
+    "nu": 100,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.111,
+    "raw_fast": 0.051,
+    "eff_fast": 0.004,
+    "raw_exact": 0.051,
+    "eff_exact": 0.004
+   },
+   {
+    "shape": "pixel",
+    "nu": 100,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.171,
+    "raw_fast": 0.072,
+    "eff_fast": 0.007,
+    "raw_exact": 0.072,
+    "eff_exact": 0.007
+   },
+   {
+    "shape": "pixel",
+    "nu": 3000,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.006,
+    "raw_fast": 0.003,
+    "eff_fast": 0.0,
+    "raw_exact": 0.003,
+    "eff_exact": 0.0
+   },
+   {
+    "shape": "pixel",
+    "nu": 3000,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.009,
+    "raw_fast": 0.004,
+    "eff_fast": 0.001,
+    "raw_exact": 0.004,
+    "eff_exact": 0.001
+   },
+   {
+    "shape": "pixel",
+    "nu": 3000,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.113,
+    "raw_fast": 0.051,
+    "eff_fast": 0.004,
+    "raw_exact": 0.051,
+    "eff_exact": 0.004
+   },
+   {
+    "shape": "pixel",
+    "nu": 3000,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.173,
+    "raw_fast": 0.072,
+    "eff_fast": 0.007,
+    "raw_exact": 0.072,
+    "eff_exact": 0.007
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 1,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.004,
+    "raw_fast": 0.0,
+    "eff_fast": 0.005,
+    "raw_exact": 0.0,
+    "eff_exact": 0.006
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 1,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.007,
+    "raw_fast": 0.0,
+    "eff_fast": 0.012,
+    "raw_exact": 0.0,
+    "eff_exact": 0.013
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 1,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.077,
+    "raw_fast": 0.003,
+    "eff_fast": 0.001,
+    "raw_exact": 0.002,
+    "eff_exact": 0.001
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 1,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.115,
+    "raw_fast": 0.004,
+    "eff_fast": 0.008,
+    "raw_exact": 0.003,
+    "eff_exact": 0.009
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 100,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.005,
+    "raw_fast": 0.0,
+    "eff_fast": 0.005,
+    "raw_exact": 0.0,
+    "eff_exact": 0.005
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 100,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.008,
+    "raw_fast": 0.0,
+    "eff_fast": 0.012,
+    "raw_exact": 0.0,
+    "eff_exact": 0.012
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 100,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.08,
+    "raw_fast": 0.002,
+    "eff_fast": 0.001,
+    "raw_exact": 0.002,
+    "eff_exact": 0.001
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 100,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.106,
+    "raw_fast": 0.003,
+    "eff_fast": 0.008,
+    "raw_exact": 0.003,
+    "eff_exact": 0.008
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 3000,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.005,
+    "raw_fast": 0.0,
+    "eff_fast": 0.005,
+    "raw_exact": 0.0,
+    "eff_exact": 0.005
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 3000,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.008,
+    "raw_fast": 0.0,
+    "eff_fast": 0.012,
+    "raw_exact": 0.0,
+    "eff_exact": 0.012
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 3000,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.082,
+    "raw_fast": 0.002,
+    "eff_fast": 0.001,
+    "raw_exact": 0.002,
+    "eff_exact": 0.001
+   },
+   {
+    "shape": "sub-pixel",
+    "nu": 3000,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.106,
+    "raw_fast": 0.003,
+    "eff_fast": 0.008,
+    "raw_exact": 0.003,
+    "eff_exact": 0.008
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 1,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.004,
+    "raw_fast": 0.0,
+    "eff_fast": 0.003,
+    "raw_exact": 0.0,
+    "eff_exact": 0.003
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 1,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.007,
+    "raw_fast": 0.0,
+    "eff_fast": 0.013,
+    "raw_exact": 0.0,
+    "eff_exact": 0.01
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 1,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.078,
+    "raw_fast": 0.004,
+    "eff_fast": 0.0,
+    "raw_exact": 0.002,
+    "eff_exact": 0.0
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 1,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.12,
+    "raw_fast": 0.005,
+    "eff_fast": 0.0,
+    "raw_exact": 0.003,
+    "eff_exact": 0.0
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 100,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.006,
+    "raw_fast": 0.0,
+    "eff_fast": 0.003,
+    "raw_exact": 0.0,
+    "eff_exact": 0.003
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 100,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.009,
+    "raw_fast": 0.0,
+    "eff_fast": 0.013,
+    "raw_exact": 0.0,
+    "eff_exact": 0.013
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 100,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.112,
+    "raw_fast": 0.003,
+    "eff_fast": 0.0,
+    "raw_exact": 0.003,
+    "eff_exact": 0.0
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 100,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.171,
+    "raw_fast": 0.005,
+    "eff_fast": 0.0,
+    "raw_exact": 0.005,
+    "eff_exact": 0.0
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 3000,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.006,
+    "raw_fast": 0.0,
+    "eff_fast": 0.003,
+    "raw_exact": 0.0,
+    "eff_exact": 0.003
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 3000,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.009,
+    "raw_fast": 0.0,
+    "eff_fast": 0.013,
+    "raw_exact": 0.0,
+    "eff_exact": 0.013
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 3000,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.113,
+    "raw_fast": 0.003,
+    "eff_fast": 0.0,
+    "raw_exact": 0.003,
+    "eff_exact": 0.0
+   },
+   {
+    "shape": "face-on disc",
+    "nu": 3000,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.173,
+    "raw_fast": 0.005,
+    "eff_fast": 0.0,
+    "raw_exact": 0.005,
+    "eff_exact": 0.0
+   },
+   {
+    "shape": "needle",
+    "nu": 1,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.004,
+    "raw_fast": 0.0,
+    "eff_fast": 0.003,
+    "raw_exact": 0.0,
+    "eff_exact": 0.003
+   },
+   {
+    "shape": "needle",
+    "nu": 1,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.007,
+    "raw_fast": 0.0,
+    "eff_fast": 0.006,
+    "raw_exact": 0.0,
+    "eff_exact": 0.006
+   },
+   {
+    "shape": "needle",
+    "nu": 1,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.078,
+    "raw_fast": 0.0,
+    "eff_fast": 0.002,
+    "raw_exact": 0.0,
+    "eff_exact": 0.002
+   },
+   {
+    "shape": "needle",
+    "nu": 1,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.12,
+    "raw_fast": 0.001,
+    "eff_fast": 0.005,
+    "raw_exact": 0.001,
+    "eff_exact": 0.005
+   },
+   {
+    "shape": "needle",
+    "nu": 100,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.006,
+    "raw_fast": 0.0,
+    "eff_fast": 0.003,
+    "raw_exact": 0.0,
+    "eff_exact": 0.003
+   },
+   {
+    "shape": "needle",
+    "nu": 100,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.009,
+    "raw_fast": 0.0,
+    "eff_fast": 0.006,
+    "raw_exact": 0.0,
+    "eff_exact": 0.006
+   },
+   {
+    "shape": "needle",
+    "nu": 100,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.111,
+    "raw_fast": 0.0,
+    "eff_fast": 0.002,
+    "raw_exact": 0.0,
+    "eff_exact": 0.002
+   },
+   {
+    "shape": "needle",
+    "nu": 100,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.171,
+    "raw_fast": 0.0,
+    "eff_fast": 0.005,
+    "raw_exact": 0.0,
+    "eff_exact": 0.005
+   },
+   {
+    "shape": "needle",
+    "nu": 3000,
+    "o": 0.3,
+    "N": 2,
+    "sss": 0.006,
+    "raw_fast": 0.0,
+    "eff_fast": 0.003,
+    "raw_exact": 0.0,
+    "eff_exact": 0.003
+   },
+   {
+    "shape": "needle",
+    "nu": 3000,
+    "o": 0.3,
+    "N": 4,
+    "sss": 0.009,
+    "raw_fast": 0.0,
+    "eff_fast": 0.006,
+    "raw_exact": 0.0,
+    "eff_exact": 0.006
+   },
+   {
+    "shape": "needle",
+    "nu": 3000,
+    "o": 0.9,
+    "N": 2,
+    "sss": 0.112,
+    "raw_fast": 0.0,
+    "eff_fast": 0.002,
+    "raw_exact": 0.0,
+    "eff_exact": 0.002
+   },
+   {
+    "shape": "needle",
+    "nu": 3000,
+    "o": 0.9,
+    "N": 4,
+    "sss": 0.173,
+    "raw_fast": 0.0,
+    "eff_fast": 0.005,
+    "raw_exact": 0.0,
+    "eff_exact": 0.005
+   }
+  ]
+ },
+ "m0": {
+  "train": {
+   "summary": {
+    "scene": "train",
+    "iterations": 40000,
+    "components": 1100000,
+    "psnr": 23.4547176361084,
+    "ssim": 0.8508238792419434,
+    "lpips": 0.16670472919940948,
+    "fps": 82.24228246927056,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 7302,
+    "train_s": 2179.1,
+    "render_s": 28.1,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 40000
+    },
+    "source": "results/m0/run_20261020_181819/train/summary.json"
+   },
+   "stats": {
+    "source": "results/m0/run_20261020_181819/train/stats/component_stats.md",
+    "nu_median": 4060.0,
+    "nu_at_1": 1.4,
+    "nu_at_max": 0.8,
+    "negative": 22.7,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      15869
+     ],
+     [
+      "[1.01, 1.5)",
+      0
+     ],
+     [
+      "[1.5, 2)",
+      0
+     ],
+     [
+      "[2, 3)",
+      0
+     ],
+     [
+      "[3, 4)",
+      0
+     ],
+     [
+      "[4, 6)",
+      0
+     ],
+     [
+      "[6, 8)",
+      0
+     ],
+     [
+      "[8, 12)",
+      0
+     ],
+     [
+      "[12, 16)",
+      0
+     ],
+     [
+      "[16, 30)",
+      1
+     ],
+     [
+      "[30, 50)",
+      1
+     ],
+     [
+      "[50, 99.99)",
+      6
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      155
+     ],
+     [
+      "[300, 1000)",
+      4367
+     ],
+     [
+      "[1000, 9999)",
+      1070265
+     ],
+     [
+      "[9999, 10001)",
+      9336
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2366098,
+      "optb_share": 1.2,
+      "cost": 1.78
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2388877,
+      "optb_share": 1.2,
+      "cost": 1.66
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2412025,
+      "optb_share": 1.2,
+      "cost": 1.38
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2454041,
+      "optb_share": 1.2,
+      "cost": 1.08
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       25555,
+       49859,
+       94436,
+       172435
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       49913,
+       89100,
+       153750,
+       307179
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       125464,
+       233633,
+       500264,
+       880927
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       383555,
+       745142,
+       1004047,
+       811612
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       941857,
+       903270,
+       504491,
+       214644
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       636990,
+       280487,
+       118178,
+       53834
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       153886,
+       68182,
+       31094,
+       12086
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       40064,
+       17003,
+       5327,
+       1195
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       8814,
+       2201,
+       438,
+       129
+      ]
+     ]
+    ]
+   }
+  },
+  "garden": {
+   "summary": {
+    "scene": "garden",
+    "iterations": 40000,
+    "components": 3000000,
+    "psnr": 28.066429138183594,
+    "ssim": 0.8827893137931824,
+    "lpips": 0.0911460742354393,
+    "fps": 48.82198170637248,
+    "render_size": [
+     1297,
+     840
+    ],
+    "peak_gpu_mem_mib": 10954,
+    "train_s": 3727.1,
+    "render_s": 99.9,
+    "config": {
+     "resolution": 4,
+     "cap_max": 3000000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 40000
+    },
+    "source": "results/m0/run_20261020_181819/garden/summary.json"
+   },
+   "stats": {
+    "source": "results/m0/run_20261020_181819/garden/stats/component_stats.md",
+    "nu_median": 3020.0,
+    "nu_at_1": 2.4,
+    "nu_at_max": 0.3,
+    "negative": 14.4,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      72072
+     ],
+     [
+      "[1.01, 1.5)",
+      0
+     ],
+     [
+      "[1.5, 2)",
+      0
+     ],
+     [
+      "[2, 3)",
+      0
+     ],
+     [
+      "[3, 4)",
+      0
+     ],
+     [
+      "[4, 6)",
+      0
+     ],
+     [
+      "[6, 8)",
+      0
+     ],
+     [
+      "[8, 12)",
+      0
+     ],
+     [
+      "[12, 16)",
+      0
+     ],
+     [
+      "[16, 30)",
+      1
+     ],
+     [
+      "[30, 50)",
+      3
+     ],
+     [
+      "[50, 99.99)",
+      12
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      440
+     ],
+     [
+      "[300, 1000)",
+      42202
+     ],
+     [
+      "[1000, 9999)",
+      2876007
+     ],
+     [
+      "[9999, 10001)",
+      9263
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 1743959,
+      "optb_share": 2.7,
+      "cost": 2.12
+     },
+     {
+      "scale": "1/2",
+      "pairs": 1749951,
+      "optb_share": 2.7,
+      "cost": 2.01
+     },
+     {
+      "scale": "1/4",
+      "pairs": 1754971,
+      "optb_share": 2.7,
+      "cost": 1.76
+     },
+     {
+      "scale": "1/8",
+      "pairs": 1769313,
+      "optb_share": 2.7,
+      "cost": 1.44
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       1265,
+       3250,
+       7708,
+       17793
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       4481,
+       10243,
+       21462,
+       41707
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       16652,
+       32799,
+       68440,
+       172205
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       52209,
+       123396,
+       355142,
+       980353
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       238941,
+       758268,
+       1068855,
+       474572
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       1074874,
+       708529,
+       192287,
+       72861
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       296640,
+       96852,
+       37723,
+       8936
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       53067,
+       15347,
+       2948,
+       767
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       5830,
+       1267,
+       406,
+       119
+      ]
+     ]
+    ]
+   }
+  }
+ },
+ "train7k": {
+  "M2 filter off": {
+   "summary": {
+    "run": "train_s0",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.76074981689453,
+    "ssim": 0.7051712274551392,
+    "lpips": 0.33791932463645935,
+    "fps": 143.8690172488684,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 6745,
+    "train_s": 223.7,
+    "render_s": 14.1,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000
+    },
+    "source": "results/m2/run_20261027_152224/train_s0/summary.json"
+   },
+   "stats": {
+    "source": "results/m2/run_20261027_152224/train_s0/stats/component_stats.md",
+    "nu_median": 3560.0,
+    "nu_at_1": 2.0,
+    "nu_at_max": 0.5,
+    "negative": 28.5,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      21954
+     ],
+     [
+      "[1.01, 1.5)",
+      2
+     ],
+     [
+      "[1.5, 2)",
+      1
+     ],
+     [
+      "[2, 3)",
+      5
+     ],
+     [
+      "[3, 4)",
+      2
+     ],
+     [
+      "[4, 6)",
+      4
+     ],
+     [
+      "[6, 8)",
+      7
+     ],
+     [
+      "[8, 12)",
+      7
+     ],
+     [
+      "[12, 16)",
+      16
+     ],
+     [
+      "[16, 30)",
+      42
+     ],
+     [
+      "[30, 50)",
+      101
+     ],
+     [
+      "[50, 99.99)",
+      355
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      3452
+     ],
+     [
+      "[300, 1000)",
+      23059
+     ],
+     [
+      "[1000, 9999)",
+      1045883
+     ],
+     [
+      "[9999, 10001)",
+      5110
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2248900,
+      "optb_share": 2.2,
+      "cost": 1.36
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2269145,
+      "optb_share": 2.3,
+      "cost": 1.33
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2287238,
+      "optb_share": 2.3,
+      "cost": 1.22
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2326666,
+      "optb_share": 2.3,
+      "cost": 1.07
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       17530,
+       28649,
+       41592,
+       60225
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       18709,
+       23286,
+       35023,
+       73684
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       29349,
+       53814,
+       149381,
+       496029
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       100333,
+       333488,
+       856094,
+       1091430
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       663007,
+       1068929,
+       869947,
+       472667
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       979174,
+       582982,
+       267286,
+       109968
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       347873,
+       144987,
+       58665,
+       20558
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       78518,
+       29520,
+       8596,
+       1978
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       14407,
+       3490,
+       654,
+       127
+      ]
+     ]
+    ]
+   }
+  },
+  "M2 2D filter": {
+   "summary": {
+    "run": "train_s01",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.610197067260742,
+    "ssim": 0.7043055295944214,
+    "lpips": 0.3391132950782776,
+    "fps": 144.5273001199685,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 6783,
+    "train_s": 223.4,
+    "render_s": 14.1,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1
+    },
+    "source": "results/m2/run_20261027_152224/train_s01/summary.json"
+   },
+   "stats": {
+    "source": "results/m2/run_20261027_152224/train_s01/stats/component_stats.md",
+    "nu_median": 3540.0,
+    "nu_at_1": 2.1,
+    "nu_at_max": 0.4,
+    "negative": 28.8,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      22790
+     ],
+     [
+      "[1.01, 1.5)",
+      0
+     ],
+     [
+      "[1.5, 2)",
+      3
+     ],
+     [
+      "[2, 3)",
+      4
+     ],
+     [
+      "[3, 4)",
+      2
+     ],
+     [
+      "[4, 6)",
+      6
+     ],
+     [
+      "[6, 8)",
+      6
+     ],
+     [
+      "[8, 12)",
+      6
+     ],
+     [
+      "[12, 16)",
+      10
+     ],
+     [
+      "[16, 30)",
+      38
+     ],
+     [
+      "[30, 50)",
+      81
+     ],
+     [
+      "[50, 99.99)",
+      320
+     ],
+     [
+      "[99.99, 100.01)",
+      1
+     ],
+     [
+      "[100.01, 300)",
+      3095
+     ],
+     [
+      "[300, 1000)",
+      26901
+     ],
+     [
+      "[1000, 9999)",
+      1042667
+     ],
+     [
+      "[9999, 10001)",
+      4070
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2251130,
+      "optb_share": 2.1,
+      "cost": 1.27
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2271086,
+      "optb_share": 2.2,
+      "cost": 1.28
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2288981,
+      "optb_share": 2.2,
+      "cost": 1.2
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2328886,
+      "optb_share": 2.2,
+      "cost": 1.06
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       23802,
+       37741,
+       52782,
+       74642
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       22833,
+       27185,
+       40253,
+       83274
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       34087,
+       60826,
+       168495,
+       534630
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       112946,
+       367831,
+       868876,
+       1048111
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       694302,
+       1040757,
+       830244,
+       457013
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       933729,
+       560496,
+       261854,
+       109075
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       337685,
+       144193,
+       57196,
+       19878
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       77612,
+       28307,
+       8518,
+       2117
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       14134,
+       3750,
+       763,
+       146
+      ]
+     ]
+    ]
+   }
+  },
+  "M3 filter off": {
+   "summary": {
+    "run": "train_s0",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.67377281188965,
+    "ssim": 0.7052730917930603,
+    "lpips": 0.3368357717990875,
+    "fps": 140.62411106132652,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 7674,
+    "train_s": 224.5,
+    "render_s": 14.1,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000
+    },
+    "source": "results/m3/run_20261027_160410/train_s0/summary.json"
+   },
+   "stats": {
+    "source": "results/m3/run_20261027_160410/train_s0/stats/component_stats.md",
+    "nu_median": 3580.0,
+    "nu_at_1": 2.0,
+    "nu_at_max": 0.6,
+    "negative": 28.4,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      22158
+     ],
+     [
+      "[1.01, 1.5)",
+      0
+     ],
+     [
+      "[1.5, 2)",
+      0
+     ],
+     [
+      "[2, 3)",
+      1
+     ],
+     [
+      "[3, 4)",
+      3
+     ],
+     [
+      "[4, 6)",
+      3
+     ],
+     [
+      "[6, 8)",
+      3
+     ],
+     [
+      "[8, 12)",
+      8
+     ],
+     [
+      "[12, 16)",
+      6
+     ],
+     [
+      "[16, 30)",
+      35
+     ],
+     [
+      "[30, 50)",
+      79
+     ],
+     [
+      "[50, 99.99)",
+      311
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      3388
+     ],
+     [
+      "[300, 1000)",
+      22985
+     ],
+     [
+      "[1000, 9999)",
+      1044852
+     ],
+     [
+      "[9999, 10001)",
+      6168
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2243837,
+      "optb_share": 2.2,
+      "cost": 1.32
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2263881,
+      "optb_share": 2.2,
+      "cost": 1.33
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2282136,
+      "optb_share": 2.3,
+      "cost": 1.22
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2321650,
+      "optb_share": 2.3,
+      "cost": 1.07
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       17677,
+       28716,
+       41502,
+       60533
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       18590,
+       23303,
+       35260,
+       73650
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       29648,
+       54121,
+       150003,
+       500219
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       100103,
+       335670,
+       859041,
+       1087003
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       667946,
+       1066843,
+       864687,
+       470153
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       974263,
+       579938,
+       266081,
+       108670
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       345366,
+       143941,
+       56610,
+       19339
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       76583,
+       27899,
+       8217,
+       1925
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       13661,
+       3450,
+       735,
+       158
+      ]
+     ]
+    ]
+   }
+  },
+  "M3 3D filter": {
+   "summary": {
+    "run": "train_3d",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.770830154418945,
+    "ssim": 0.7045606970787048,
+    "lpips": 0.3405741751194,
+    "fps": 137.77371240586842,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 7666,
+    "train_s": 231.4,
+    "render_s": 14.2,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_filter_3d": true
+    },
+    "source": "results/m3/run_20261027_160410/train_3d/summary.json"
+   },
+   "stats": {
+    "source": "results/m3/run_20261027_160410/train_3d/stats/component_stats.md",
+    "nu_median": 3540.0,
+    "nu_at_1": 2.3,
+    "nu_at_max": 0.4,
+    "negative": 29.3,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      25549
+     ],
+     [
+      "[1.01, 1.5)",
+      1
+     ],
+     [
+      "[1.5, 2)",
+      1
+     ],
+     [
+      "[2, 3)",
+      0
+     ],
+     [
+      "[3, 4)",
+      0
+     ],
+     [
+      "[4, 6)",
+      4
+     ],
+     [
+      "[6, 8)",
+      7
+     ],
+     [
+      "[8, 12)",
+      10
+     ],
+     [
+      "[12, 16)",
+      10
+     ],
+     [
+      "[16, 30)",
+      51
+     ],
+     [
+      "[30, 50)",
+      73
+     ],
+     [
+      "[50, 99.99)",
+      362
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      3848
+     ],
+     [
+      "[300, 1000)",
+      29085
+     ],
+     [
+      "[1000, 9999)",
+      1036338
+     ],
+     [
+      "[9999, 10001)",
+      4661
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2254299,
+      "optb_share": 2.5,
+      "cost": 1.25
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2274235,
+      "optb_share": 2.5,
+      "cost": 1.25
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2292331,
+      "optb_share": 2.6,
+      "cost": 1.18
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2332166,
+      "optb_share": 2.6,
+      "cost": 1.06
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       25321,
+       41543,
+       57765,
+       78458
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       26007,
+       28109,
+       34487,
+       59311
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       31226,
+       44820,
+       125926,
+       486813
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       80697,
+       314925,
+       862345,
+       1096439
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       664595,
+       1078018,
+       872808,
+       476408
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       981837,
+       586136,
+       269938,
+       111387
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       350345,
+       147003,
+       59372,
+       21245
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       79291,
+       30112,
+       9038,
+       1950
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       14980,
+       3569,
+       652,
+       155
+      ]
+     ]
+    ]
+   }
+  },
+  "M3 2D+3D (Option A)": {
+   "summary": {
+    "run": "train_s01_3d",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.655315399169922,
+    "ssim": 0.7032821774482727,
+    "lpips": 0.3428759276866913,
+    "fps": 138.66637254215595,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 7810,
+    "train_s": 231.6,
+    "render_s": 14.3,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true
+    },
+    "source": "results/m3/run_20261027_160410/train_s01_3d/summary.json"
+   },
+   "stats": {
+    "source": "results/m3/run_20261027_160410/train_s01_3d/stats/component_stats.md",
+    "nu_median": 3490.0,
+    "nu_at_1": 3.0,
+    "nu_at_max": 0.4,
+    "negative": 29.5,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      32674
+     ],
+     [
+      "[1.01, 1.5)",
+      1
+     ],
+     [
+      "[1.5, 2)",
+      4
+     ],
+     [
+      "[2, 3)",
+      7
+     ],
+     [
+      "[3, 4)",
+      0
+     ],
+     [
+      "[4, 6)",
+      12
+     ],
+     [
+      "[6, 8)",
+      5
+     ],
+     [
+      "[8, 12)",
+      18
+     ],
+     [
+      "[12, 16)",
+      19
+     ],
+     [
+      "[16, 30)",
+      87
+     ],
+     [
+      "[30, 50)",
+      130
+     ],
+     [
+      "[50, 99.99)",
+      542
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      5326
+     ],
+     [
+      "[300, 1000)",
+      36492
+     ],
+     [
+      "[1000, 9999)",
+      1020600
+     ],
+     [
+      "[9999, 10001)",
+      4083
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2260911,
+      "optb_share": 2.9,
+      "cost": 1.27
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2281260,
+      "optb_share": 3.0,
+      "cost": 1.27
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2299396,
+      "optb_share": 3.0,
+      "cost": 1.19
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2339345,
+      "optb_share": 3.1,
+      "cost": 1.08
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       30928,
+       49149,
+       67636,
+       90403
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       29425,
+       31310,
+       37904,
+       64299
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       34411,
+       48775,
+       138746,
+       514370
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       88387,
+       340130,
+       875235,
+       1071971
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       686980,
+       1062828,
+       846252,
+       464131
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       954517,
+       570485,
+       264974,
+       111489
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       342242,
+       145421,
+       59279,
+       20316
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       79647,
+       29535,
+       8484,
+       2161
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       14374,
+       3627,
+       886,
+       205
+      ]
+     ]
+    ]
+   }
+  },
+  "M4 Option A (s1)": {
+   "summary": {
+    "run": "train_s01_3d",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.677427291870117,
+    "ssim": 0.7024343013763428,
+    "lpips": 0.34197309613227844,
+    "fps": 130.01362065115057,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 6957,
+    "train_s": 238.8,
+    "render_s": 14.2,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true
+    },
+    "source": "results/m4/run_20261027_172201/train_s01_3d/summary.json"
+   },
+   "stats": {
+    "source": "results/m4/run_20261027_172201/train_s01_3d/stats/component_stats.md",
+    "nu_median": 3490.0,
+    "nu_at_1": 3.0,
+    "nu_at_max": 0.4,
+    "negative": 29.5,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      33242
+     ],
+     [
+      "[1.01, 1.5)",
+      1
+     ],
+     [
+      "[1.5, 2)",
+      1
+     ],
+     [
+      "[2, 3)",
+      4
+     ],
+     [
+      "[3, 4)",
+      2
+     ],
+     [
+      "[4, 6)",
+      7
+     ],
+     [
+      "[6, 8)",
+      4
+     ],
+     [
+      "[8, 12)",
+      22
+     ],
+     [
+      "[12, 16)",
+      22
+     ],
+     [
+      "[16, 30)",
+      83
+     ],
+     [
+      "[30, 50)",
+      145
+     ],
+     [
+      "[50, 99.99)",
+      505
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      5199
+     ],
+     [
+      "[300, 1000)",
+      36259
+     ],
+     [
+      "[1000, 9999)",
+      1020475
+     ],
+     [
+      "[9999, 10001)",
+      4029
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2259455,
+      "optb_share": 2.9,
+      "cost": 1.32
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2279964,
+      "optb_share": 3.0,
+      "cost": 1.3
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2298627,
+      "optb_share": 3.0,
+      "cost": 1.2
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2338873,
+      "optb_share": 3.1,
+      "cost": 1.09
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       30189,
+       48199,
+       66779,
+       89561
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       29396,
+       31292,
+       38059,
+       65607
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       34348,
+       49610,
+       140652,
+       521504
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       89916,
+       345525,
+       879991,
+       1069674
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       693291,
+       1063133,
+       844656,
+       462014
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       951902,
+       567288,
+       261834,
+       108113
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       339362,
+       142612,
+       57439,
+       20234
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       76728,
+       28737,
+       8472,
+       1999
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       14323,
+       3568,
+       745,
+       167
+      ]
+     ]
+    ]
+   }
+  },
+  "M4 Option B + 3D (s1)": {
+   "summary": {
+    "run": "train_s01_3d_ob",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.688989639282227,
+    "ssim": 0.7007552981376648,
+    "lpips": 0.34550750255584717,
+    "fps": 26.08245268378911,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 9153,
+    "train_s": 541.7,
+    "render_s": 15.5,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true,
+     "mip_option_b": true
+    },
+    "source": "results/m4/run_20261027_172201/train_s01_3d_ob/summary.json"
+   },
+   "stats": {
+    "source": "results/m4/run_20261027_172201/train_s01_3d_ob/stats/component_stats.md",
+    "nu_median": 2590.0,
+    "nu_at_1": 31.8,
+    "nu_at_max": 0.3,
+    "negative": 29.9,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      349616
+     ],
+     [
+      "[1.01, 1.5)",
+      0
+     ],
+     [
+      "[1.5, 2)",
+      0
+     ],
+     [
+      "[2, 3)",
+      4
+     ],
+     [
+      "[3, 4)",
+      4
+     ],
+     [
+      "[4, 6)",
+      6
+     ],
+     [
+      "[6, 8)",
+      4
+     ],
+     [
+      "[8, 12)",
+      14
+     ],
+     [
+      "[12, 16)",
+      28
+     ],
+     [
+      "[16, 30)",
+      77
+     ],
+     [
+      "[30, 50)",
+      250
+     ],
+     [
+      "[50, 99.99)",
+      1192
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      8775
+     ],
+     [
+      "[300, 1000)",
+      26301
+     ],
+     [
+      "[1000, 9999)",
+      710643
+     ],
+     [
+      "[9999, 10001)",
+      3086
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2285007,
+      "optb_share": 34.9,
+      "cost": 7.32
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2304104,
+      "optb_share": 35.3,
+      "cost": 7.22
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2321342,
+      "optb_share": 35.3,
+      "cost": 6.32
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2363932,
+      "optb_share": 35.4,
+      "cost": 4.91
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       33665,
+       53849,
+       74107,
+       98656
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       32394,
+       33557,
+       39569,
+       65870
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       36121,
+       50556,
+       137432,
+       502699
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       88702,
+       331714,
+       861509,
+       1083932
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       673221,
+       1064873,
+       866577,
+       474484
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       973095,
+       585062,
+       270764,
+       114063
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       350383,
+       149550,
+       61382,
+       21917
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       81851,
+       31174,
+       9212,
+       2151
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       15575,
+       3769,
+       790,
+       160
+      ]
+     ]
+    ]
+   }
+  },
+  "M4 Option B + 3D (s8)": {
+   "summary": {
+    "run": "train_s01_3d_ob",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.848831176757812,
+    "ssim": 0.7032133340835571,
+    "lpips": 0.3440930247306824,
+    "fps": 28.15473673193946,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 9129,
+    "train_s": 530.6,
+    "render_s": 15.3,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true,
+     "mip_option_b": true
+    },
+    "source": "results/m4/run_20261102_141838/train_s01_3d_ob/summary.json"
+   },
+   "stats": {
+    "source": "results/m4/run_20261102_141838/train_s01_3d_ob/stats/component_stats.md",
+    "nu_median": 2590.0,
+    "nu_at_1": 31.5,
+    "nu_at_max": 0.3,
+    "negative": 30.0,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      346776
+     ],
+     [
+      "[1.01, 1.5)",
+      2
+     ],
+     [
+      "[1.5, 2)",
+      1
+     ],
+     [
+      "[2, 3)",
+      3
+     ],
+     [
+      "[3, 4)",
+      3
+     ],
+     [
+      "[4, 6)",
+      8
+     ],
+     [
+      "[6, 8)",
+      7
+     ],
+     [
+      "[8, 12)",
+      11
+     ],
+     [
+      "[12, 16)",
+      18
+     ],
+     [
+      "[16, 30)",
+      96
+     ],
+     [
+      "[30, 50)",
+      215
+     ],
+     [
+      "[50, 99.99)",
+      1229
+     ],
+     [
+      "[99.99, 100.01)",
+      1
+     ],
+     [
+      "[100.01, 300)",
+      9075
+     ],
+     [
+      "[300, 1000)",
+      26380
+     ],
+     [
+      "[1000, 9999)",
+      712460
+     ],
+     [
+      "[9999, 10001)",
+      3715
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2287487,
+      "optb_share": 34.4,
+      "cost": 7.1
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2307205,
+      "optb_share": 34.7,
+      "cost": 7.06
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2324877,
+      "optb_share": 34.8,
+      "cost": 6.18
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2368063,
+      "optb_share": 34.9,
+      "cost": 4.82
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       34244,
+       54738,
+       75163,
+       99671
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       32855,
+       33789,
+       39102,
+       65062
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       35898,
+       49428,
+       137047,
+       510093
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       87833,
+       336033,
+       870626,
+       1085167
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       680835,
+       1069659,
+       864069,
+       470673
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       972041,
+       580607,
+       267502,
+       113443
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       346736,
+       148195,
+       61553,
+       21667
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       81877,
+       31093,
+       9031,
+       2143
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       15168,
+       3663,
+       784,
+       144
+      ]
+     ]
+    ]
+   }
+  },
+  "M4 Option B, σ3=0 (a)": {
+   "summary": {
+    "run": "ob_a",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.665319442749023,
+    "ssim": 0.7030321359634399,
+    "lpips": 0.3399779200553894,
+    "fps": 34.08238108801924,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 8477,
+    "train_s": 460.2,
+    "render_s": 15.0,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1,
+     "mip_option_b": true
+    },
+    "source": "results/m4/run_20261102_141838/ob_a/summary.json"
+   },
+   "stats": {
+    "source": "results/m4/run_20261102_141838/ob_a/stats/component_stats.md",
+    "nu_median": 2990.0,
+    "nu_at_1": 25.9,
+    "nu_at_max": 0.4,
+    "negative": 28.9,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      284604
+     ],
+     [
+      "[1.01, 1.5)",
+      1
+     ],
+     [
+      "[1.5, 2)",
+      1
+     ],
+     [
+      "[2, 3)",
+      1
+     ],
+     [
+      "[3, 4)",
+      0
+     ],
+     [
+      "[4, 6)",
+      2
+     ],
+     [
+      "[6, 8)",
+      1
+     ],
+     [
+      "[8, 12)",
+      6
+     ],
+     [
+      "[12, 16)",
+      12
+     ],
+     [
+      "[16, 30)",
+      70
+     ],
+     [
+      "[30, 50)",
+      122
+     ],
+     [
+      "[50, 99.99)",
+      788
+     ],
+     [
+      "[99.99, 100.01)",
+      2
+     ],
+     [
+      "[100.01, 300)",
+      5940
+     ],
+     [
+      "[300, 1000)",
+      17683
+     ],
+     [
+      "[1000, 9999)",
+      786520
+     ],
+     [
+      "[9999, 10001)",
+      4247
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2264823,
+      "optb_share": 27.9,
+      "cost": 6.38
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2284250,
+      "optb_share": 28.1,
+      "cost": 6.23
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2301426,
+      "optb_share": 28.2,
+      "cost": 5.4
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2342990,
+      "optb_share": 28.2,
+      "cost": 4.19
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       25890,
+       41324,
+       58389,
+       81344
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       25612,
+       29417,
+       42011,
+       85744
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       35492,
+       63029,
+       168102,
+       521198
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       114102,
+       360091,
+       852011,
+       1050171
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       677390,
+       1033625,
+       843699,
+       468923
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       944133,
+       575175,
+       267411,
+       112163
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       347129,
+       147408,
+       59870,
+       21124
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       79947,
+       30385,
+       9152,
+       2170
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       15128,
+       3796,
+       781,
+       153
+      ]
+     ]
+    ]
+   }
+  },
+  "M4 Option B, σ3=0 (b)": {
+   "summary": {
+    "run": "ob_b",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.726701736450195,
+    "ssim": 0.7032634615898132,
+    "lpips": 0.3405379354953766,
+    "fps": 33.29541546276776,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 8659,
+    "train_s": 463.6,
+    "render_s": 15.1,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1,
+     "mip_option_b": true
+    },
+    "source": "results/m4/run_20261102_141838/ob_b/summary.json"
+   },
+   "stats": {
+    "source": "results/m4/run_20261102_141838/ob_b/stats/component_stats.md",
+    "nu_median": 2970.0,
+    "nu_at_1": 26.0,
+    "nu_at_max": 0.4,
+    "negative": 28.9,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      285570
+     ],
+     [
+      "[1.01, 1.5)",
+      1
+     ],
+     [
+      "[1.5, 2)",
+      1
+     ],
+     [
+      "[2, 3)",
+      0
+     ],
+     [
+      "[3, 4)",
+      1
+     ],
+     [
+      "[4, 6)",
+      4
+     ],
+     [
+      "[6, 8)",
+      6
+     ],
+     [
+      "[8, 12)",
+      5
+     ],
+     [
+      "[12, 16)",
+      12
+     ],
+     [
+      "[16, 30)",
+      47
+     ],
+     [
+      "[30, 50)",
+      138
+     ],
+     [
+      "[50, 99.99)",
+      780
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      6047
+     ],
+     [
+      "[300, 1000)",
+      17943
+     ],
+     [
+      "[1000, 9999)",
+      784981
+     ],
+     [
+      "[9999, 10001)",
+      4464
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2275345,
+      "optb_share": 28.2,
+      "cost": 6.63
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2294776,
+      "optb_share": 28.4,
+      "cost": 6.47
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2312036,
+      "optb_share": 28.4,
+      "cost": 5.6
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2354091,
+      "optb_share": 28.5,
+      "cost": 4.32
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       25548,
+       40653,
+       56968,
+       80383
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       24713,
+       29026,
+       42450,
+       85074
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       35812,
+       62653,
+       167037,
+       522340
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       113767,
+       359286,
+       860622,
+       1066516
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       681516,
+       1048258,
+       852909,
+       466562
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       957314,
+       577081,
+       263191,
+       110891
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       342846,
+       144713,
+       59878,
+       20304
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       79861,
+       29731,
+       8271,
+       1839
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       13968,
+       3375,
+       710,
+       182
+      ]
+     ]
+    ]
+   }
+  },
+  "M4 Option B, σ3=0 (c)": {
+   "summary": {
+    "run": "ob_c",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.674549102783203,
+    "ssim": 0.7025121450424194,
+    "lpips": 0.3424188494682312,
+    "fps": 33.02913280091106,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 8565,
+    "train_s": 468.1,
+    "render_s": 15.2,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1,
+     "mip_option_b": true
+    },
+    "source": "results/m4/run_20261102_141838/ob_c/summary.json"
+   },
+   "stats": {
+    "source": "results/m4/run_20261102_141838/ob_c/stats/component_stats.md",
+    "nu_median": 2940.0,
+    "nu_at_1": 26.5,
+    "nu_at_max": 0.4,
+    "negative": 29.0,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      291318
+     ],
+     [
+      "[1.01, 1.5)",
+      2
+     ],
+     [
+      "[1.5, 2)",
+      2
+     ],
+     [
+      "[2, 3)",
+      4
+     ],
+     [
+      "[3, 4)",
+      3
+     ],
+     [
+      "[4, 6)",
+      8
+     ],
+     [
+      "[6, 8)",
+      3
+     ],
+     [
+      "[8, 12)",
+      12
+     ],
+     [
+      "[12, 16)",
+      14
+     ],
+     [
+      "[16, 30)",
+      52
+     ],
+     [
+      "[30, 50)",
+      142
+     ],
+     [
+      "[50, 99.99)",
+      750
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      5993
+     ],
+     [
+      "[300, 1000)",
+      17663
+     ],
+     [
+      "[1000, 9999)",
+      779236
+     ],
+     [
+      "[9999, 10001)",
+      4798
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2275136,
+      "optb_share": 28.6,
+      "cost": 6.7
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2294366,
+      "optb_share": 28.8,
+      "cost": 6.59
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2311761,
+      "optb_share": 28.9,
+      "cost": 5.73
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2352708,
+      "optb_share": 28.9,
+      "cost": 4.41
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       26073,
+       41847,
+       58819,
+       82577
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       25728,
+       29745,
+       42168,
+       84379
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       36186,
+       62539,
+       167961,
+       525164
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       113670,
+       361432,
+       857811,
+       1058372
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       681640,
+       1042554,
+       849463,
+       467683
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       951393,
+       576257,
+       266880,
+       111063
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       346212,
+       146220,
+       58761,
+       21248
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       79113,
+       30011,
+       9194,
+       2088
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       15121,
+       3761,
+       704,
+       134
+      ]
+     ]
+    ]
+   }
+  },
+  "M5 Option A + exact ν grad": {
+   "summary": {
+    "run": "train_s01_3d_exnu",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.69597053527832,
+    "ssim": 0.7022578120231628,
+    "lpips": 0.3445770740509033,
+    "fps": 39.86404647257629,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 12765,
+    "train_s": 414.8,
+    "render_s": 14.9,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true,
+     "mip_exact_nu_grad": true
+    },
+    "source": "results/m5/run_20261103_134858/train_s01_3d_exnu/summary.json"
+   },
+   "stats": {
+    "source": "results/m5/run_20261103_134858/train_s01_3d_exnu/stats/component_stats.md",
+    "nu_median": 1.0,
+    "nu_at_1": 50.1,
+    "nu_at_max": 1.3,
+    "negative": 29.2,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      551248
+     ],
+     [
+      "[1.01, 1.5)",
+      0
+     ],
+     [
+      "[1.5, 2)",
+      0
+     ],
+     [
+      "[2, 3)",
+      2
+     ],
+     [
+      "[3, 4)",
+      2
+     ],
+     [
+      "[4, 6)",
+      2
+     ],
+     [
+      "[6, 8)",
+      2
+     ],
+     [
+      "[8, 12)",
+      7
+     ],
+     [
+      "[12, 16)",
+      11
+     ],
+     [
+      "[16, 30)",
+      36
+     ],
+     [
+      "[30, 50)",
+      59
+     ],
+     [
+      "[50, 99.99)",
+      354
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      4552
+     ],
+     [
+      "[300, 1000)",
+      15461
+     ],
+     [
+      "[1000, 9999)",
+      514500
+     ],
+     [
+      "[9999, 10001)",
+      13764
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2333334,
+      "optb_share": 53.5,
+      "cost": 8.32
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2352398,
+      "optb_share": 54.4,
+      "cost": 9.75
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2369158,
+      "optb_share": 54.7,
+      "cost": 9.76
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2411411,
+      "optb_share": 54.9,
+      "cost": 8.26
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       27814,
+       45339,
+       63486,
+       85087
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       28560,
+       30100,
+       35365,
+       61315
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       32040,
+       46019,
+       128716,
+       480323
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       82668,
+       314719,
+       844457,
+       1111833
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       649412,
+       1075313,
+       918060,
+       519986
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       1016614,
+       635604,
+       300658,
+       125920
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       388105,
+       166595,
+       66413,
+       23645
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       90204,
+       33608,
+       10661,
+       2924
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       17917,
+       5101,
+       1342,
+       378
+      ]
+     ]
+    ]
+   }
+  },
+  "M5 Option B + exact ν grad": {
+   "summary": {
+    "run": "train_s01_3d_ob_exnu",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.752233505249023,
+    "ssim": 0.7002453207969666,
+    "lpips": 0.34667882323265076,
+    "fps": 7.9268612377616785,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 17951,
+    "train_s": 1375.5,
+    "render_s": 18.8,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true,
+     "mip_option_b": true,
+     "mip_exact_nu_grad": true
+    },
+    "source": "results/m5/run_20261103_134858/train_s01_3d_ob_exnu/summary.json"
+   },
+   "stats": {
+    "source": "results/m5/run_20261103_134858/train_s01_3d_ob_exnu/stats/component_stats.md",
+    "nu_median": 1.0,
+    "nu_at_1": 61.6,
+    "nu_at_max": 1.1,
+    "negative": 29.3,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      677887
+     ],
+     [
+      "[1.01, 1.5)",
+      0
+     ],
+     [
+      "[1.5, 2)",
+      1
+     ],
+     [
+      "[2, 3)",
+      0
+     ],
+     [
+      "[3, 4)",
+      1
+     ],
+     [
+      "[4, 6)",
+      4
+     ],
+     [
+      "[6, 8)",
+      1
+     ],
+     [
+      "[8, 12)",
+      8
+     ],
+     [
+      "[12, 16)",
+      5
+     ],
+     [
+      "[16, 30)",
+      39
+     ],
+     [
+      "[30, 50)",
+      144
+     ],
+     [
+      "[50, 99.99)",
+      774
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      2602
+     ],
+     [
+      "[300, 1000)",
+      8797
+     ],
+     [
+      "[1000, 9999)",
+      397352
+     ],
+     [
+      "[9999, 10001)",
+      12385
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2347539,
+      "optb_share": 65.3,
+      "cost": 8.72
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2365990,
+      "optb_share": 66.2,
+      "cost": 10.07
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2382246,
+      "optb_share": 66.5,
+      "cost": 10.08
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2426528,
+      "optb_share": 66.6,
+      "cost": 8.6
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       31423,
+       51255,
+       71252,
+       95770
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       31716,
+       33313,
+       38832,
+       63073
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       35503,
+       48372,
+       131506,
+       492722
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       84482,
+       321943,
+       858101,
+       1111854
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       664469,
+       1082085,
+       908902,
+       511648
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       1010678,
+       626144,
+       294824,
+       123192
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       381521,
+       162732,
+       66240,
+       24804
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       88706,
+       34791,
+       11144,
+       3062
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       19041,
+       5355,
+       1445,
+       403
+      ]
+     ]
+    ]
+   }
+  },
+  "M5 Option A + eff. reloc + filt. reg": {
+   "summary": {
+    "run": "train_s01_3d_m5",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.84991455078125,
+    "ssim": 0.7054009437561035,
+    "lpips": 0.3423694372177124,
+    "fps": 125.29994457358849,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 6851,
+    "train_s": 241.3,
+    "render_s": 14.3,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true,
+     "mip_relocate_effective": true,
+     "mip_reg_filtered": true
+    },
+    "source": "results/m5/run_20261103_134858/train_s01_3d_m5/summary.json"
+   },
+   "stats": {
+    "source": "results/m5/run_20261103_134858/train_s01_3d_m5/stats/component_stats.md",
+    "nu_median": 3540.0,
+    "nu_at_1": 2.6,
+    "nu_at_max": 0.3,
+    "negative": 29.1,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      28740
+     ],
+     [
+      "[1.01, 1.5)",
+      1
+     ],
+     [
+      "[1.5, 2)",
+      4
+     ],
+     [
+      "[2, 3)",
+      1
+     ],
+     [
+      "[3, 4)",
+      3
+     ],
+     [
+      "[4, 6)",
+      8
+     ],
+     [
+      "[6, 8)",
+      2
+     ],
+     [
+      "[8, 12)",
+      8
+     ],
+     [
+      "[12, 16)",
+      14
+     ],
+     [
+      "[16, 30)",
+      48
+     ],
+     [
+      "[30, 50)",
+      86
+     ],
+     [
+      "[50, 99.99)",
+      451
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      4343
+     ],
+     [
+      "[300, 1000)",
+      32187
+     ],
+     [
+      "[1000, 9999)",
+      1031302
+     ],
+     [
+      "[9999, 10001)",
+      2802
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2379636,
+      "optb_share": 2.4,
+      "cost": 1.4
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2401074,
+      "optb_share": 2.5,
+      "cost": 1.39
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2420830,
+      "optb_share": 2.5,
+      "cost": 1.26
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2462423,
+      "optb_share": 2.5,
+      "cost": 1.1
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       0,
+       26,
+       311,
+       2444
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       135,
+       1194,
+       7516,
+       39404
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       4217,
+       22165,
+       121438,
+       542957
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       67463,
+       345556,
+       962506,
+       1209612
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       742988,
+       1192878,
+       960400,
+       522180
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       1079810,
+       643580,
+       293824,
+       120898
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       383128,
+       159281,
+       64730,
+       22704
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       86120,
+       32591,
+       9336,
+       2059
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       15775,
+       3803,
+       769,
+       165
+      ]
+     ]
+    ]
+   }
+  },
+  "M5 Option B + eff. reloc + filt. reg": {
+   "summary": {
+    "run": "train_s01_3d_ob_m5",
+    "scene": "train",
+    "iterations": 7000,
+    "components": 1100000,
+    "psnr": 19.80132484436035,
+    "ssim": 0.7019445300102234,
+    "lpips": 0.344720721244812,
+    "fps": 26.291562417969498,
+    "render_size": [
+     980,
+     545
+    ],
+    "peak_gpu_mem_mib": 9281,
+    "train_s": 540.7,
+    "render_s": 15.6,
+    "config": {
+     "cap_max": 1100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 7000,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true,
+     "mip_option_b": true,
+     "mip_relocate_effective": true,
+     "mip_reg_filtered": true
+    },
+    "source": "results/m5/run_20261103_134858/train_s01_3d_ob_m5/summary.json"
+   },
+   "stats": {
+    "source": "results/m5/run_20261103_134858/train_s01_3d_ob_m5/stats/component_stats.md",
+    "nu_median": 2660.0,
+    "nu_at_1": 30.9,
+    "nu_at_max": 0.3,
+    "negative": 29.6,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      339506
+     ],
+     [
+      "[1.01, 1.5)",
+      0
+     ],
+     [
+      "[1.5, 2)",
+      2
+     ],
+     [
+      "[2, 3)",
+      1
+     ],
+     [
+      "[3, 4)",
+      3
+     ],
+     [
+      "[4, 6)",
+      5
+     ],
+     [
+      "[6, 8)",
+      3
+     ],
+     [
+      "[8, 12)",
+      11
+     ],
+     [
+      "[12, 16)",
+      17
+     ],
+     [
+      "[16, 30)",
+      60
+     ],
+     [
+      "[30, 50)",
+      220
+     ],
+     [
+      "[50, 99.99)",
+      919
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      7313
+     ],
+     [
+      "[300, 1000)",
+      24481
+     ],
+     [
+      "[1000, 9999)",
+      724399
+     ],
+     [
+      "[9999, 10001)",
+      3060
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 2403244,
+      "optb_share": 33.7,
+      "cost": 6.75
+     },
+     {
+      "scale": "1/2",
+      "pairs": 2423820,
+      "optb_share": 34.0,
+      "cost": 6.62
+     },
+     {
+      "scale": "1/4",
+      "pairs": 2442682,
+      "optb_share": 34.1,
+      "cost": 5.8
+     },
+     {
+      "scale": "1/8",
+      "pairs": 2486106,
+      "optb_share": 34.1,
+      "cost": 4.58
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       0,
+       17,
+       367,
+       2907
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       162,
+       1507,
+       8382,
+       41208
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       4838,
+       23557,
+       124024,
+       540867
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       69470,
+       346367,
+       959493,
+       1225517
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       738495,
+       1200894,
+       977882,
+       526755
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       1100197,
+       652103,
+       296598,
+       123587
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       385803,
+       162563,
+       65471,
+       22832
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       88213,
+       32831,
+       9670,
+       2257
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       16066,
+       3981,
+       795,
+       176
+      ]
+     ]
+    ]
+   }
+  }
+ },
+ "pilot": {
+  "lego_sss": {
+   "summary": {
+    "run": "lego_sss",
+    "scene": "lego",
+    "iterations": 30000,
+    "components": 300000,
+    "psnr": 31.847810995578765,
+    "ssim": 0.9717112765461207,
+    "lpips": 0.03289001178462058,
+    "fps": 136.21617183801962,
+    "render_size": [
+     800,
+     800
+    ],
+    "peak_gpu_mem_mib": 4850,
+    "train_s": 1010.0,
+    "render_s": 87.6,
+    "per_scale": {
+     "0": {
+      "PSNR": 36.22232458114624,
+      "SSIM": 0.9848169580101966,
+      "LPIPS": 0.014012407273985445,
+      "n": 200,
+      "size": [
+       800,
+       800
+      ]
+     },
+     "1": {
+      "PSNR": 35.30470374107361,
+      "SSIM": 0.988144770860672,
+      "LPIPS": 0.011136755025945603,
+      "n": 200,
+      "size": [
+       400,
+       400
+      ]
+     },
+     "2": {
+      "PSNR": 30.15843020439148,
+      "SSIM": 0.9734257447719574,
+      "LPIPS": 0.027806298341602087,
+      "n": 200,
+      "size": [
+       200,
+       200
+      ]
+     },
+     "3": {
+      "PSNR": 25.705785455703737,
+      "SSIM": 0.9404576325416565,
+      "LPIPS": 0.0786045864969492,
+      "n": 200,
+      "size": [
+       100,
+       100
+      ]
+     }
+    },
+    "method": "sss",
+    "protocol": "stmt",
+    "config": {
+     "cap_max": 300000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 30000,
+     "white_background": true
+    },
+    "source": "results/m6/run_20261103_175727/lego_sss/summary.json"
+   },
+   "stats": {
+    "source": "results/m6/run_20261103_175727/lego_sss/stats/component_stats.md",
+    "nu_median": 2690.0,
+    "nu_at_1": 1.2,
+    "nu_at_max": 0.0,
+    "negative": 15.5,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      3663
+     ],
+     [
+      "[1.01, 1.5)",
+      0
+     ],
+     [
+      "[1.5, 2)",
+      0
+     ],
+     [
+      "[2, 3)",
+      0
+     ],
+     [
+      "[3, 4)",
+      0
+     ],
+     [
+      "[4, 6)",
+      1
+     ],
+     [
+      "[6, 8)",
+      1
+     ],
+     [
+      "[8, 12)",
+      0
+     ],
+     [
+      "[12, 16)",
+      0
+     ],
+     [
+      "[16, 30)",
+      5
+     ],
+     [
+      "[30, 50)",
+      13
+     ],
+     [
+      "[50, 99.99)",
+      56
+     ],
+     [
+      "[99.99, 100.01)",
+      0
+     ],
+     [
+      "[100.01, 300)",
+      321
+     ],
+     [
+      "[300, 1000)",
+      6635
+     ],
+     [
+      "[1000, 9999)",
+      289296
+     ],
+     [
+      "[9999, 10001)",
+      9
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 3899009,
+      "optb_share": 1.3,
+      "cost": 0.96
+     },
+     {
+      "scale": "1/2",
+      "pairs": 3908771,
+      "optb_share": 1.3,
+      "cost": 0.89
+     },
+     {
+      "scale": "1/4",
+      "pairs": 3918325,
+      "optb_share": 1.4,
+      "cost": 0.84
+     },
+     {
+      "scale": "1/8",
+      "pairs": 3929661,
+      "optb_share": 1.4,
+      "cost": 0.92
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       223354,
+       307701,
+       513142,
+       1037800
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       181803,
+       492183,
+       1007900,
+       1284167
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       837716,
+       1233894,
+       1286391,
+       1116490
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       1295881,
+       1199935,
+       871536,
+       432496
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       1006750,
+       577122,
+       218671,
+       55286
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       317417,
+       91393,
+       19830,
+       3418
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       34233,
+       6485,
+       855,
+       4
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       1855,
+       58,
+       0,
+       0
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       0,
+       0,
+       0,
+       0
+      ]
+     ]
+    ]
+   }
+  },
+  "lego_mip": {
+   "summary": {
+    "run": "lego_mip",
+    "scene": "lego",
+    "iterations": 30000,
+    "components": 294431,
+    "psnr": 32.868500695228576,
+    "ssim": 0.9827340533584357,
+    "lpips": 0.015602516627404838,
+    "fps": 345.03598782458624,
+    "render_size": [
+     800,
+     800
+    ],
+    "peak_gpu_mem_mib": 4964,
+    "train_s": 490.5,
+    "render_s": 78.7,
+    "per_scale": {
+     "0": {
+      "PSNR": 35.89810715675354,
+      "SSIM": 0.9837287104129792,
+      "LPIPS": 0.015117052886635065,
+      "n": 200,
+      "size": [
+       800,
+       800
+      ]
+     },
+     "1": {
+      "PSNR": 35.44813656806946,
+      "SSIM": 0.989001444876194,
+      "LPIPS": 0.008567554517649114,
+      "n": 200,
+      "size": [
+       400,
+       400
+      ]
+     },
+     "2": {
+      "PSNR": 31.8561487865448,
+      "SSIM": 0.9847714301943779,
+      "LPIPS": 0.013370607690885663,
+      "n": 200,
+      "size": [
+       200,
+       200
+      ]
+     },
+     "3": {
+      "PSNR": 28.27161026954651,
+      "SSIM": 0.9734346279501915,
+      "LPIPS": 0.025354851414449514,
+      "n": 200,
+      "size": [
+       100,
+       100
+      ]
+     }
+    },
+    "method": "mip",
+    "protocol": "stmt",
+    "config": {
+     "method": "mip",
+     "protocol": "stmt",
+     "ref": "dda02ab",
+     "train_args": [
+      "-s",
+      "/content/data/lego",
+      "-m",
+      "/content/m0/lego_mip/model",
+      "--eval",
+      "--kernel_size",
+      "0.1",
+      "--iterations",
+      "30000",
+      "--save_iterations",
+      "30000",
+      "--test_iterations",
+      "30000",
+      "--white_background"
+     ]
+    },
+    "source": "results/m6/run_20261103_175727/lego_mip/summary.json"
+   }
+  },
+  "lego_a": {
+   "summary": {
+    "run": "lego_a",
+    "scene": "lego",
+    "iterations": 30000,
+    "components": 300000,
+    "psnr": 34.015700891017914,
+    "ssim": 0.9853031930327415,
+    "lpips": 0.013468909764196724,
+    "fps": 42.62848451633164,
+    "render_size": [
+     800,
+     800
+    ],
+    "peak_gpu_mem_mib": 9258,
+    "train_s": 1645.1,
+    "render_s": 94.9,
+    "per_scale": {
+     "0": {
+      "PSNR": 35.43054598808288,
+      "SSIM": 0.9832627695798873,
+      "LPIPS": 0.016708769546821715,
+      "n": 200,
+      "size": [
+       800,
+       800
+      ]
+     },
+     "1": {
+      "PSNR": 36.032553062438964,
+      "SSIM": 0.9894806158542633,
+      "LPIPS": 0.008429550332948565,
+      "n": 200,
+      "size": [
+       400,
+       400
+      ]
+     },
+     "2": {
+      "PSNR": 33.792607164382936,
+      "SSIM": 0.9879141077399254,
+      "LPIPS": 0.010534821441397071,
+      "n": 200,
+      "size": [
+       200,
+       200
+      ]
+     },
+     "3": {
+      "PSNR": 30.80709734916687,
+      "SSIM": 0.9805552789568901,
+      "LPIPS": 0.018202497735619546,
+      "n": 200,
+      "size": [
+       100,
+       100
+      ]
+     }
+    },
+    "method": "sss",
+    "protocol": "stmt",
+    "config": {
+     "cap_max": 300000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 30000,
+     "white_background": true,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true,
+     "mip_relocate_effective": true
+    },
+    "source": "results/m6/run_20261103_175727/lego_a/summary.json"
+   },
+   "stats": {
+    "source": "results/m6/run_20261103_175727/lego_a/stats/component_stats.md",
+    "nu_median": 36.4,
+    "nu_at_1": 36.9,
+    "nu_at_max": 0.0,
+    "negative": 16.9,
+    "nu_hist": [
+     [
+      "[1, 1.01)",
+      110738
+     ],
+     [
+      "[1.01, 1.5)",
+      171
+     ],
+     [
+      "[1.5, 2)",
+      304
+     ],
+     [
+      "[2, 3)",
+      1819
+     ],
+     [
+      "[3, 4)",
+      4823
+     ],
+     [
+      "[4, 6)",
+      11622
+     ],
+     [
+      "[6, 8)",
+      6882
+     ],
+     [
+      "[8, 12)",
+      5567
+     ],
+     [
+      "[12, 16)",
+      2507
+     ],
+     [
+      "[16, 30)",
+      4343
+     ],
+     [
+      "[30, 50)",
+      3485
+     ],
+     [
+      "[50, 99.99)",
+      5583
+     ],
+     [
+      "[99.99, 100.01)",
+      3
+     ],
+     [
+      "[100.01, 300)",
+      13974
+     ],
+     [
+      "[300, 1000)",
+      34866
+     ],
+     [
+      "[1000, 9999)",
+      93313
+     ],
+     [
+      "[9999, 10001)",
+      0
+     ]
+    ],
+    "per_scale": [
+     {
+      "scale": "1/1",
+      "pairs": 3998225,
+      "optb_share": 58.7,
+      "cost": 8.58
+     },
+     {
+      "scale": "1/2",
+      "pairs": 3998705,
+      "optb_share": 59.2,
+      "cost": 6.82
+     },
+     {
+      "scale": "1/4",
+      "pairs": 3999184,
+      "optb_share": 59.2,
+      "cost": 5.53
+     },
+     {
+      "scale": "1/8",
+      "pairs": 3999507,
+      "optb_share": 59.2,
+      "cost": 5.66
+     }
+    ],
+    "rho_hist": [
+     [
+      "[0, 0.001)",
+      [
+       2266,
+       6355,
+       49696,
+       525273
+      ]
+     ],
+     [
+      "[0.001, 0.01)",
+      [
+       19338,
+       271071,
+       1048357,
+       1476541
+      ]
+     ],
+     [
+      "[0.01, 0.1)",
+      [
+       778745,
+       1414223,
+       1514732,
+       1417314
+      ]
+     ],
+     [
+      "[0.1, 1)",
+      [
+       1501038,
+       1478924,
+       1116552,
+       518008
+      ]
+     ],
+     [
+      "[1, 10)",
+      [
+       1292495,
+       720652,
+       247979,
+       58952
+      ]
+     ],
+     [
+      "[10, 100)",
+      [
+       366115,
+       100871,
+       21096,
+       3416
+      ]
+     ],
+     [
+      "[100, 1000)",
+      [
+       36379,
+       6554,
+       772,
+       3
+      ]
+     ],
+     [
+      "[1000, 10000)",
+      [
+       1849,
+       55,
+       0,
+       0
+      ]
+     ],
+     [
+      "[10000, inf)",
+      [
+       0,
+       0,
+       0,
+       0
+      ]
+     ]
+    ]
+   }
+  }
+ },
+ "pilot_dry": {
+  "m6/dry_20261103_155521": {
+   "lego_sss": {
+    "run": "lego_sss",
+    "scene": "lego",
+    "iterations": 1000,
+    "components": 100000,
+    "psnr": 26.73540742635727,
+    "ssim": 0.9172683157026768,
+    "lpips": 0.08904773449525237,
+    "fps": 1200.6069779033405,
+    "render_size": [
+     800,
+     800
+    ],
+    "peak_gpu_mem_mib": 4193,
+    "train_s": 55.8,
+    "render_s": 36.3,
+    "per_scale": {
+     "0": {
+      "PSNR": 25.424489765167237,
+      "SSIM": 0.8820051035284996,
+      "LPIPS": 0.1390501857176423,
+      "n": 200,
+      "size": [
+       800,
+       800
+      ]
+     },
+     "1": {
+      "PSNR": 26.315781707763673,
+      "SSIM": 0.9036546579003334,
+      "LPIPS": 0.09826898481696844,
+      "n": 200,
+      "size": [
+       400,
+       400
+      ]
+     },
+     "2": {
+      "PSNR": 27.75241072654724,
+      "SSIM": 0.9352701544761658,
+      "LPIPS": 0.06592955628409981,
+      "n": 200,
+      "size": [
+       200,
+       200
+      ]
+     },
+     "3": {
+      "PSNR": 27.448947505950926,
+      "SSIM": 0.9481433469057083,
+      "LPIPS": 0.05294221116229892,
+      "n": 200,
+      "size": [
+       100,
+       100
+      ]
+     }
+    },
+    "method": "sss",
+    "protocol": "stmt",
+    "config": {
+     "cap_max": 100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 1000,
+     "white_background": true
+    },
+    "source": "results/m6/dry_20261103_155521/lego_sss/summary.json"
+   },
+   "lego_mip": {
+    "run": "lego_mip",
+    "scene": "lego",
+    "iterations": 1000,
+    "components": 20451,
+    "psnr": 26.488487136363982,
+    "ssim": 0.9105633045732975,
+    "lpips": 0.10460812309291213,
+    "fps": 2425.886128230324,
+    "render_size": [
+     800,
+     800
+    ],
+    "peak_gpu_mem_mib": 4233,
+    "train_s": 23.5,
+    "render_s": 35.2,
+    "per_scale": {
+     "0": {
+      "PSNR": 24.999382381439208,
+      "SSIM": 0.8727633112668991,
+      "LPIPS": 0.15217032477259637,
+      "n": 200,
+      "size": [
+       800,
+       800
+      ]
+     },
+     "1": {
+      "PSNR": 25.79368230819702,
+      "SSIM": 0.8902031505107879,
+      "LPIPS": 0.11986637715250253,
+      "n": 200,
+      "size": [
+       400,
+       400
+      ]
+     },
+     "2": {
+      "PSNR": 27.199523916244505,
+      "SSIM": 0.9251912719011307,
+      "LPIPS": 0.0902677520737052,
+      "n": 200,
+      "size": [
+       200,
+       200
+      ]
+     },
+     "3": {
+      "PSNR": 27.961359939575196,
+      "SSIM": 0.9540954846143722,
+      "LPIPS": 0.056128038372844455,
+      "n": 200,
+      "size": [
+       100,
+       100
+      ]
+     }
+    },
+    "method": "mip",
+    "protocol": "stmt",
+    "config": {
+     "method": "mip",
+     "protocol": "stmt",
+     "ref": "dda02ab",
+     "train_args": [
+      "-s",
+      "/content/data/lego",
+      "-m",
+      "/content/m0/lego_mip/model",
+      "--eval",
+      "--kernel_size",
+      "0.1",
+      "--iterations",
+      "1000",
+      "--save_iterations",
+      "1000",
+      "--test_iterations",
+      "1000",
+      "--white_background"
+     ]
+    },
+    "source": "results/m6/dry_20261103_155521/lego_mip/summary.json"
+   },
+   "lego_a": {
+    "run": "lego_a",
+    "scene": "lego",
+    "iterations": 1000,
+    "components": 100000,
+    "psnr": 27.07457861661911,
+    "ssim": 0.9190072685480117,
+    "lpips": 0.08880906915292144,
+    "fps": 1114.9399300413484,
+    "render_size": [
+     800,
+     800
+    ],
+    "peak_gpu_mem_mib": 4197,
+    "train_s": 52.8,
+    "render_s": 36.7,
+    "per_scale": {
+     "0": {
+      "PSNR": 25.35788948059082,
+      "SSIM": 0.8803528267145156,
+      "LPIPS": 0.14141369815915822,
+      "n": 200,
+      "size": [
+       800,
+       800
+      ]
+     },
+     "1": {
+      "PSNR": 26.2202454662323,
+      "SSIM": 0.9014280739426613,
+      "LPIPS": 0.10150263853371143,
+      "n": 200,
+      "size": [
+       400,
+       400
+      ]
+     },
+     "2": {
+      "PSNR": 27.78072147369385,
+      "SSIM": 0.9343164676427841,
+      "LPIPS": 0.06872624911367893,
+      "n": 200,
+      "size": [
+       200,
+       200
+      ]
+     },
+     "3": {
+      "PSNR": 28.939458045959473,
+      "SSIM": 0.959931705892086,
+      "LPIPS": 0.043593690805137156,
+      "n": 200,
+      "size": [
+       100,
+       100
+      ]
+     }
+    },
+    "method": "sss",
+    "protocol": "stmt",
+    "config": {
+     "cap_max": 100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 1000,
+     "white_background": true,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true,
+     "mip_relocate_effective": true
+    },
+    "source": "results/m6/dry_20261103_155521/lego_a/summary.json"
+   },
+   "lego_b": {
+    "run": "lego_b",
+    "scene": "lego",
+    "iterations": 1000,
+    "components": 100000,
+    "psnr": 26.855119898319245,
+    "ssim": 0.9166559846699238,
+    "lpips": 0.09188831734703853,
+    "fps": 214.71673421942097,
+    "render_size": [
+     800,
+     800
+    ],
+    "peak_gpu_mem_mib": 4441,
+    "train_s": 65.4,
+    "render_s": 44.6,
+    "per_scale": {
+     "0": {
+      "PSNR": 25.141528215408325,
+      "SSIM": 0.8773853513598442,
+      "LPIPS": 0.14420834761112927,
+      "n": 200,
+      "size": [
+       800,
+       800
+      ]
+     },
+     "1": {
+      "PSNR": 25.98082504272461,
+      "SSIM": 0.8983507028222084,
+      "LPIPS": 0.10540321588516235,
+      "n": 200,
+      "size": [
+       400,
+       400
+      ]
+     },
+     "2": {
+      "PSNR": 27.52223669052124,
+      "SSIM": 0.9321279793977737,
+      "LPIPS": 0.07222242435440421,
+      "n": 200,
+      "size": [
+       200,
+       200
+      ]
+     },
+     "3": {
+      "PSNR": 28.775889644622804,
+      "SSIM": 0.9587599050998687,
+      "LPIPS": 0.0457192815374583,
+      "n": 200,
+      "size": [
+       100,
+       100
+      ]
+     }
+    },
+    "method": "sss",
+    "protocol": "stmt",
+    "config": {
+     "cap_max": 100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 1000,
+     "white_background": true,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true,
+     "mip_option_b": true,
+     "mip_relocate_effective": true
+    },
+    "source": "results/m6/dry_20261103_155521/lego_b/summary.json"
+   }
+  },
+  "m6/dry_20261103_173138": {
+   "lego_sss": {
+    "run": "lego_sss",
+    "scene": "lego",
+    "iterations": 1000,
+    "components": 100000,
+    "psnr": 26.721308224201202,
+    "ssim": 0.9170495790243148,
+    "lpips": 0.089291421007365,
+    "fps": 554.6945555847635,
+    "render_size": [
+     800,
+     800
+    ],
+    "peak_gpu_mem_mib": 4020,
+    "train_s": 115.7,
+    "render_s": 78.1,
+    "per_scale": {
+     "0": {
+      "PSNR": 25.418119564056397,
+      "SSIM": 0.881862204670906,
+      "LPIPS": 0.1392526410520077,
+      "n": 200,
+      "size": [
+       800,
+       800
+      ]
+     },
+     "1": {
+      "PSNR": 26.309022703170776,
+      "SSIM": 0.9036203888058663,
+      "LPIPS": 0.09844200771301985,
+      "n": 200,
+      "size": [
+       400,
+       400
+      ]
+     },
+     "2": {
+      "PSNR": 27.74320947647095,
+      "SSIM": 0.9350968173146248,
+      "LPIPS": 0.06602955657988786,
+      "n": 200,
+      "size": [
+       200,
+       200
+      ]
+     },
+     "3": {
+      "PSNR": 27.41488115310669,
+      "SSIM": 0.9476189053058625,
+      "LPIPS": 0.05344147868454456,
+      "n": 200,
+      "size": [
+       100,
+       100
+      ]
+     }
+    },
+    "method": "sss",
+    "protocol": "stmt",
+    "config": {
+     "cap_max": 100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 1000,
+     "white_background": true
+    },
+    "source": "results/m6/dry_20261103_173138/lego_sss/summary.json"
+   },
+   "lego_mip": {
+    "run": "lego_mip",
+    "scene": "lego",
+    "iterations": 1000,
+    "components": 20620,
+    "psnr": 26.502764449119567,
+    "ssim": 0.9107625768333674,
+    "lpips": 0.10445582470390946,
+    "fps": 1223.8794342565059,
+    "render_size": [
+     800,
+     800
+    ],
+    "peak_gpu_mem_mib": 4060,
+    "train_s": 53.5,
+    "render_s": 75.2,
+    "per_scale": {
+     "0": {
+      "PSNR": 25.01579888343811,
+      "SSIM": 0.8728825941681861,
+      "LPIPS": 0.15187737062573434,
+      "n": 200,
+      "size": [
+       800,
+       800
+      ]
+     },
+     "1": {
+      "PSNR": 25.814109210968017,
+      "SSIM": 0.8903078663349152,
+      "LPIPS": 0.11953907757997513,
+      "n": 200,
+      "size": [
+       400,
+       400
+      ]
+     },
+     "2": {
+      "PSNR": 27.221748361587526,
+      "SSIM": 0.9254204335808754,
+      "LPIPS": 0.08975530002266169,
+      "n": 200,
+      "size": [
+       200,
+       200
+      ]
+     },
+     "3": {
+      "PSNR": 27.959401340484618,
+      "SSIM": 0.9544394132494927,
+      "LPIPS": 0.05665155058726668,
+      "n": 200,
+      "size": [
+       100,
+       100
+      ]
+     }
+    },
+    "method": "mip",
+    "protocol": "stmt",
+    "config": {
+     "method": "mip",
+     "protocol": "stmt",
+     "ref": "dda02ab",
+     "train_args": [
+      "-s",
+      "/content/data/lego",
+      "-m",
+      "/content/m0/lego_mip/model",
+      "--eval",
+      "--kernel_size",
+      "0.1",
+      "--iterations",
+      "1000",
+      "--save_iterations",
+      "1000",
+      "--test_iterations",
+      "1000",
+      "--white_background"
+     ]
+    },
+    "source": "results/m6/dry_20261103_173138/lego_mip/summary.json"
+   },
+   "lego_a": {
+    "run": "lego_a",
+    "scene": "lego",
+    "iterations": 1000,
+    "components": 100000,
+    "psnr": 27.0814217877388,
+    "ssim": 0.9191321586817502,
+    "lpips": 0.08866644146852196,
+    "fps": 520.3602589158039,
+    "render_size": [
+     800,
+     800
+    ],
+    "peak_gpu_mem_mib": 4048,
+    "train_s": 111.5,
+    "render_s": 78.8,
+    "per_scale": {
+     "0": {
+      "PSNR": 25.342636976242066,
+      "SSIM": 0.8803923481702804,
+      "LPIPS": 0.140899791456759,
+      "n": 200,
+      "size": [
+       800,
+       800
+      ]
+     },
+     "1": {
+      "PSNR": 26.212934522628785,
+      "SSIM": 0.9014862731099129,
+      "LPIPS": 0.1011624975502491,
+      "n": 200,
+      "size": [
+       400,
+       400
+      ]
+     },
+     "2": {
+      "PSNR": 27.796124315261842,
+      "SSIM": 0.9344609707593918,
+      "LPIPS": 0.06857097435742616,
+      "n": 200,
+      "size": [
+       200,
+       200
+      ]
+     },
+     "3": {
+      "PSNR": 28.97399133682251,
+      "SSIM": 0.9601890426874161,
+      "LPIPS": 0.04403250250965357,
+      "n": 200,
+      "size": [
+       100,
+       100
+      ]
+     }
+    },
+    "method": "sss",
+    "protocol": "stmt",
+    "config": {
+     "cap_max": 100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 1000,
+     "white_background": true,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true,
+     "mip_relocate_effective": true
+    },
+    "source": "results/m6/dry_20261103_173138/lego_a/summary.json"
+   },
+   "lego_b": {
+    "run": "lego_b",
+    "scene": "lego",
+    "iterations": 1000,
+    "components": 100000,
+    "psnr": 26.835336780548097,
+    "ssim": 0.9165415938198567,
+    "lpips": 0.09153050337452441,
+    "fps": 79.02783263029258,
+    "render_size": [
+     800,
+     800
+    ],
+    "peak_gpu_mem_mib": 4224,
+    "train_s": 136.7,
+    "render_s": 92.6,
+    "per_scale": {
+     "0": {
+      "PSNR": 25.133250331878664,
+      "SSIM": 0.877420244216919,
+      "LPIPS": 0.14363502860069274,
+      "n": 200,
+      "size": [
+       800,
+       800
+      ]
+     },
+     "1": {
+      "PSNR": 25.96719385147095,
+      "SSIM": 0.8982984486222267,
+      "LPIPS": 0.10453738823533058,
+      "n": 200,
+      "size": [
+       400,
+       400
+      ]
+     },
+     "2": {
+      "PSNR": 27.498757495880128,
+      "SSIM": 0.9318920728564263,
+      "LPIPS": 0.07136590341106057,
+      "n": 200,
+      "size": [
+       200,
+       200
+      ]
+     },
+     "3": {
+      "PSNR": 28.742145442962645,
+      "SSIM": 0.9585556095838547,
+      "LPIPS": 0.046583693251013754,
+      "n": 200,
+      "size": [
+       100,
+       100
+      ]
+     }
+    },
+    "method": "sss",
+    "protocol": "stmt",
+    "config": {
+     "cap_max": 100000,
+     "nu_degree": 100,
+     "C_burnin": 500000.0,
+     "C": 120.0,
+     "burnin_iterations": 7000,
+     "iterations": 1000,
+     "white_background": true,
+     "mip_kernel_size": 0.1,
+     "mip_filter_3d": true,
+     "mip_option_b": true,
+     "mip_relocate_effective": true
+    },
+    "source": "results/m6/dry_20261103_173138/lego_b/summary.json"
+   }
+  }
+ },
+ "pilot_lego_b_last": {
+  "source": "results/m6/run_20261103_175727/lego_b/train.log",
+  "iteration": 1880,
+  "elapsed": "01:16",
+  "remaining_est": "31:41",
+  "it_per_s": 14.79
+ }
+}

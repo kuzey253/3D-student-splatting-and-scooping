@@ -1,0 +1,922 @@
+<title>Mip-SSS Progress Report</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a lab report. Left rail of milestone stamps (M0–M6) on wide screens, one 70ch reading
+   column, figures that break out to the full content width. */
+:root {
+  --bg: #f3f5f8;          /* page plane, cool */
+  --paper: #fcfcfb;        /* figure surface (the chart palette's light surface) */
+  --ink: #111a28;
+  --ink-2: #485365;
+  --muted: #7a8394;
+  --rule: #dde2e9;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --accent: #1c5cab;
+  --accent-wash: rgba(42, 120, 214, 0.08);
+  --code-bg: #e9edf3;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+  --good: #0ca30c; --warn: #fab219; --crit: #d03b3b;
+  --display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1114; --paper: #1a1a19; --ink: #eceef2; --ink-2: #b9c0cc; --muted: #8a919d;
+    --rule: #2b2f36; --grid: #2c2c2a; --axis: #383835; --accent: #86b6ef;
+    --accent-wash: rgba(57, 135, 229, 0.12); --code-bg: #1d2128;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1114; --paper: #1a1a19; --ink: #eceef2; --ink-2: #b9c0cc; --muted: #8a919d;
+  --rule: #2b2f36; --grid: #2c2c2a; --axis: #383835; --accent: #86b6ef;
+  --accent-wash: rgba(57, 135, 229, 0.12); --code-bg: #1d2128;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.62 var(--body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 80px;
+  display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 48px; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 24px 64px; } }
+
+/* rail */
+nav.rail { position: sticky; top: calc(24px + env(safe-area-inset-top, 0px)); align-self: start;
+  font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+nav.rail .rail-title { font: 600 11px/1.4 var(--body); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 8px; }
+nav.rail a { color: var(--ink-2); text-decoration: none; padding: 4px 8px; border-radius: 4px;
+  display: grid; grid-template-columns: 30px 1fr; gap: 6px; align-items: baseline; }
+nav.rail a:hover, nav.rail a:focus-visible { background: var(--accent-wash); color: var(--ink); outline: none; }
+nav.rail a .stamp { font: 500 11px var(--mono); color: var(--accent); }
+@media (max-width: 900px) {
+  nav.rail { position: static; flex-direction: row; flex-wrap: wrap; gap: 4px; }
+  nav.rail .rail-title { width: 100%; margin: 0; }
+  nav.rail a { display: inline-flex; gap: 6px; border: 1px solid var(--rule); }
+}
+
+main { min-width: 0; }
+.prose { max-width: 70ch; }
+header.top { border-bottom: 1px solid var(--rule); padding-bottom: 28px; margin-bottom: 8px; }
+.eyebrow { font: 600 11px/1.4 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+h1 { font: 500 clamp(2.1rem, 4.4vw, 3.3rem)/1.08 var(--display); letter-spacing: -0.015em; margin: 10px 0 14px;
+  text-wrap: balance; }
+h2 { font: 500 1.85rem/1.2 var(--display); margin: 0 0 12px; text-wrap: balance; }
+h3 { font: 600 1.05rem/1.35 var(--body); margin: 28px 0 8px; }
+.lede { font-size: 1.12rem; color: var(--ink-2); max-width: 64ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 18px; font: 13px var(--mono); color: var(--muted); }
+section { padding-block: 44px 12px; border-top: 1px solid var(--rule); scroll-margin-top: 16px; }
+section:first-of-type { border-top: 0; }
+.sec-head { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: baseline; }
+.sec-head .stamp { font: 500 12px var(--mono); color: var(--accent); border: 1px solid var(--accent);
+  border-radius: 3px; padding: 1px 6px; transform: translateY(-4px); }
+p { margin: 0 0 14px; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; }
+pre { background: var(--code-bg); padding: 14px 16px; border-radius: 6px; overflow-x: auto; font: 13px/1.55 var(--mono); margin: 0 0 16px; }
+pre code { background: none; padding: 0; }
+ul.tight { margin: 0 0 16px; padding-left: 1.2em; } ul.tight li { margin-bottom: 6px; }
+.eq { font-family: var(--display); font-size: 1.12rem; background: var(--paper); border: 1px solid var(--rule);
+  border-radius: 6px; padding: 12px 16px; margin: 0 0 16px; overflow-x: auto; white-space: nowrap; }
+.eq .lbl { float: right; font: 12px var(--mono); color: var(--muted); margin-left: 16px; }
+.var { font-style: italic; }
+
+/* findings */
+.findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 26px 0 8px; }
+.finding { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 16px 16px 14px;
+  display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.finding .num { font: 500 1.9rem/1.1 var(--display); }
+.finding .what { font-size: 14px; color: var(--ink-2); }
+.finding .tag { font: 500 11px var(--mono); color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font: 600 11px/1 var(--body); letter-spacing: .04em;
+  text-transform: uppercase; padding: 4px 8px; border-radius: 99px; border: 1px solid var(--rule); color: var(--ink-2); }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.pill.good::before { background: var(--good); } .pill.warn::before { background: var(--warn); } .pill.crit::before { background: var(--crit); }
+
+/* figures */
+figure.fig { margin: 22px 0 26px; background: var(--paper); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 18px 18px 12px; min-width: 0; }
+figure.fig .fig-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; align-items: baseline; }
+figure.fig .fig-title { font: 600 15px/1.35 var(--body); }
+figure.fig .fig-no { font: 500 12px var(--mono); color: var(--accent); margin-right: 8px; }
+figure.fig .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--ink-2); margin: 8px 0 4px; }
+figure.fig .legend span { display: inline-flex; align-items: center; gap: 6px; }
+figure.fig .legend i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+figure.fig .legend i.dot { width: 9px; height: 9px; border-radius: 50%; }
+figure.fig .chart { position: relative; width: 100%; min-height: 120px; }
+figure.fig .multi { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px 20px; }
+figure.fig .multi .chart-title { font: 600 13px var(--body); color: var(--ink-2); margin-top: 6px; }
+figure.fig figcaption { font-size: 13.5px; color: var(--ink-2); margin-top: 8px; max-width: 80ch; }
+figure.fig figcaption .src { display: block; font: 12px var(--mono); color: var(--muted); margin-top: 6px; overflow-wrap: anywhere; }
+figure.fig details { margin-top: 10px; }
+figure.fig summary { cursor: pointer; font: 600 12px var(--body); color: var(--accent); letter-spacing: .03em; }
+figure.fig summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tablewrap { overflow-x: auto; margin-top: 8px; }
+table { border-collapse: collapse; font-size: 13.5px; width: 100%; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 12px var(--body); color: var(--ink-2); background: var(--paper); }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+table.data tbody tr:hover { background: var(--accent-wash); }
+.tbl { margin: 8px 0 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 8px; overflow-x: auto; }
+svg text { font-family: var(--body); }
+svg .tick { font: 11px var(--mono); fill: var(--muted); }
+svg .axis-label { font: 12px var(--body); fill: var(--ink-2); }
+svg .end-label { font: 600 12px var(--body); fill: var(--ink); }
+svg .val-label { font: 11.5px var(--mono); fill: var(--ink-2); }
+svg .ref-label { font: 11px var(--mono); fill: var(--muted); }
+.tip { position: absolute; pointer-events: none; background: var(--paper); color: var(--ink); border: 1px solid var(--rule);
+  box-shadow: 0 4px 16px rgba(0,0,0,.12); border-radius: 6px; padding: 8px 10px; font-size: 12.5px; z-index: 5;
+  min-width: 140px; max-width: 280px; }
+.tip .t-head { font: 600 12px var(--body); color: var(--ink-2); margin-bottom: 4px; }
+.tip .row { display: grid; grid-template-columns: 10px 1fr auto; gap: 6px; align-items: center; }
+.tip .row i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.tip .row b { font: 600 12px var(--mono); }
+.callout { border-left: 3px solid var(--accent); background: var(--accent-wash); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 0 0 16px; max-width: 70ch; }
+.callout.warn { border-left-color: var(--warn); }
+.diagram { overflow-x: auto; }
+.diagram svg { display: block; min-width: 640px; }
+.diagram .box { fill: var(--paper); stroke: var(--axis); }
+.diagram .box.hot { stroke: var(--accent); }
+.diagram .dtext { font: 13px var(--body); fill: var(--ink); }
+.diagram .dsub { font: 11.5px var(--mono); fill: var(--muted); }
+.diagram .arrow { stroke: var(--ink-2); fill: none; stroke-width: 1.4; }
+.diagram .ahead { fill: var(--ink-2); }
+footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+<nav class="rail" aria-label="Sections">
+  <div class="rail-title">Contents</div>
+  <a href="#summary"><span class="stamp">—</span>Summary</a>
+  <a href="#problem"><span class="stamp">§1</span>Problem</a>
+  <a href="#method"><span class="stamp">§2</span>Method</a>
+  <a href="#verification"><span class="stamp">§3</span>Verification</a>
+  <a href="#m1"><span class="stamp">M1</span>Quadrature study</a>
+  <a href="#m0"><span class="stamp">M0</span>SSS baselines</a>
+  <a href="#sanity"><span class="stamp">M2–5</span>Training sanity</a>
+  <a href="#nu"><span class="stamp">M4–5</span>ν drift</a>
+  <a href="#reloc"><span class="stamp">M5</span>Relocation</a>
+  <a href="#m6"><span class="stamp">M6</span>Zoom-out pilot</a>
+  <a href="#compute"><span class="stamp">§9</span>Compute</a>
+  <a href="#open"><span class="stamp">§10</span>Open questions</a>
+  <a href="#reproduce"><span class="stamp">§11</span>Reproduce</a>
+</nav>
+
+<main>
+<header class="top" id="summary">
+  <div class="eyebrow">Progress report · milestones M0–M6 · 2026-11-04</div>
+  <h1>Anti-aliased Student-t splatting (Mip-SSS)</h1>
+  <p class="lede">Student Splatting and Scooping (SSS) renders scenes with Student-t components that have learnable tails. Like 3D Gaussian Splatting, it aliases when the camera zooms out. This project adds Mip-Splatting's two anti-aliasing filters to the t kernel, verifies every step against float64 references, and is now measuring the effect on Mip-Splatting's multi-scale benchmark.</p>
+  <div class="meta"><span>branch mip-sss</span><span>head b90b9d4</span><span>fork kuzey253/3D-student-splatting-and-scooping</span><span>562 tests passing</span></div>
+
+  <div class="findings">
+    <div class="finding">
+      <span class="tag">M6 pilot · lego, 1/8 scale</span>
+      <span class="num" data-bind="pilot.d8.a"></span>
+      <span class="what">PSNR of SSS with both filters (Option A) at 1/8 resolution, against <b data-bind="pilot.d8.mip"></b> for Mip-Splatting and <b data-bind="pilot.d8.sss"></b> for plain SSS. One scene, one run each.</span>
+    </div>
+    <div class="finding">
+      <span class="tag">M4–M5 · ν drift explained</span>
+      <span class="num">3.0% → 50.1%</span>
+      <span class="what">Components at the Cauchy bound ν = 1 when SSS's ν gradient is replaced by the exact one. SSS's dropped term keeps ν away from heavy tails.</span>
+    </div>
+    <div class="finding">
+      <span class="tag">M1 · Option B accuracy</span>
+      <span class="num">2.4 × 10⁻⁴</span>
+      <span class="what">Worst alpha error of the chosen 12-node quadrature against the exact filtered kernel, for ν from 1 to 10⁴. The criterion is 10⁻³.</span>
+    </div>
+    <div class="finding">
+      <span class="tag">M2–M5 · flags off</span>
+      <span class="num">bitwise</span>
+      <span class="what">With every new flag off, the image equals the previous build's bit for bit, with gradients inside atomic-add noise, on the GPU at each milestone.</span>
+    </div>
+  </div>
+  <div class="prose">
+    <p><span class="pill warn">Status</span>&nbsp; M0–M5 are done and verified. M6 has started with a one-scene pilot: three of its four runs finished; the Option B run was lost when the Colab VM disappeared. Nothing in the M6 section is a benchmark result yet.</p>
+  </div>
+</header>
+
+<section id="problem">
+  <div class="sec-head"><span class="stamp">§1</span><h2>The problem: sub-pixel components alias</h2></div>
+  <div class="prose">
+    <p>SSS renders each component through the 2D kernel below, with peak value 1 at the projected centre μ, a 2D covariance Σ and a learnable degree of freedom ν (ν = 1 is the Cauchy distribution; ν → ∞ the Gaussian).</p>
+  </div>
+  <div class="eq"><span class="lbl">SSS kernel</span>T(<span class="var">u</span>) = [ 1 + dᵀΣ⁻¹d / ν ]<sup>−(ν+2)/2</sup>, &nbsp; d = u − μ, &nbsp; α = o · T(u)</div>
+  <div class="prose">
+    <p>The image samples this kernel at pixel centres. A component narrower than a pixel can land between samples and vanish, or flicker as the camera moves; zooming out makes most components sub-pixel. Mip-Splatting fixes this for Gaussians with a 2D screen-space filter (convolve with a Gaussian of variance <span class="var">s</span> = 0.1 px², the pixel's footprint) and a 3D smoothing filter that bounds each component's size by the training cameras' sampling rate. For a Gaussian both convolutions are closed-form. For a t kernel they are not: T ⊛ 𝒩(0, sI) is no longer a t.</p>
+  </div>
+  <figure class="fig" id="fig-concept">
+    <div class="fig-head"><div><span class="fig-no">Fig. 1</span><span class="fig-title">A 0.2 px component between two pixel centres, before and after the 2D filter</span></div></div>
+    <div class="legend" data-legend="concept"></div>
+    <div class="multi">
+      <div><div class="chart-title">ν = 100 (nearly Gaussian)</div><div class="chart" id="c-concept-100"></div></div>
+      <div><div class="chart-title">ν = 1 (Cauchy)</div><div class="chart" id="c-concept-1"></div></div>
+    </div>
+    <figcaption>A 1D slice through an isotropic component with σ = 0.2 px centred at x = 0.5 px, halfway between the pixel centres at 0 and 1; the dots are the values the pixels sample. Unfiltered, the pixels see only the tails. Filtered with Option A (variance σ² + s, peak scaled by σ²/(σ² + s), s = 0.1 px²), the component keeps its mass and the neighbouring pixels see it. Computed in this page from the formulas above; an illustration, not a measurement.</figcaption>
+  </figure>
+</section>
+
+<section id="method">
+  <div class="sec-head"><span class="stamp">§2</span><h2>Method</h2></div>
+  <div class="prose">
+    <h3>2.1 The 2D filter on a t kernel</h3>
+    <p>The README of this project proposed two ways to filter a t kernel.</p>
+    <p><b>Option A</b> treats the filtered kernel as another t on the widened covariance, and scales the opacity so the peak drops the way a Gaussian's would. It is one determinant ratio per component, exact at s = 0, and preserves mass. Its tails are too heavy for sub-pixel components, because a convolved t is not a t.</p>
+  </div>
+  <div class="eq"><span class="lbl">Option A</span>T<sub>A</sub>(u) = √(|Σ| / |Σ′|) · [ 1 + dᵀΣ′⁻¹d / ν ]<sup>−(ν+2)/2</sup>, &nbsp; Σ′ = Σ + sI</div>
+  <div class="prose">
+    <p><b>Option B</b> is exact in the limit. SSS's peak-1 t kernel is a scale mixture of peak-1 Gaussians, and each Gaussian can be filtered exactly. A quadrature over the mixing variable λ turns this into K filtered Gaussians:</p>
+  </div>
+  <div class="eq"><span class="lbl">scale mixture</span>T(u) = E<sub>λ ~ Gamma((ν+2)/2, rate ν/2)</sub> [ exp(−½ λ dᵀΣ⁻¹d) ] &nbsp; ≈ &nbsp; Σ<sub>k</sub> ω<sub>k</sub> g<sub>k</sub>(u), &nbsp; g<sub>k</sub> = √(|Σ/λ<sub>k</sub>| / |Σ/λ<sub>k</sub> + sI|) · exp(−½ dᵀ(Σ/λ<sub>k</sub> + sI)⁻¹d)</div>
+  <div class="prose">
+    <p>The design uses K = 12 nodes on an <code>adaptive_tail</code> grid in z = log λ (closed-form in ν through the digamma and trigamma functions, extent ±3 widths, left end set so the grid resolves kernel values down to τ = 1/255), with Option A as a control variate: the quadrature only has to integrate the difference between the exact and the Option A kernel. The residual has zero mass and vanishes at s = 0, so mass and the SSS limit are exact for any K.</p>
+  </div>
+  <div class="eq"><span class="lbl">Option B, as rendered</span>T<sub>B</sub>(u) = T<sub>A</sub>(u) + Σ<sub>k</sub> ω<sub>k</sub> ( g<sub>k</sub>(u) − h<sub>k</sub>(u) ), &nbsp; h<sub>k</sub> = the Option A integrand at node k</div>
+  <div class="prose">
+    <h3>2.2 The 3D smoothing filter</h3>
+    <p>Mip-Splatting bounds every component by the highest sampling rate any training camera has for it: σ3 = √0.2 · depth / focal, with depth the smallest over the cameras that see the point. With the filter on, the 3D covariance becomes Σ3 + σ3²I and the opacity is scaled by √(∏s² / ∏(s² + σ3²)), Option A in 3D. Under Option B the 3D filter enters each quadrature node before projection, cov<sub>k</sub> = Σ2/λ<sub>k</sub> + σ3²TTᵀ + sI, which is required: the scale-change shortcut leaves an alpha error of 0.17 on one test case against 3.2 × 10⁻⁴ per node. σ3 is recomputed before training, after every relocation and every 100 iterations, and stored in the PLY.</p>
+    <h3>2.3 The hybrid: Option A where it is accurate, Option B elsewhere</h3>
+    <p>Option B costs 24 exponentials and one power per pixel against one power for SSS, so it runs only where it is needed. M1 measured, for each ν, the smallest size ratio ρ = λ<sub>min</sub>(Σ)/s from which Option A stays within 10⁻³ of the exact kernel (Fig. 4b), with a 10% safety margin and aspect ratios up to 1:64. Each component is routed per frame:</p>
+  </div>
+  <figure class="fig">
+    <div class="fig-head"><div><span class="fig-no">Fig. 2</span><span class="fig-title">Per-component routing in the rasterizer (<code>mip_optionb.h</code>)</span></div></div>
+    <div class="diagram">
+      <svg viewBox="0 0 910 210" role="img" aria-label="Routing diagram: a component's projected covariance and ν go into the fast-path table test. If λmin/s is at least ρ(ν), and with the 3D filter on also the 3D ratio passes, Option A renders it through SSS's kernel. Otherwise Option B renders it with 12 nodes and a 203-float slot.">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahead" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+        <rect class="box" x="10" y="70" width="170" height="70" rx="6"/>
+        <text class="dtext" x="24" y="98">Component in view</text>
+        <text class="dsub" x="24" y="120">Σ2 = JWΣ3WᵀJᵀ, ν, o, σ3</text>
+        <rect class="box hot" x="250" y="60" width="240" height="90" rx="6"/>
+        <text class="dtext" x="264" y="88">Fast-path test</text>
+        <text class="dsub" x="264" y="110">λmin(Σ2)/s ≥ ρ(ν)</text>
+        <text class="dsub" x="264" y="128">and λmin(Σ3)/σ3² ≥ ρ(ν) (3D on)</text>
+        <rect class="box" x="580" y="14" width="320" height="74" rx="6"/>
+        <text class="dtext" x="594" y="42">Option A (fast path)</text>
+        <text class="dsub" x="594" y="64">SSS's kernel on Σ′, 1 pow / pixel</text>
+        <rect class="box" x="580" y="122" width="320" height="74" rx="6"/>
+        <text class="dtext" x="594" y="150">Option B (12-node quadrature)</text>
+        <text class="dsub" x="594" y="172">24 exp + 1 pow / pixel, alpha-safe radius</text>
+        <path class="arrow" d="M180,105 L246,105" marker-end="url(#ah)"/>
+        <path class="arrow" d="M490,90 C535,90 535,51 576,51" marker-end="url(#ah)"/>
+        <path class="arrow" d="M490,120 C535,120 535,159 576,159" marker-end="url(#ah)"/>
+        <text class="dsub" x="512" y="70">yes</text>
+        <text class="dsub" x="512" y="146">no</text>
+      </svg>
+    </div>
+    <figcaption>Option A covers every component with ν ≥ 400 at any size, so there is no Gaussian fallback and ν always has a gradient. Option B components get a 203-float slot after a scan of the per-component flags, and a backward pass through nine per-component accumulators.</figcaption>
+  </figure>
+  <div class="prose">
+    <h3>2.4 Integration with SSS's training</h3>
+    <ul class="tight">
+      <li><b>Relocation on effective parameters</b> (<code>--mip_relocate_effective</code>). SSS replaces dead components by copies of live ones and rescales their opacity and scale so the copies composite like the original. With the 3D filter on, the rendered opacity is o·coef(s, σ3), so relocation now runs on that, and writes back the raw opacity that renders the relocated one. The scale rule stays SSS's (a logged deviation: writing back an effective scale is infeasible below about 0.36 σ3).</li>
+      <li><b>Filtered scale regularizer</b> (<code>--mip_reg_filtered</code>): SSS's scale penalty sees √(s² + σ3²), so it stops shrinking axes already below the filter.</li>
+      <li><b>SGHMC unchanged</b>, as the README requires.</li>
+      <li><b>Diagnostic</b> <code>--mip_exact_nu_grad</code>: gives fast-path components the exact ν gradient, which SSS's backward does not compute (it drops −½·ln(1 + b/ν)·G).</li>
+    </ul>
+    <p>Every flag defaults to off. With all of them off the code takes exactly SSS's arithmetic.</p>
+  </div>
+</section>
+
+<section id="verification">
+  <div class="sec-head"><span class="stamp">§3</span><h2>Verification methodology</h2></div>
+  <div class="prose">
+    <p>The README's rules shaped how every result here was produced: never report a number that was not measured, keep plain SSS bit-for-bit reproducible with the flags off, stop on a failing check instead of loosening its tolerance, and log every deviation in <code>NOTES.md</code> (58 entries so far). The checks form three layers.</p>
+  </div>
+  <div class="tbl"><table class="data">
+    <thead><tr><th>Layer</th><th>What is compared</th><th>Tolerance</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>Two independent references</td><td>λ-integral and FFT convolution of the t kernel; each other, SSS's closed form at s = 0, <code>G_mip</code> at ν → ∞</td><td>&lt; 10⁻¹⁰ (closed form), &lt; 10⁻⁹ relative where T ≥ 10⁻⁶</td><td><code>mip_sss/reference.py</code></td></tr>
+      <tr><td>Design tests (CPU, float64)</td><td>limits, mass, accuracy vs references, gradcheck for μ, Σ, ν, o, negative-opacity compositing, radius</td><td>limits 10⁻¹², mass 10⁻⁶, max abs ≤ 10⁻³</td><td><code>tests/</code>, 562 passing</td></tr>
+      <tr><td>Host-compiled CUDA header</td><td><code>mip_optionb.h</code> compiled as C++ against a hand-derived float64 staging; stress over degenerate components</td><td>float32 rounding</td><td><code>tests/test_optionb_header.py</code></td></tr>
+      <tr><td>GPU parity, each milestone</td><td>CUDA forward and backward vs the float64 reference on random scenes with negative opacity and ν from 1 to 5000</td><td>relative ≤ 10⁻⁴ (float32)</td><td><code>scripts/colab/m2–m5_checks.py</code></td></tr>
+      <tr><td>Flag-off parity, each milestone</td><td>image and radii against the previous build; gradients against measured atomic-add noise</td><td>bitwise; ≤ noise</td><td><code>m2_checks.py</code> with <code>OLD_REF</code></td></tr>
+      <tr><td>Evaluation wiring</td><td><code>render.py</code> + <code>metrics.py</code> against training-time evaluation</td><td>≈ 10⁻⁶ dB</td><td>M3 checks</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p>The accuracy criterion was changed once, by the user at the M1 gate (NOTES 15): the README's "relative error ≤ 10⁻³ in the core" needs K = 32 nodes, while "max alpha error ≤ 10⁻³ over the whole domain, with exact limits and exact 2D mass" holds at K = 12. Relative error is still reported.</p>
+    <p>GPU work runs on Colab through a runner that packages the working tree, records the git state and image versions, trains in a detached process polled by short separate commands, and answers every remote step with an explicit <code>OK</code>/<code>FAIL</code> line. Each GPU session starts with a 1000-iteration dry run of the exact configuration.</p>
+  </div>
+  <div class="callout">Three float32 hazards and one root cause were found this way in M4: forward, slot-fill and backward kernels each recomputed det Σ2 in float32, and for a disc seen almost edge-on they disagreed in sign, so the backward computed 0·∞. A NaN capture on the GPU, replayed on the CPU, located it; later kernels now reuse the forward's determinant (NOTES 43–47).</div>
+</section>
+
+<section id="m1">
+  <div class="sec-head"><span class="stamp">M1</span><h2>Quadrature study: how many nodes Option B needs</h2></div>
+  <div class="prose">
+    <p>121 candidate rules (fixed grid, README-adaptive, adaptive_tail, Gauss, two-segment Gauss; K = 4 to 32; with no control variate, Option A or a curvature-matched A′) were evaluated against the references for 12 values of ν from 1 to 10⁴ and 5 anisotropic covariances at s = 0.1 px² (CPU, float64).</p>
+  </div>
+  <figure class="fig" id="fig-quad">
+    <div class="fig-head"><div><span class="fig-no">Fig. 3</span><span class="fig-title">Worst alpha error against the exact filtered kernel, by ν</span></div></div>
+    <div class="legend" data-legend="quad"></div>
+    <div class="chart" id="c-quad"></div>
+    <figcaption>Max |T<sub>rule</sub> − T<sub>exact</sub>| over five covariances at s = 0.1 px². The dashed lines mark the design criterion (10⁻³) and one 8-bit step (1/255). The README's original rule (fixed grid, K = 8, a Gaussian above ν = 30) misses both by two orders of magnitude at small ν. The chosen rule stays under 2.5 × 10⁻⁴ everywhere.<span class="src">results/m1/quad_study.csv · scripts/quad_study.py</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-quad"></div></details>
+  </figure>
+  <figure class="fig" id="fig-quadk">
+    <div class="fig-head"><div><span class="fig-no">Fig. 4a</span><span class="fig-title">All 121 rules: node count against worst error over ν</span></div></div>
+    <div class="legend" data-legend="quadk"></div>
+    <div class="chart" id="c-quadk"></div>
+    <figcaption>Each dot is one rule; colour is its control variate. Error falls with K in every family: no rule passes 10⁻³ at K = 4, three per family at K = 8, five at K = 12 and seven of eight at K = 32. The control variate barely changes the max-abs error. What it buys is exactness: with it, the s = 0 limit (plain SSS) and the mass are exact for any K, which the design requires.<span class="src">results/m1/quad_study.csv</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-quadk"></div></details>
+  </figure>
+  <figure class="fig" id="fig-short">
+    <div class="fig-head"><div><span class="fig-no">Fig. 4b</span><span class="fig-title">Option A's error against component size ρ = λ<sub>min</sub>/s, by ν</span></div></div>
+    <div class="legend" data-legend="short"></div>
+    <div class="chart" id="c-short"></div>
+    <figcaption>The size from which a curve stays below 10⁻³ is the fast-path threshold ρ(ν): about 1000 for ν = 4, 100 for ν = 30 and 30 for ν = 100. At ν = 1 Option A never gets within 10⁻³ on this grid (up to ρ = 1000), so heavy-tailed sub-pixel components need Option B. From ν = 300 it is within 10⁻³ at every size; the design's table starts there at ν = 400, after a 10% margin. The README's single threshold ρ &gt; 10 is too loose below ν ≈ 300 at ε = 10⁻³.<span class="src">results/m1/shortcut_study.csv · scripts/shortcut_study.py</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-short"></div></details>
+  </figure>
+</section>
+
+<section id="m0">
+  <div class="sec-head"><span class="stamp">M0</span><h2>SSS baselines reproduce the paper</h2></div>
+  <div class="prose"><p>Before changing anything, SSS was built against Colab's torch 2.11 and CUDA 13 (mechanical build fixes only, NOTES 22) and trained with its shipped configs for 40,000 iterations on an A100.</p></div>
+  <div class="tbl"><table class="data">
+    <thead><tr><th>Scene</th><th>Source</th><th class="n">PSNR</th><th class="n">SSIM</th><th class="n">LPIPS</th><th class="n">Components</th><th class="n">Train</th><th class="n">FPS</th></tr></thead>
+    <tbody id="t-m0"></tbody>
+  </table></div>
+  <div class="prose"><p>Paper values: SSS paper (arXiv 2503.10148v4), averaged over three runs on an RTX 4090; its timings are dataset averages and not comparable to one scene on an A100. The paper prints garden's LPIPS as 0.009, almost certainly a typo for about 0.09.</p></div>
+  <figure class="fig" id="fig-m0nu">
+    <div class="fig-head"><div><span class="fig-no">Fig. 5</span><span class="fig-title">Learned ν after SSS training: almost all-or-nothing</span></div></div>
+    <div class="legend" data-legend="m0nu"></div>
+    <div class="chart" id="c-m0nu"></div>
+    <figcaption>Share of components per ν bin (log scale; empty bins are left out). 95–97% end above ν = 1000, effectively Gaussian; 1–2% are pinned at the lower bound ν = 1; almost nothing lies between. This sets the Option B workload: under the hybrid, only those ν = 1 components leave the fast path.<span class="src">results/m0/run_20261020_181819/{train,garden}/stats/component_stats.md</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-m0nu"></div></details>
+  </figure>
+  <figure class="fig" id="fig-sub">
+    <div class="fig-head"><div><span class="fig-no">Fig. 6</span><span class="fig-title">Zooming out makes most components sub-pixel</span></div></div>
+    <div class="legend" data-legend="sub"></div>
+    <div class="chart" id="c-sub"></div>
+    <figcaption>Share of visible (component, view) pairs with ρ = λ<sub>min</sub>(Σ2D)/s &lt; 1, i.e. narrower than the 2D filter, when the trained model is rendered at 1/1 to 1/8 of the training resolution. This is the regime the filters target.<span class="src">component_stats.md, ρ histograms (200,000 sampled components, 20 cameras)</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-sub"></div></details>
+  </figure>
+</section>
+
+<section id="sanity">
+  <div class="sec-head"><span class="stamp">M2–5</span><h2>Training-resolution sanity: no regression, no gain</h2></div>
+  <div class="prose"><p>Every milestone trained Tanks &amp; Temples <code>train</code> for 7000 iterations (cap 1.1M components) and evaluated at the training resolution. The filters are not expected to help there; these runs check that training stays stable and quality does not drop. Each point is a single stochastic SGHMC run.</p></div>
+  <figure class="fig" id="fig-sanity">
+    <div class="fig-head"><div><span class="fig-no">Fig. 7</span><span class="fig-title">Test PSNR at the training resolution, 15 runs</span></div></div>
+    <div class="legend" data-legend="sanity"></div>
+    <div class="chart" id="c-sanity"></div>
+    <figcaption>All runs fall within 19.61–19.85 dB. Identical configurations repeated across sessions differ by up to 0.16 dB, so no difference here is resolved. M4's Option B session-1 runs are from a build before the float32 fixes (arithmetic only).<span class="src">results/m2–m5/run_*/*/summary.json</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-sanity"></div></details>
+  </figure>
+</section>
+
+<section id="nu">
+  <div class="sec-head"><span class="stamp">M4–5</span><h2>Why ν drifts to 1 under Option B</h2></div>
+  <div class="prose">
+    <p>M4's Option B runs ended with about 30% of components at ν = 1, against 3% for the fast path alone, which made Option B 4–5× slower to render. The hypothesis (NOTES 52): Option B components get the exact ν gradient, while fast-path components get SSS's, which drops the term −½·ln(1 + b/ν)·G. M5 tested it with a flag that gives every component the exact gradient.</p>
+  </div>
+  <figure class="fig" id="fig-nu1">
+    <div class="fig-head"><div><span class="fig-no">Fig. 8</span><span class="fig-title">Components at ν = 1 after 7000 iterations, by which components get the exact ν gradient</span></div></div>
+    <div class="legend" data-legend="nu1"></div>
+    <div class="chart" id="c-nu1"></div>
+    <figcaption>Giving the exact gradient to every component drives half of them to ν = 1 even without Option B (50.1%), and 61.6% with it. Relocation and the filtered regularizer leave ν where it was. The exact gradient, not Option B's rendering, causes the drift; SSS's omission acts as an implicit prior towards light tails. ν = 1 is absorbing because the activation is Hardtanh(1, 10⁴).<span class="src">component_stats.md of each run · NOTES 52–53</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-nu1"></div></details>
+  </figure>
+  <figure class="fig" id="fig-nuhist">
+    <div class="fig-head"><div><span class="fig-no">Fig. 9</span><span class="fig-title">The whole ν distribution moves, not just the tail</span></div></div>
+    <div class="legend" data-legend="nuhist"></div>
+    <div class="chart" id="c-nuhist"></div>
+    <figcaption>Share of components per ν bin, log scale, empty bins left out. Under SSS's gradient almost every component sits above ν = 1000; under the exact gradient the mass splits between ν = 1 and ν &gt; 1000.<span class="src">component_stats.md</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-nuhist"></div></details>
+  </figure>
+  <figure class="fig" id="fig-fps">
+    <div class="fig-head"><div><span class="fig-no">Fig. 10</span><span class="fig-title">Rendering speed falls with the share of ν = 1 components</span></div></div>
+    <div class="legend" data-legend="fps"></div>
+    <div class="chart" id="c-fps"></div>
+    <figcaption>SSS sizes each footprint as an empirical multiple of √λ<sub>max</sub>: 9.9 at ν = 1 against 3 for large ν (<code>forward.cu</code>), about 11× the tile area. Quality at the training resolution is unchanged by the drift (Fig. 7), so the cost is speed and memory.<span class="src">summary.json + component_stats.md of each train run</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-fps"></div></details>
+  </figure>
+</section>
+
+<section id="reloc">
+  <div class="sec-head"><span class="stamp">M5</span><h2>How far relocation drifts from the filtered kernel</h2></div>
+  <div class="prose">
+    <p>Relocation replaces one component by N copies at the same place, whose composite should render like the original: α<sub>new</sub>(u) = 1 − (1 − o′K′(u))<sup>N</sup> against α<sub>old</sub>(u) = oK(u). SSS derives o′ and the scale factor for the unfiltered t. The script below measures the worst |α<sub>new</sub> − α<sub>old</sub>| on a pixel grid for 5 shapes × ν ∈ {1, 100, 3000} × o ∈ {0.3, 0.9} × N ∈ {2, 4}, with σ3 = √0.2 px and s = 0.1 px².</p>
+  </div>
+  <figure class="fig" id="fig-drift">
+    <div class="fig-head"><div><span class="fig-no">Fig. 11</span><span class="fig-title">Worst alpha drift of relocation, by component shape</span></div></div>
+    <div class="legend" data-legend="drift"></div>
+    <div class="chart" id="c-drift"></div>
+    <figcaption>Worst over ν, o and N. The filtered kernels are evaluated as the fast path renders them (Option A); the exact kernel gives the same picture. SSS's own rule drifts up to 0.17 without any filter, mostly because it squares its scale factor (an upstream quirk, kept for reproducibility; NOTES 50). Relocating the effective opacity cuts the drift for pixel-sized components from 0.10 to 0.01. It is slightly worse only where the relocated effective opacity falls under SSS's 0.005 floor.<span class="src">results/m5/relocation_drift.md · scripts/m5_relocation_drift.py</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-drift"></div></details>
+  </figure>
+</section>
+
+<section id="m6">
+  <div class="sec-head"><span class="stamp">M6</span><h2>Zoom-out pilot on Blender lego</h2></div>
+  <div class="prose">
+    <p><b>Protocol.</b> Mip-Splatting's single-scale-train, multi-scale-test setting: train on the full-resolution (800 × 800) Blender images, test on the 200 test views at 1/1, 1/2, 1/4 and 1/8 resolution (box-downsampled, focal length halved per scale, Mip-Splatting's converter run verbatim). 30,000 iterations, white background. Mip-Splatting was rerun at commit <code>dda02ab</code> with the arguments of its own protocol scripts (kernel size 0.1), with build-only patches. All runs are scored by the same per-scale script (SSS's PSNR, SSIM, LPIPS-VGG); both projects' own <code>metrics.py</code> average all scales together.</p>
+    <p><b>Data.</b> The Blender set came from a public mirror. Read remotely, its 6,425 files matched a second, independent mirror in name, size and CRC32; the VM checks a manifest digest before use.</p>
+    <p><b>Configurations.</b> SSS (plain, cap 300k), Mip-Splatting, SSS + Option A (2D and 3D filters, effective relocation), SSS + Option B. One run each, on one A100 session (the G4 was unavailable).</p>
+  </div>
+  <div class="callout warn"><b>Pilot, not benchmark.</b> One scene, one stochastic run per configuration, the SSS cap provisional (300k, chosen before Mip-Splatting's count was known; it ended at <span data-bind="pilot.mipcount"></span>). The Option B run was lost: at the last collection it was at iteration <span data-bind="pilot.blast"></span> of 30,000 when the VM disappeared.</div>
+  <figure class="fig" id="fig-pilot">
+    <div class="fig-head"><div><span class="fig-no">Fig. 12</span><span class="fig-title">Quality by test scale, lego, trained at full resolution</span></div></div>
+    <div class="legend" data-legend="pilot"></div>
+    <div class="multi" id="c-pilot"></div>
+    <figcaption>Plain SSS is best at the training scale and loses 10.5 dB by 1/8, the aliasing this project targets. Mip-Splatting holds better. SSS with both filters (Option A) is 0.8 dB below plain SSS at full resolution and the best of the three from 1/2 down, 2.5 dB above Mip-Splatting at 1/8. Differences under ~0.2 dB are not resolved by single runs.<span class="src">results/m6/run_20261103_175727/lego_{sss,mip,a}/per_scale.json</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-pilot"></div></details>
+  </figure>
+  <figure class="fig" id="fig-delta">
+    <div class="fig-head"><div><span class="fig-no">Fig. 13</span><span class="fig-title">PSNR difference to Mip-Splatting, per scale</span></div></div>
+    <div class="legend" data-legend="delta"></div>
+    <div class="chart" id="c-delta"></div>
+    <figcaption>Positive is better than Mip-Splatting. Same runs as Fig. 12.<span class="src">per_scale.json</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-delta"></div></details>
+  </figure>
+  <figure class="fig" id="fig-cost">
+    <div class="fig-head"><div><span class="fig-no">Fig. 14</span><span class="fig-title">What each configuration costs</span></div></div>
+    <div class="legend" data-legend="cost"></div>
+    <div class="multi" id="c-cost"></div>
+    <figcaption>A100 40 GB. FPS is render-only over the 200 full-resolution test views. Option A costs 1.6× SSS's training time and renders at a third of its speed; Fig. 15 shows why. Mip-Splatting trains in half of SSS's time with a similar component count.<span class="src">summary.json, fps.json, mem.csv of each run</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-cost"></div></details>
+  </figure>
+  <figure class="fig" id="fig-legonu">
+    <div class="fig-head"><div><span class="fig-no">Fig. 15</span><span class="fig-title">On lego, the filtered model's ν drifts even under SSS's gradient</span></div></div>
+    <div class="legend" data-legend="legonu"></div>
+    <div class="chart" id="c-legonu"></div>
+    <figcaption>Plain SSS on lego behaves as on <code>train</code> (1.2% at ν = 1, median 2,690). With both filters, 36.9% end at ν = 1 and the median falls to 36, although neither run uses the exact ν gradient. This is new and not yet explained. The heavier tails explain the lower FPS (Fig. 10), and they matter for Option B: the stats tool estimates that 59% of visible pairs of this model would take the Option B path.<span class="src">results/m6/run_20261103_175727/lego_{sss,a}/stats/component_stats.md</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-legonu"></div></details>
+  </figure>
+</section>
+
+<section id="compute">
+  <div class="sec-head"><span class="stamp">§9</span><h2>Compute and infrastructure</h2></div>
+  <div class="prose"><p>All GPU work ran on Google Colab, metered in compute units read from the account balance before and after each session. The G4 is an RTX PRO 6000 Blackwell (102 GB, sm_120); the A100 is a 40 GB SXM4. Both run Python 3.13, torch 2.11.0+cu130, CUDA 13.0.</p></div>
+  <figure class="fig" id="fig-units">
+    <div class="fig-head"><div><span class="fig-no">Fig. 16</span><span class="fig-title">Compute units per milestone</span></div></div>
+    <div class="legend" data-legend="units"></div>
+    <div class="chart" id="c-units"></div>
+    <figcaption>Total <span data-bind="units.total"></span> units. M4's eight sessions include the float32 NaN hunt. M6 session 1 (G4) lost its real run when the VM disappeared after Colab dropped the session; three finished runs were never collected. The runner now collects each run as it finishes and re-attaches a lost session automatically; in session 2 it re-attached twice and saved three runs, but the VM still vanished during Option B.<span class="src">milestone reports · NOTES 58</span></figcaption>
+    <details><summary>Table view</summary><div class="tablewrap" id="t-units"></div></details>
+  </figure>
+</section>
+
+<section id="open">
+  <div class="sec-head"><span class="stamp">§10</span><h2>Open questions and next steps</h2></div>
+  <div class="prose">
+    <ul class="tight">
+      <li><b>Option B on lego is unmeasured.</b> The pilot's most important arm was lost twice to Colab. A rerun needs either a stable VM or Option B first in the run order.</li>
+      <li><b>ν drift under the filters (Fig. 15).</b> Which part moves ν on Blender (2D filter, 3D filter, effective relocation, random initialization), and whether it costs quality at other scales, is open. It also decides Option B's cost.</li>
+      <li><b>Which ν gradient Option B should use</b> (M5). Keeping the exact gradient keeps the drift; matching SSS's needs a matching term derived per quadrature node.</li>
+      <li><b>The SSS component cap for Blender.</b> Mip-Splatting ended at <span data-bind="pilot.mipcount"></span> on lego, close to the provisional 300k; the full matrix should set the cap per scene from Mip-Splatting's counts.</li>
+      <li><b>Repeats.</b> Single runs differ by up to 0.16–0.2 dB; claims at that size need several seeds.</li>
+      <li><b>Remaining matrix.</b> 8 Blender scenes zoom-out, 9 Mip-NeRF 360 scenes zoom-in, each filter alone, several K, and the exact-ν-gradient baseline. The pilot's A100 timings do not transfer to the G4 directly.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="reproduce">
+  <div class="sec-head"><span class="stamp">§11</span><h2>Reproduce</h2></div>
+  <div class="prose"><p>From the <code>sss/</code> directory of the <code>mip-sss</code> branch. CPU tests and studies:</p></div>
+<pre><code>python3 -m pytest tests -q                      # 562 tests
+python3 scripts/quad_study.py                   # results/m1/quad_study.{md,csv}
+python3 scripts/shortcut_study.py               # results/m1/shortcut_study.{md,csv}
+python3 scripts/m5_relocation_drift.py --out results/m5/relocation_drift.md
+python3 scripts/m6_report_data.py --out results/report/report_data.json \
+    --template results/report/template.html --html results/report/index.html</code></pre>
+  <div class="prose"><p>The M6 pilot on Colab (dry run first, then the real run; <code>ATTACH_ARGS=""</code> on a 40 GB A100):</p></div>
+<pre><code>RUNS="lego_sss:lego:protocol=stmt lego_mip:lego:protocol=stmt,method=mip \
+lego_a:lego:protocol=stmt,mip_kernel_size=0.1,mip_filter_3d=true,mip_relocate_effective=true \
+lego_b:lego:protocol=stmt,mip_kernel_size=0.1,mip_filter_3d=true,mip_option_b=true,mip_relocate_effective=true"
+SESSION=a100 ATTACH_ARGS="" DRY=1 MIP=1 SCENES=lego RUNS="$RUNS" bash scripts/colab/run_m0.sh
+SESSION=a100 ATTACH_ARGS="" MIP=1 SCENES=lego RUNS="$RUNS" bash scripts/colab/run_m0.sh</code></pre>
+  <div class="prose"><p>Milestone reports: <code>results/m0/M0_REPORT.md</code>, <code>results/m1/REPORT.md</code>, <code>results/m2/M2_REPORT.md</code>, <code>results/m3/M3_REPORT.md</code>, <code>results/m4/M4_REPORT.md</code>, <code>results/m5/M5_REPORT.md</code>. Every deviation from the README is in <code>NOTES.md</code>. Every number on this page is read from <code>report_data.json</code>, which <code>scripts/m6_report_data.py</code> builds from the result files named under each figure.</p></div>
+  <footer>Generated from the repository's result files on 2026-11-04. Paper numbers for SSS in §M0 are quoted from the SSS paper; everything else was measured in this project.</footer>
+</section>
+</main>
+</div>
+
+<script>
+const DATA = __REPORT_DATA__;
+
+/* ---------- helpers ---------- */
+const NS = "http://www.w3.org/2000/svg";
+const $ = (s, r = document) => r.querySelector(s);
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(tag, attrs, s, parent) { const e = el(tag, attrs, parent); e.textContent = s; return e; }
+const fmt = {
+  db: (v) => v.toFixed(2) + " dB", f2: (v) => v.toFixed(2), f3: (v) => v.toFixed(3), f4: (v) => v.toFixed(4),
+  pct: (v) => v.toFixed(1) + "%", int: (v) => Math.round(v).toLocaleString("en-US"),
+  sci: (v) => { if (v === 0) return "0"; const e = Math.floor(Math.log10(Math.abs(v))); const m = v / 10 ** e;
+    return (Math.abs(e) <= 2 ? v.toPrecision(2) : m.toFixed(1) + "e" + e); },
+};
+function supExp(e) { const map = { "-": "⁻", 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
+  return "10" + String(e).split("").map((c) => map[c]).join(""); }
+function niceTicks(lo, hi, n = 5) {
+  const span = hi - lo, step0 = span / n, mag = 10 ** Math.floor(Math.log10(step0));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => span / s <= n) || 10 * mag;
+  const ticks = []; for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9 * span; t += step) ticks.push(+t.toFixed(10));
+  return ticks;
+}
+function logTicks(lo, hi) { const t = []; for (let e = Math.floor(Math.log10(lo)); e <= Math.ceil(Math.log10(hi)); e++) t.push(10 ** e); return t; }
+
+/* legend + table */
+function legend(key, items) {
+  const box = $(`[data-legend="${key}"]`); if (!box) return; box.textContent = "";
+  for (const it of items) { const s = document.createElement("span"); const i = document.createElement("i");
+    if (it.dot) i.className = "dot"; i.style.background = css(it.color); s.append(i, document.createTextNode(it.name)); box.appendChild(s); }
+}
+function table(id, head, rows, numCols = []) {
+  const host = document.getElementById(id); if (!host) return; host.textContent = "";
+  const t = document.createElement("table"); t.className = "data";
+  const tr = document.createElement("tr");
+  head.forEach((h, i) => { const th = document.createElement("th"); th.textContent = h; if (numCols.includes(i)) th.className = "n"; tr.appendChild(th); });
+  const thead = document.createElement("thead"); thead.appendChild(tr); t.appendChild(thead);
+  const tb = document.createElement("tbody");
+  for (const r of rows) { const row = document.createElement("tr");
+    r.forEach((c, i) => { const td = document.createElement("td"); td.textContent = c; if (numCols.includes(i)) td.className = "n"; row.appendChild(td); });
+    tb.appendChild(row); }
+  t.appendChild(tb); host.appendChild(t);
+}
+
+/* tooltip */
+function tipFor(host) {
+  let tip = host.querySelector(".tip");
+  if (!tip) { tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; host.appendChild(tip); }
+  return {
+    show(x, y, head, rows) {
+      tip.textContent = ""; const h = document.createElement("div"); h.className = "t-head"; h.textContent = head; tip.appendChild(h);
+      for (const r of rows) { const d = document.createElement("div"); d.className = "row"; const i = document.createElement("i");
+        i.style.background = r.color ? css(r.color) : "transparent"; const n = document.createElement("span"); n.textContent = r.name;
+        const b = document.createElement("b"); b.textContent = r.value; d.append(i, n, b); tip.appendChild(d); }
+      tip.hidden = false;
+      const W = host.clientWidth, tw = tip.offsetWidth, th = tip.offsetHeight;
+      tip.style.left = Math.max(0, Math.min(W - tw, x + 14)) + "px"; tip.style.top = Math.max(0, y - th - 10) + "px";
+    },
+    hide() { tip.hidden = true; },
+  };
+}
+
+/* ---------- XY chart: lines / dots on linear, log or categorical axes ---------- */
+function xyChart(host, cfg) {
+  host.querySelectorAll("svg").forEach((s) => s.remove());
+  const W = Math.max(280, host.clientWidth), H = cfg.height || 300;
+  const m = { l: cfg.ml || 58, r: cfg.mr || 18, t: 14, b: cfg.xLabel ? 46 : 30 };
+  const svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": cfg.aria || "" });
+  host.prepend(svg);
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const X = cfg.x, Y = cfg.y;
+  const sx = X.type === "cat" ? (v) => m.l + (X.cats.length === 1 ? iw / 2 : (v / (X.cats.length - 1)) * iw)
+    : X.type === "log" ? (v) => m.l + (Math.log10(v) - Math.log10(X.min)) / (Math.log10(X.max) - Math.log10(X.min)) * iw
+    : (v) => m.l + (v - X.min) / (X.max - X.min) * iw;
+  const sy = Y.type === "log" ? (v) => m.t + ih - (Math.log10(v) - Math.log10(Y.min)) / (Math.log10(Y.max) - Math.log10(Y.min)) * ih
+    : (v) => m.t + ih - (v - Y.min) / (Y.max - Y.min) * ih;
+  const g = el("g", {}, svg);
+  // y grid + ticks
+  const yt = Y.ticks || (Y.type === "log" ? logTicks(Y.min, Y.max) : niceTicks(Y.min, Y.max, 5));
+  for (const t of yt) { if (t < Y.min - 1e-12 || t > Y.max * (1 + 1e-9)) continue; const y = sy(t);
+    el("line", { x1: m.l, x2: m.l + iw, y1: y, y2: y, stroke: css("--grid"), "stroke-width": 1 }, g);
+    txt("text", { x: m.l - 8, y: y + 4, "text-anchor": "end", class: "tick" }, Y.fmt ? Y.fmt(t) : (Y.type === "log" ? supExp(Math.round(Math.log10(t))) : t), g); }
+  // x ticks
+  const xt = X.type === "cat" ? X.cats.map((_, i) => i) : (X.ticks || (X.type === "log" ? logTicks(X.min, X.max) : niceTicks(X.min, X.max, 6)));
+  const labW = X.type === "cat" ? Math.max(...X.cats.map((c) => String(c).length)) * 7 + 10 : 0;
+  const every = X.type === "cat" ? Math.max(1, Math.ceil(X.cats.length * labW / iw)) : 1;
+  xt.forEach((t, i) => { if (X.type !== "cat" && (t < X.min || t > X.max)) return; if (i % every) return; const x = sx(t);
+    el("line", { x1: x, x2: x, y1: m.t + ih, y2: m.t + ih + 4, stroke: css("--axis") }, g);
+    txt("text", { x, y: m.t + ih + 17, "text-anchor": "middle", class: "tick" },
+      X.type === "cat" ? X.cats[t] : X.fmt ? X.fmt(t) : (X.type === "log" ? supExp(Math.round(Math.log10(t))) : t), g); });
+  el("line", { x1: m.l, x2: m.l + iw, y1: m.t + ih, y2: m.t + ih, stroke: css("--axis") }, g);
+  if (cfg.xLabel) txt("text", { x: m.l + iw / 2, y: H - 6, "text-anchor": "middle", class: "axis-label" }, cfg.xLabel, g);
+  if (cfg.yLabel) txt("text", { x: 12, y: m.t + ih / 2, transform: `rotate(-90 12 ${m.t + ih / 2})`, "text-anchor": "middle", class: "axis-label" }, cfg.yLabel, g);
+  // reference lines
+  for (const r of cfg.refs || []) { const y = sy(r.y);
+    el("line", { x1: m.l, x2: m.l + iw, y1: y, y2: y, stroke: css("--ink-2"), "stroke-width": 1, "stroke-dasharray": "5 4", opacity: 0.7 }, g);
+    txt("text", { x: m.l + iw - 4, y: y - 5, "text-anchor": "end", class: "ref-label" }, r.label, g); }
+  // band
+  if (cfg.band) { const [lo, hi] = cfg.band; el("rect", { x: m.l, width: iw, y: sy(hi), height: sy(lo) - sy(hi), fill: css("--accent-wash") }, g); }
+  // series
+  const pts = [];
+  for (const s of cfg.series) {
+    const col = css(s.color);
+    const P = s.points.filter(([x, y]) => y != null && isFinite(y) && (Y.type !== "log" || y > 0));
+    if (s.line !== false && P.length > 1) {
+      let d = ""; let pen = false;
+      for (const [x, y] of s.points) { if (y == null || !(Y.type !== "log" || y > 0)) { pen = false; continue; }
+        d += (pen ? "L" : "M") + sx(x).toFixed(1) + "," + sy(y).toFixed(1); pen = true; }
+      el("path", { d, fill: "none", stroke: col, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round",
+        "stroke-dasharray": s.dash || "none" }, g);
+    }
+    for (const [x, y, meta] of P) {
+      const cx = sx(x) + (s.jitter ? s.jitter(meta) : 0), cy = sy(y);
+      if (s.dots !== false) el("circle", { cx, cy, r: s.r || 4, fill: col, stroke: css("--paper"), "stroke-width": 2 }, g);
+      pts.push({ cx, cy, x, y, s, meta });
+    }
+    if (s.endLabel && P.length) { const [x, y] = P[P.length - 1];
+      txt("text", { x: sx(x) + 8, y: sy(y) + 4 + (s.endDy || 0), class: "end-label" }, s.endLabel, g); }
+  }
+  // hover
+  const tip = tipFor(host);
+  const hit = el("rect", { x: m.l, y: m.t, width: iw, height: ih, fill: "transparent" }, svg);
+  const cross = el("line", { y1: m.t, y2: m.t + ih, stroke: css("--axis"), "stroke-width": 1, visibility: "hidden" }, svg);
+  function move(ev) {
+    const r = svg.getBoundingClientRect(); const px = ev.clientX - r.left, py = ev.clientY - r.top;
+    if (cfg.mode === "point") {
+      let best = null, bd = 1e9; for (const p of pts) { const d = Math.hypot(p.cx - px, p.cy - py); if (d < bd) { bd = d; best = p; } }
+      if (!best || bd > 28) { tip.hide(); return; }
+      tip.show(best.cx, best.cy, cfg.pointHead(best), cfg.pointRows(best));
+    } else {
+      let bx = null, bd = 1e9; for (const p of pts) { const d = Math.abs(p.cx - px); if (d < bd) { bd = d; bx = p.x; } }
+      if (bx == null) return; const xs = sx(bx); cross.setAttribute("x1", xs); cross.setAttribute("x2", xs); cross.setAttribute("visibility", "visible");
+      const rows = cfg.series.map((s) => { const q = s.points.find((p) => p[0] === bx);
+        return q && q[1] != null ? { name: s.name, color: s.color, value: (cfg.yFmt || fmt.f2)(q[1]) } : null; }).filter(Boolean);
+      tip.show(xs, py, cfg.xHead ? cfg.xHead(bx) : String(bx), rows);
+    }
+  }
+  function leave() { tip.hide(); cross.setAttribute("visibility", "hidden"); }
+  hit.addEventListener("pointermove", move); hit.addEventListener("pointerleave", leave);
+  return { sx, sy, svg, m, iw, ih };
+}
+
+/* ---------- horizontal grouped bars ---------- */
+function hbars(host, cfg) {
+  host.querySelectorAll("svg").forEach((s) => s.remove());
+  const W = Math.max(280, host.clientWidth);
+  const narrow = W < 560;
+  const labelW = cfg.labelW ? Math.min(cfg.labelW, W * 0.42) : (narrow ? 0 : 200);
+  const nS = cfg.series.length, barH = cfg.barH || (nS > 1 ? 12 : 16), gap = 2;
+  const groupH = nS * barH + (nS - 1) * gap, rowGap = narrow ? 30 : 14;
+  const m = { l: (narrow ? 8 : labelW + 12), r: 64, t: 8, b: 30 };
+  const rowsH = cfg.cats.length * (groupH + rowGap + (narrow ? 0 : 0));
+  const H = m.t + rowsH + m.b;
+  const svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": cfg.aria || "" });
+  host.prepend(svg);
+  const iw = W - m.l - m.r;
+  const X = cfg.x; const lo = cfg.dot ? X.min : Math.min(0, X.min ?? 0), hi = X.max;
+  const sx = (v) => m.l + (v - lo) / (hi - lo) * iw;
+  const g = el("g", {}, svg);
+  for (const t of (X.ticks || niceTicks(lo, hi, narrow ? 4 : 6))) { const x = sx(t);
+    el("line", { x1: x, x2: x, y1: m.t, y2: m.t + rowsH - rowGap + (narrow ? 20 : 4), stroke: css("--grid") }, g);
+    txt("text", { x, y: H - 10, "text-anchor": "middle", class: "tick" }, X.fmt ? X.fmt(t) : t, g); }
+  if (!cfg.dot) { const zero = sx(0); el("line", { x1: zero, x2: zero, y1: m.t, y2: m.t + rowsH - rowGap + (narrow ? 20 : 4), stroke: css("--axis") }, g); }
+  const tip = tipFor(host);
+  cfg.cats.forEach((cat, ci) => {
+    const y0 = m.t + ci * (groupH + rowGap) + (narrow ? 16 : 0);
+    if (narrow) txt("text", { x: m.l, y: y0 - 5, class: "axis-label" }, cat, g);
+    else txt("text", { x: m.l - 10, y: y0 + groupH / 2 + 4, "text-anchor": "end", class: "axis-label" }, cat, g);
+    cfg.series.forEach((s, si) => {
+      const v = s.values[ci]; if (v == null) return;
+      const y = y0 + si * (barH + gap); const x1 = sx(Math.min(0, v)), x2 = sx(Math.max(0, v));
+      const w = Math.max(1, x2 - x1), r = Math.min(4, w / 2);
+      const pos = v >= 0;
+      const d = pos ? `M${x1},${y} h${w - r} a${r},${r} 0 0 1 ${r},${r} v${barH - 2 * r} a${r},${r} 0 0 1 ${-r},${r} h${-(w - r)} z`
+        : `M${x2},${y} h${-(w - r)} a${r},${r} 0 0 0 ${-r},${r} v${barH - 2 * r} a${r},${r} 0 0 0 ${r},${r} h${w - r} z`;
+      const color = (s.colorAt ? s.colorAt(ci) : s.color);
+      const label = (cfg.valFmt || fmt.f2)(v);
+      if (cfg.dot) {
+        el("line", { x1: sx(lo), x2: sx(v), y1: y + barH / 2, y2: y + barH / 2, stroke: css("--grid"), "stroke-width": 1 }, g);
+        el("circle", { cx: sx(v), cy: y + barH / 2, r: 5, fill: css(color), stroke: css("--paper"), "stroke-width": 2 }, g);
+        txt("text", { x: sx(v) + 10, y: y + barH / 2 + 4, class: "val-label" }, label, g);
+      } else {
+        el("path", { d, fill: css(color) }, g);
+        txt("text", { x: pos ? x2 + 6 : x1 - 6, y: y + barH / 2 + 4, "text-anchor": pos ? "start" : "end", class: "val-label" }, label, g);
+      }
+      const hitR = el("rect", { x: Math.min(x1, x2) - 2, y: y - 1, width: w + 4, height: barH + 2, fill: "transparent" }, g);
+      hitR.addEventListener("pointermove", (ev) => { const r = svg.getBoundingClientRect();
+        tip.show(ev.clientX - r.left, ev.clientY - r.top, cat, [{ name: s.nameAt ? s.nameAt(ci) : s.name, color, value: label }].concat(cfg.extraRows ? cfg.extraRows(ci, si) : [])); });
+      hitR.addEventListener("pointerleave", () => tip.hide());
+    });
+  });
+  return svg;
+}
+
+/* small multiples: every panel is laid out before any is drawn, so each measures its own column */
+function panel(host, title) {
+  const wrap = document.createElement("div"); const t = document.createElement("div"); t.className = "chart-title"; t.textContent = title;
+  const c = document.createElement("div"); c.className = "chart"; wrap.append(t, c); host.appendChild(wrap); return c;
+}
+
+/* ---------- figures ---------- */
+const SERIES = { sss: "--s1", mip: "--s2", a: "--s3", b: "--s4" };
+const SCALE_LABELS = ["1/1 (800 px)", "1/2 (400 px)", "1/4 (200 px)", "1/8 (100 px)"];
+const NUBINS = (h) => h.map(([b]) => b);
+
+function figConcept() {
+  const s = 0.1, sigma = 0.2, mu = 0.5;
+  const kern = (x, nu, var2) => Math.pow(1 + (x - mu) ** 2 / (nu * var2), -(nu + 2) / 2);
+  legend("concept", [{ name: "SSS, unfiltered", color: "--s1" }, { name: "Option A, s = 0.1 px²", color: "--s2" }]);
+  for (const nu of [100, 1]) {
+    const xs = []; for (let x = -2; x <= 3.0001; x += 0.02) xs.push(+x.toFixed(3));
+    const amp = sigma ** 2 / (sigma ** 2 + s);
+    const un = xs.map((x) => [x, kern(x, nu, sigma ** 2)]);
+    const fi = xs.map((x) => [x, amp * kern(x, nu, sigma ** 2 + s)]);
+    const pix = [-2, -1, 0, 1, 2, 3];
+    const host = document.getElementById(`c-concept-${nu}`);
+    xyChart(host, { height: 220, x: { type: "lin", min: -2, max: 3, ticks: pix }, y: { type: "lin", min: 0, max: 1, ticks: [0, 0.25, 0.5, 0.75, 1] },
+      xLabel: "position (px)", ml: 40, mode: "point",
+      series: [
+        { name: "SSS", color: "--s1", points: un, dots: false },
+        { name: "Option A", color: "--s2", points: fi, dots: false },
+        { name: "SSS at pixel", color: "--s1", points: pix.map((x) => [x, kern(x, nu, sigma ** 2)]), line: false },
+        { name: "Option A at pixel", color: "--s2", points: pix.map((x) => [x, amp * kern(x, nu, sigma ** 2 + s)]), line: false },
+      ],
+      pointHead: (p) => `x = ${p.x} px, ν = ${nu}`, pointRows: (p) => [{ name: p.s.name, color: p.s.color, value: p.y.toFixed(3) }] });
+  }
+}
+
+function figQuad() {
+  const ser = DATA.quad.series, names = Object.keys(ser), cols = ["--s1", "--s2", "--s3", "--s4", "--s5"];
+  legend("quad", names.map((n, i) => ({ name: n, color: cols[i] })));
+  xyChart($("#c-quad"), { height: 320, x: { type: "log", min: 1, max: 1e4 }, y: { type: "log", min: 1e-14, max: 1, ticks: [1e-14, 1e-12, 1e-10, 1e-8, 1e-6, 1e-4, 1e-2, 1] },
+    xLabel: "degrees of freedom ν", yLabel: "max |α error|", refs: [{ y: 1e-3, label: "criterion 10⁻³" }, { y: 1 / 255, label: "1/255" }],
+    series: names.map((n, i) => ({ name: n, color: cols[i], points: ser[n].nu.map((v, j) => [v, ser[n].max_abs[j]]) })),
+    yFmt: fmt.sci, xHead: (x) => `ν = ${x}` });
+  table("t-quad", ["ν", ...names], ser[names[0]].nu.map((v, j) => [String(v), ...names.map((n) => fmt.sci(ser[n].max_abs[j]))]), names.map((_, i) => i + 1).concat([0]));
+
+  const sc = DATA.quad.scatter, cvs = [["none", "--s1"], ["A", "--s2"], ["A′", "--s3"]], Ks = [4, 8, 12, 16, 32];
+  legend("quadk", cvs.map(([n, c]) => ({ name: n === "none" ? "no control variate" : `control variate ${n}`, color: c, dot: true })));
+  xyChart($("#c-quadk"), { height: 300, x: { type: "cat", cats: Ks.map((k) => `K = ${k}`) }, y: { type: "log", min: 1e-7, max: 10, ticks: [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10] },
+    yLabel: "worst max |α error| over ν", refs: [{ y: 1e-3, label: "criterion" }], mode: "point",
+    series: cvs.map(([cv, c], ci) => ({ name: cv, color: c, line: false, r: 4,
+      points: sc.filter((p) => p.cv === cv && Ks.includes(p.K)).map((p) => [Ks.indexOf(p.K), p.worst_max_abs, p]),
+      jitter: () => (ci - 1) * 9 })),
+    pointHead: (p) => p.meta.candidate, pointRows: (p) => [{ name: "worst max abs", color: p.s.color, value: fmt.sci(p.y) }] });
+  table("t-quadk", ["rule", "K", "control variate", "worst max abs"],
+    sc.slice().sort((a, b) => a.worst_max_abs - b.worst_max_abs).map((p) => [p.candidate, String(p.K), p.cv, fmt.sci(p.worst_max_abs)]), [1, 3]);
+
+  const sh = DATA.shortcut.series, pick = ["1.0", "4.0", "30.0", "100.0", "300.0"];
+  legend("short", pick.map((n, i) => ({ name: `ν = ${+n}`, color: cols[i] })));
+  xyChart($("#c-short"), { height: 300, x: { type: "log", min: 0.1, max: 1000 }, y: { type: "log", min: 1e-6, max: 1, ticks: [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1] },
+    xLabel: "ρ = λmin(Σ) / s", yLabel: "Option A max |α error|", refs: [{ y: 1e-3, label: "ε = 10⁻³" }, { y: 1 / 255, label: "1/255" }],
+    series: pick.map((n, i) => ({ name: `ν = ${+n}`, color: cols[i], points: sh[n].rho.map((r, j) => [r, sh[n].A[j]]) })),
+    yFmt: fmt.sci, xHead: (x) => `ρ = ${x}` });
+  table("t-short", ["ρ", ...pick.map((n) => `ν = ${+n}`)], sh[pick[0]].rho.map((r, j) => [String(r), ...pick.map((n) => fmt.sci(sh[n].A[j]))]), [0, 1, 2, 3, 4, 5]);
+}
+
+function figM0() {
+  const paper = { train: [23.32, 0.850, 0.166], garden: [28.09, 0.882, "0.009 (sic)"] };
+  const tb = $("#t-m0"); tb.textContent = "";
+  for (const s of ["train", "garden"]) {
+    const su = DATA.m0[s].summary;
+    const mk = (cells, cls) => { const tr = document.createElement("tr"); cells.forEach((c, i) => { const td = document.createElement("td"); td.textContent = c; if (i > 1) td.className = "n"; tr.appendChild(td); }); tb.appendChild(tr); };
+    mk([s === "train" ? "train (T&T, 980×545)" : "garden (360, 1297×840)", "this project", su.psnr.toFixed(2), su.ssim.toFixed(3), su.lpips.toFixed(3),
+      (su.components / 1e6).toFixed(2) + "M", (su.train_s / 60).toFixed(1) + " min", su.fps.toFixed(1)]);
+    mk(["", "SSS paper", paper[s][0].toFixed(2), paper[s][1].toFixed(3), typeof paper[s][2] === "number" ? paper[s][2].toFixed(3) : paper[s][2], "—", "—", "—"]);
+  }
+  const H = { train: DATA.m0.train.stats.nu_hist, garden: DATA.m0.garden.stats.nu_hist };
+  histChart("m0nu", "c-m0nu", "t-m0nu", [["train", "--s1", H.train], ["garden", "--s2", H.garden]]);
+
+  const sub = (st) => st.rho_hist.slice(0, 4).reduce((acc, [, v]) => acc.map((a, i) => a + v[i]), [0, 0, 0, 0])
+    .map((v, i) => 100 * v / st.rho_hist.reduce((a, [, w]) => a + w[i], 0));
+  const S = [["train (T&T)", "--s1", sub(DATA.m0.train.stats)], ["garden (360)", "--s2", sub(DATA.m0.garden.stats)],
+             ["lego (Blender, SSS)", "--s3", sub(DATA.pilot.lego_sss.stats)]];
+  legend("sub", S.map(([n, c]) => ({ name: n, color: c })));
+  const cats = ["1/1", "1/2", "1/4", "1/8"];
+  xyChart($("#c-sub"), { height: 260, x: { type: "cat", cats }, y: { type: "lin", min: 0, max: 100, ticks: [0, 25, 50, 75, 100], fmt: (v) => v + "%" },
+    xLabel: "render scale relative to training", yLabel: "pairs with ρ < 1",
+    series: S.map(([n, c, v]) => ({ name: n, color: c, points: v.map((y, i) => [i, y]) })), yFmt: fmt.pct, xHead: (x) => cats[x] });
+  table("t-sub", ["scale", ...S.map((s) => s[0])], cats.map((c, i) => [c, ...S.map((s) => fmt.pct(s[2][i]))]), [1, 2, 3]);
+}
+
+function histChart(key, chartId, tableId, sets) {
+  const bins = NUBINS(sets[0][2]);
+  legend(key, sets.map(([n, c]) => ({ name: n, color: c })));
+  const share = sets.map(([, , h]) => { const tot = h.reduce((a, [, v]) => a + v, 0); return h.map(([, v]) => (v ? 100 * v / tot : null)); });
+  const short = bins.map((b) => b.replace(/^\[/, "").split(",")[0]);
+  xyChart(document.getElementById(chartId), { height: 300, x: { type: "cat", cats: short }, y: { type: "log", min: 1e-4, max: 100, ticks: [1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100], fmt: (v) => (v >= 1 ? v + "%" : v + "%") },
+    xLabel: "ν bin (lower edge)", yLabel: "share of components",
+    series: sets.map(([n, c], i) => ({ name: n, color: c, points: share[i].map((y, j) => [j, y]) })),
+    yFmt: (v) => (v >= 0.1 ? v.toFixed(2) : v.toPrecision(2)) + "%", xHead: (x) => `ν in ${bins[x]}` });
+  table(tableId, ["ν bin", ...sets.map((s) => s[0] + " (count)")], bins.map((b, j) => [b, ...sets.map(([, , h]) => fmt.int(h[j][1]))]), sets.map((_, i) => i + 1));
+}
+
+function figSanity() {
+  const T = DATA.train7k, labels = Object.keys(T);
+  const isB = (l) => /Option B/.test(l);
+  legend("sanity", [{ name: "fast path only (SSS kernel, Option A)", color: "--s1", dot: true }, { name: "Option B hybrid", color: "--s4", dot: true }]);
+  hbars($("#c-sanity"), { cats: labels, labelW: 250, barH: 14, dot: true, x: { min: 19.4, max: 19.9, ticks: [19.4, 19.5, 19.6, 19.7, 19.8, 19.9], fmt: (v) => v.toFixed(1) },
+    series: [{ name: "PSNR", values: labels.map((l) => T[l].summary.psnr), colorAt: (i) => (isB(labels[i]) ? "--s4" : "--s1") }],
+    valFmt: (v) => v.toFixed(2) });
+  table("t-sanity", ["run", "PSNR", "SSIM", "LPIPS", "FPS", "train s", "ν at 1"],
+    labels.map((l) => { const s = T[l].summary; return [l, s.psnr.toFixed(2), s.ssim.toFixed(3), s.lpips.toFixed(3), s.fps.toFixed(0), s.train_s.toFixed(0), T[l].stats ? fmt.pct(T[l].stats.nu_at_1) : "—"]; }), [1, 2, 3, 4, 5, 6]);
+}
+
+function figNu() {
+  const T = DATA.train7k;
+  const rows = [
+    ["Option A (M4 s1)", "M4 Option A (s1)", "sss"], ["Option A + eff. reloc + filt. reg (M5)", "M5 Option A + eff. reloc + filt. reg", "sss"],
+    ["Option B + 3D (M4 s1)", "M4 Option B + 3D (s1)", "b"], ["Option B + 3D (M4 s8)", "M4 Option B + 3D (s8)", "b"],
+    ["Option B, σ3 = 0 (a)", "M4 Option B, σ3=0 (a)", "b"], ["Option B, σ3 = 0 (b)", "M4 Option B, σ3=0 (b)", "b"],
+    ["Option B, σ3 = 0 (c)", "M4 Option B, σ3=0 (c)", "b"], ["Option B + eff. reloc + filt. reg (M5)", "M5 Option B + eff. reloc + filt. reg", "b"],
+    ["Option A + exact ν grad (M5)", "M5 Option A + exact ν grad", "all"], ["Option B + exact ν grad (M5)", "M5 Option B + exact ν grad", "all"],
+  ];
+  const col = { sss: "--s1", b: "--s4", all: "--s2" }, nm = { sss: "SSS's gradient everywhere", b: "exact on Option B components only", all: "exact everywhere" };
+  legend("nu1", ["sss", "b", "all"].map((k) => ({ name: nm[k], color: col[k] })));
+  hbars($("#c-nu1"), { cats: rows.map((r) => r[0]), labelW: 270, x: { min: 0, max: 70, ticks: [0, 10, 20, 30, 40, 50, 60, 70], fmt: (v) => v + "%" },
+    series: [{ name: "ν = 1", values: rows.map((r) => T[r[1]].stats.nu_at_1), colorAt: (i) => col[rows[i][2]], nameAt: (i) => nm[rows[i][2]] }], valFmt: fmt.pct });
+  table("t-nu1", ["run", "ν gradient", "ν at 1", "ν median", "Option B share (1/1)"],
+    rows.map((r) => { const st = T[r[1]].stats; return [r[0], nm[r[2]], fmt.pct(st.nu_at_1), String(st.nu_median), fmt.pct(st.per_scale[0].optb_share)]; }), [2, 3, 4]);
+
+  histChart("nuhist", "c-nuhist", "t-nuhist", [["Option A, SSS's gradient", "--s1", T["M4 Option A (s1)"].stats.nu_hist],
+    ["Option B + 3D (M4 s8)", "--s4", T["M4 Option B + 3D (s8)"].stats.nu_hist], ["Option A, exact gradient", "--s2", T["M5 Option A + exact ν grad"].stats.nu_hist]]);
+
+  const labels = Object.keys(T).filter((l) => T[l].stats);
+  const fast = labels.filter((l) => !/Option B/.test(l)), ob = labels.filter((l) => /Option B/.test(l));
+  legend("fps", [{ name: "fast path only", color: "--s1", dot: true }, { name: "Option B hybrid", color: "--s4", dot: true }]);
+  xyChart($("#c-fps"), { height: 300, x: { type: "lin", min: 0, max: 70, ticks: [0, 10, 20, 30, 40, 50, 60, 70], fmt: (v) => v + "%" }, y: { type: "lin", min: 0, max: 160, ticks: [0, 40, 80, 120, 160] },
+    xLabel: "components at ν = 1", yLabel: "render FPS (980×545)", mode: "point",
+    series: [["fast path only", "--s1", fast], ["Option B hybrid", "--s4", ob]].map(([n, c, ls]) => ({ name: n, color: c, line: false, r: 5,
+      points: ls.map((l) => [T[l].stats.nu_at_1, T[l].summary.fps, l]) })),
+    pointHead: (p) => p.meta, pointRows: (p) => [{ name: "ν at 1", color: p.s.color, value: fmt.pct(p.x) }, { name: "FPS", value: p.y.toFixed(0) },
+      { name: "peak memory", value: (T[p.meta].summary.peak_gpu_mem_mib / 1024).toFixed(1) + " GB" }] });
+  table("t-fps", ["run", "ν at 1", "FPS", "peak GPU memory", "train time"],
+    labels.map((l) => [l, fmt.pct(T[l].stats.nu_at_1), T[l].summary.fps.toFixed(0), (T[l].summary.peak_gpu_mem_mib / 1024).toFixed(1) + " GB", T[l].summary.train_s.toFixed(0) + " s"]), [1, 2, 3, 4]);
+}
+
+function figDrift() {
+  const rows = DATA.drift.rows, shapes = [...new Set(rows.map((r) => r.shape))];
+  const worst = (sh, k) => Math.max(...rows.filter((r) => r.shape === sh).map((r) => r[k]));
+  const S = [["SSS, no filters", "--s1", "sss"], ["filters on, SSS's rule on raw opacity", "--s2", "raw_fast"], ["filters on, effective opacity (M5)", "--s3", "eff_fast"]];
+  legend("drift", S.map(([n, c]) => ({ name: n, color: c })));
+  hbars($("#c-drift"), { cats: shapes, labelW: 130, x: { min: 0, max: 0.2, ticks: [0, 0.05, 0.1, 0.15, 0.2] },
+    series: S.map(([n, c, k]) => ({ name: n, color: c, values: shapes.map((s) => worst(s, k)) })), valFmt: fmt.f3 });
+  table("t-drift", ["shape (px)", "ν", "o", "N", "SSS", "raw, fast", "eff., fast", "raw, exact", "eff., exact"],
+    rows.map((r) => [r.shape, String(r.nu), String(r.o), String(r.N), ...["sss", "raw_fast", "eff_fast", "raw_exact", "eff_exact"].map((k) => r[k].toFixed(3))]), [1, 2, 3, 4, 5, 6, 7, 8]);
+}
+
+function figPilot() {
+  const P = DATA.pilot, runs = [["SSS", "lego_sss", "--s1"], ["Mip-Splatting (dda02ab)", "lego_mip", "--s2"], ["SSS + Option A (both filters)", "lego_a", "--s3"]];
+  legend("pilot", runs.map(([n, , c]) => ({ name: n, color: c })));
+  const host = $("#c-pilot"); host.textContent = "";
+  const metrics = [["PSNR (dB) ↑", "PSNR", { min: 24, max: 38, ticks: [24, 28, 32, 36] }, fmt.f2],
+    ["SSIM ↑", "SSIM", { min: 0.93, max: 0.99, ticks: [0.93, 0.95, 0.97, 0.99] }, fmt.f4],
+    ["LPIPS-VGG ↓", "LPIPS", { min: 0, max: 0.08, ticks: [0, 0.02, 0.04, 0.06, 0.08] }, fmt.f4]];
+  const cats = ["1/1", "1/2", "1/4", "1/8"];
+  const panels = metrics.map(([title]) => panel(host, title));
+  for (const [i, [title, key, y, f]] of metrics.entries()) {
+    xyChart(panels[i], { height: 240, x: { type: "cat", cats }, y: { type: "lin", ...y }, ml: 52, xLabel: "test scale", yFmt: f, xHead: (x) => SCALE_LABELS[x],
+      series: runs.map(([n, r, col]) => ({ name: n, color: col, points: ["0", "1", "2", "3"].map((k, i) => [i, P[r].summary.per_scale[k][key]]) })) });
+  }
+  const tr = [];
+  for (const [n, r] of runs) for (const [, key, , f] of metrics) tr.push([n, key, ...["0", "1", "2", "3"].map((k) => f(P[r].summary.per_scale[k][key])), f(["0", "1", "2", "3"].reduce((a, k) => a + P[r].summary.per_scale[k][key], 0) / 4)]);
+  table("t-pilot", ["configuration", "metric", ...SCALE_LABELS, "mean of scales"], tr, [2, 3, 4, 5, 6]);
+
+  const d = (r) => ["0", "1", "2", "3"].map((k) => P[r].summary.per_scale[k].PSNR - P.lego_mip.summary.per_scale[k].PSNR);
+  legend("delta", [{ name: "SSS", color: "--s1" }, { name: "SSS + Option A", color: "--s3" }]);
+  hbars($("#c-delta"), { cats: SCALE_LABELS, labelW: 110, x: { min: -3, max: 3, ticks: [-3, -2, -1, 0, 1, 2, 3], fmt: (v) => (v > 0 ? "+" : "") + v + " dB" },
+    series: [{ name: "SSS", color: "--s1", values: d("lego_sss") }, { name: "SSS + Option A", color: "--s3", values: d("lego_a") }], valFmt: (v) => (v > 0 ? "+" : "") + v.toFixed(2) });
+  table("t-delta", ["scale", "SSS − Mip-Splatting", "SSS + A − Mip-Splatting"], SCALE_LABELS.map((s, i) => [s, d("lego_sss")[i].toFixed(2) + " dB", d("lego_a")[i].toFixed(2) + " dB"]), [1, 2]);
+
+  legend("cost", runs.map(([n, , c]) => ({ name: n, color: c })));
+  const ch = $("#c-cost"); ch.textContent = "";
+  const cm = [["Training time (min)", (s) => s.train_s / 60, 30, fmt.f2], ["Render FPS (800 × 800)", (s) => s.fps, 400, (v) => v.toFixed(0)],
+    ["Peak GPU memory (GB)", (s) => s.peak_gpu_mem_mib / 1024, 10, (v) => v.toFixed(1)], ["Components (thousands)", (s) => s.components / 1000, 320, (v) => v.toFixed(0)]];
+  const cpanels = cm.map(([title]) => panel(ch, title));
+  for (const [i, [title, get, max, f]] of cm.entries()) {
+    hbars(cpanels[i], { cats: runs.map(([n]) => n.replace(" (dda02ab)", "").replace(" (both filters)", "")), labelW: 120, barH: 14, x: { min: 0, max },
+      series: [{ name: title, values: runs.map(([, r]) => get(P[r].summary)), colorAt: (i) => runs[i][2], nameAt: (i) => runs[i][0] }], valFmt: f });
+  }
+  table("t-cost", ["configuration", "train time", "FPS", "peak GPU memory", "components", "GPU"],
+    runs.map(([n, r]) => { const s = P[r].summary; return [n, (s.train_s / 60).toFixed(1) + " min", s.fps.toFixed(0), (s.peak_gpu_mem_mib / 1024).toFixed(1) + " GB", fmt.int(s.components), "A100 40 GB"]; }), [1, 2, 3, 4]);
+
+  histChart("legonu", "c-legonu", "t-legonu", [["SSS", "--s1", P.lego_sss.stats.nu_hist], ["SSS + Option A", "--s3", P.lego_a.stats.nu_hist]]);
+}
+
+function figUnits() {
+  const U = [["M0 · SSS baselines", 12.5, "A100"], ["M2 · 2D filter", 3.55, "G4"], ["M3 · 3D filter", 6.36, "G4"], ["M4 · Option B (8 sessions)", 26.40, "G4"],
+    ["M5 · SSS integration", 12.89, "G4"], ["M6 · pilot session 1 (lost)", 12.45, "G4"], ["M6 · pilot session 2", 15.48, "A100"]];
+  const col = { G4: "--s1", A100: "--s2" };
+  legend("units", [{ name: "G4 (RTX PRO 6000)", color: "--s1" }, { name: "A100 40 GB", color: "--s2" }]);
+  hbars($("#c-units"), { cats: U.map((u) => u[0]), labelW: 230, x: { min: 0, max: 30, ticks: [0, 5, 10, 15, 20, 25, 30] },
+    series: [{ name: "units", values: U.map((u) => u[1]), colorAt: (i) => col[U[i][2]], nameAt: (i) => U[i][2] }], valFmt: fmt.f2 });
+  table("t-units", ["milestone", "GPU", "units"], U.map((u) => [u[0], u[2], u[1].toFixed(2)]), [2]);
+  return U.reduce((a, u) => a + u[1], 0);
+}
+
+/* bound text */
+function binds(total) {
+  const P = DATA.pilot, d8 = (r) => P[r].summary.per_scale["3"].PSNR.toFixed(2) + " dB";
+  const B = { "pilot.d8.a": d8("lego_a"), "pilot.d8.mip": d8("lego_mip"), "pilot.d8.sss": d8("lego_sss"),
+    "pilot.mipcount": fmt.int(P.lego_mip.summary.components) + " components", "pilot.blast": fmt.int(DATA.pilot_lego_b_last.iteration),
+    "units.total": total.toFixed(1) };
+  document.querySelectorAll("[data-bind]").forEach((e) => { e.textContent = B[e.dataset.bind] ?? "?"; });
+}
+
+function renderAll() {
+  figConcept(); figQuad(); figM0(); figSanity(); figNu(); figDrift(); figPilot();
+  binds(figUnits());
+}
+renderAll();
+let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(renderAll, 150); });
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
+new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+</script>
